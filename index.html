@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IoT MQTT Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --card-bg: #161b24;
+      --card-border: #232a38;
+      --accent: #3b82f6;
+      --accent-dim: #1d3557;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --fan-track: #1e2a3a;
+      --modal-bg: #0d0f14cc;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    /* ── Modal overlay ───────────────────────────────── */
+    #login-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(6,8,12,0.92);
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    #login-overlay.hidden { display: none; }
+    .login-box {
+      background: #161b24; border: 1px solid #2a3348; border-radius: 16px;
+      padding: 36px 32px; width: 100%; max-width: 420px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    }
+    .login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+    .login-logo i { font-size: 28px; color: var(--accent); }
+    .login-logo span { font-size: 20px; font-weight: 700; color: var(--text); }
+    .login-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    .field input {
+      width: 100%; padding: 10px 14px; background: #0d1117;
+      border: 1px solid var(--card-border); border-radius: 8px;
+      color: var(--text); font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: var(--accent); }
+    .field input::placeholder { color: #3a4a60; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .login-err { font-size: 12px; color: var(--danger); margin-bottom: 12px; min-height: 16px; }
+    .btn-login {
+      width: 100%; padding: 11px; background: var(--accent); color: #fff;
+      border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s; margin-top: 4px;
+    }
+    .btn-login:hover { background: #2563eb; }
+    .login-hint { font-size: 11px; color: #3a4a60; margin-top: 14px; text-align: center; }
+
+    /* ── Topbar ──────────────────────────────────────── */
+    .topbar {
+      background: #0a0c10; border-bottom: 1px solid var(--card-border);
+      padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-brand { font-size: 16px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .topbar-brand i { color: var(--accent); font-size: 20px; }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .broker-info { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .broker-info span.host { color: var(--text); font-weight: 500; }
+    .broker-status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); transition: background 0.4s; flex-shrink: 0; }
+    .dot.online { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .btn-logout {
+      font-size: 12px; color: var(--muted); background: none; border: 1px solid var(--card-border);
+      border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 5px;
+    }
+    .btn-logout:hover { color: var(--danger); border-color: var(--danger); }
+
+    /* ── Main ────────────────────────────────────────── */
+    .main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+    .section-header { margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+    .section-header h5 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    #devices-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+
+    /* ── Device Card ─────────────────────────────────── */
+    .device-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; transition: border-color 0.25s; }
+    .device-card.pulse { border-color: var(--accent); }
+    .card-head { padding: 14px 18px; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; }
+    .card-head-left { display: flex; align-items: center; gap: 10px; }
+    .device-icon { width: 36px; height: 36px; background: var(--accent-dim); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 16px; flex-shrink: 0; }
+    .device-name { font-size: 15px; font-weight: 600; color: var(--text); }
+    .device-id { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .status-badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; background: #14261a; color: var(--success); border: 1px solid #1a3d24; }
+    .card-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 16px; }
+    .module-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+
+    /* Switches */
+    .switches-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .switch-item { background: #0d1117; border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+    .switch-label { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switch-btns { display: flex; gap: 6px; }
+    .btn-on, .btn-off { flex: 1; border: none; border-radius: 6px; padding: 5px 0; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .btn-on { background: #14261a; color: var(--success); border: 1px solid #1a3d24; }
+    .btn-on:hover { background: #1a3326; }
+    .btn-on.active { background: var(--success); color: #0a1a10; border-color: var(--success); }
+    .btn-off { background: #1f1414; color: var(--danger); border: 1px solid #3d1a1a; }
+    .btn-off:hover { background: #2a1818; }
+    .btn-off.active { background: var(--danger); color: #1a0808; border-color: var(--danger); }
+
+    /* Fan */
+    .fan-item { background: #0d1117; border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 14px; }
+    .fan-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .fan-name { font-size: 12px; color: var(--muted); }
+    .fan-speed-badge { font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border-radius: 6px; padding: 2px 8px; min-width: 28px; text-align: center; }
+    .fan-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-bottom: 10px; }
+    .fan-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #0d0f14; }
+    .fan-slider::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #0d0f14; }
+    .fan-speed-btns { display: flex; gap: 6px; }
+    .btn-speed { flex: 1; background: #1a1e28; border: 1px solid var(--card-border); color: var(--muted); border-radius: 6px; padding: 4px 0; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .btn-speed:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-speed.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+    /* Info chips */
+    .info-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .info-chip { background: #0d1117; border: 1px solid var(--card-border); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: var(--muted); display: flex; gap: 5px; }
+    .info-chip span { color: var(--text); font-weight: 500; }
+
+    /* Empty */
+    .empty-state { grid-column: 1/-1; text-align: center; padding: 80px 20px; color: var(--muted); }
+    .empty-state i { font-size: 48px; display: block; margin-bottom: 16px; color: #2a3346; }
+    .empty-state p { font-size: 14px; }
+
+    /* Toast */
+    #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast-msg { background: #1a2035; border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 14px; font-size: 12px; color: var(--muted); animation: fadeUp 0.2s; max-width: 340px; }
+    .toast-msg strong { color: var(--text); display: block; margin-bottom: 3px; }
+    .toast-msg code { color: var(--accent); font-size: 11px; word-break: break-all; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  </style>
+</head>
+<body>
+
+<!-- ── Login Modal ─────────────────────────────────────────────────────────── -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <i class="bi bi-cpu-fill"></i>
+      <span>IoT Dashboard</span>
+    </div>
+    <div class="login-title">MQTT Broker Connection</div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Host</label>
+        <input id="f-host" type="text" placeholder="mqtt.example.com" value="mqtt.teleson.in">
+      </div>
+      <div class="field">
+        <label>Port (WS)</label>
+        <input id="f-port" type="number" placeholder="8083" value="8083">
+      </div>
+    </div>
+    <div class="field">
+      <label>Username / Topic Prefix</label>
+      <input id="f-user" type="text" placeholder="username" value="sangmeshwar">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="f-pass" type="password" placeholder="password" value="public123">
+    </div>
+
+    <div class="login-err" id="login-err"></div>
+    <button class="btn-login" onclick="doLogin()">
+      <i class="bi bi-plug-fill me-1"></i> Connect &amp; Save
+    </button>
+    <div class="login-hint">Credentials are saved in your browser's localStorage.</div>
+  </div>
+</div>
+
+<!-- ── Topbar ──────────────────────────────────────────────────────────────── -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <i class="bi bi-cpu-fill"></i>
+    IoT Dashboard
+  </div>
+  <div class="topbar-right">
+    <div class="broker-info">
+      <i class="bi bi-hdd-rack"></i>
+      <span class="host" id="topbar-host">—</span>
+    </div>
+    <div class="broker-status">
+      <span id="status-text">—</span>
+      <div class="dot" id="status-dot"></div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">
+      <i class="bi bi-box-arrow-right"></i> Logout
+    </button>
+  </div>
+</div>
+
+<!-- ── Main ───────────────────────────────────────────────────────────────── -->
+<div class="main">
+  <div class="section-header">
+    <h5><i class="bi bi-router me-1"></i> Live Devices</h5>
+  </div>
+  <div id="devices-container">
+    <div class="empty-state">
+      <i class="bi bi-broadcast"></i>
+      <p>Waiting for device messages…</p>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ── localStorage keys ─────────────────────────────────────────────────────────
+const LS_KEY = 'mqtt_creds';
+
+function loadCreds() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || null; }
+  catch { return null; }
+}
+function saveCreds(obj) {
+  localStorage.setItem(LS_KEY, JSON.stringify(obj));
+}
+function clearCreds() {
+  localStorage.removeItem(LS_KEY);
+}
+
+// ── Login modal logic ─────────────────────────────────────────────────────────
+function doLogin() {
+  const host = document.getElementById('f-host').value.trim();
+  const port = document.getElementById('f-port').value.trim();
+  const user = document.getElementById('f-user').value.trim();
+  const pass = document.getElementById('f-pass').value.trim();
+  const err  = document.getElementById('login-err');
+
+  if (!host || !port || !user) { err.textContent = 'Host, port and username are required.'; return; }
+  err.textContent = '';
+
+  const creds = { host, port, user, pass };
+  saveCreds(creds);
+  document.getElementById('login-overlay').classList.add('hidden');
+  initMQTT(creds);
+}
+
+function doLogout() {
+  clearCreds();
+  location.reload();
+}
+
+// Pre-fill form from saved creds
+function prefillForm(c) {
+  if (!c) return;
+  document.getElementById('f-host').value = c.host || '';
+  document.getElementById('f-port').value = c.port || '';
+  document.getElementById('f-user').value = c.user || '';
+  document.getElementById('f-pass').value = c.pass || '';
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let allDevicesData = {};
+let mqttClient     = null;
+let MQTT_USER      = '';
+
+// ── MQTT init ─────────────────────────────────────────────────────────────────
+function initMQTT(creds) {
+  MQTT_USER = creds.user;
+  const broker = `ws://${creds.host}:${creds.port}/mqtt`;
+
+  document.getElementById('topbar-host').textContent = `${creds.host}:${creds.port}`;
+  document.getElementById('status-text').textContent = 'Connecting…';
+
+  const options = {
+    username: creds.user,
+    password: creds.pass,
+    clientId: 'dash_' + Math.random().toString(16).substr(2, 8),
+  };
+
+  if (mqttClient) { try { mqttClient.end(true); } catch {} }
+  mqttClient = mqtt.connect(broker, options);
+
+  const statusText = document.getElementById('status-text');
+  const statusDot  = document.getElementById('status-dot');
+
+  mqttClient.on('connect', () => {
+    statusText.textContent = 'Connected';
+    statusDot.classList.add('online');
+    mqttClient.subscribe(`${MQTT_USER}/+/info`);
+    mqttClient.subscribe(`${MQTT_USER}/+/live`);
+  });
+  mqttClient.on('offline', () => {
+    statusText.textContent = 'Disconnected';
+    statusDot.classList.remove('online');
+  });
+  mqttClient.on('error', (e) => {
+    statusText.textContent = 'Error';
+    statusDot.classList.remove('online');
+    console.error('MQTT error:', e);
+  });
+  mqttClient.on('message', (topic, message) => {
+    try {
+      const parts    = topic.split('/');
+      const deviceId = parts[1];
+      const msgType  = parts[2];
+      const payload  = JSON.parse(message.toString());
+      if (!allDevicesData[deviceId]) allDevicesData[deviceId] = {};
+      allDevicesData[deviceId][msgType] = payload;
+      renderDevice(deviceId);
+    } catch(e) { console.error('Parse error:', e); }
+  });
+}
+
+// ── Publish ───────────────────────────────────────────────────────────────────
+function publishCmd(deviceId, moduleId, key, value) {
+  const cmdType = key.startsWith('fan') ? 'FAN' : 'ry';
+  const cmd     = `${cmdType} ${moduleId} ${key} ${value} .${moduleId} ok .`;
+  const topic   = `${MQTT_USER}/${deviceId}/cmd`;
+  if (mqttClient && mqttClient.connected) {
+    mqttClient.publish(topic, cmd);
+    showToast(topic, cmd);
+  } else {
+    showToast('⚠ Not connected', cmd);
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(topic, cmd) {
+  const el = document.createElement('div');
+  el.className = 'toast-msg';
+  el.innerHTML = `<strong>Published</strong><code>${topic}</code><br><code>${cmd}</code>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ── Render device card ────────────────────────────────────────────────────────
+function renderDevice(deviceId) {
+  const data     = allDevicesData[deviceId] || {};
+  const info     = data.info   || {};
+  const live     = data.live   || {};
+  const moduleId = info.n || 'b0';
+  const modules  = info[moduleId] || {};
+
+  const switches = Object.entries(modules).filter(([k]) => /^r\d+$/.test(k));
+  const fans     = Object.entries(modules).filter(([k]) => /^fan\d+$/.test(k));
+
+  const switchesHtml = switches.length ? `
+    <div>
+      <div class="module-label"><i class="bi bi-toggle-on"></i> Switches</div>
+      <div class="switches-grid">
+        ${switches.map(([key, label]) => {
+          const isOn = live[key] === 1 || live[key] === '1' || live[key] === true;
+          return `<div class="switch-item">
+            <div class="switch-label" title="${label}">${label}</div>
+            <div class="switch-btns">
+              <button class="btn-on ${isOn?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',1)">ON</button>
+              <button class="btn-off ${!isOn?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',0)">OFF</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : '';
+
+  const fansHtml = fans.length ? `
+    <div>
+      <div class="module-label"><i class="bi bi-fan"></i> Fans</div>
+      ${fans.map(([key, label]) => {
+        const speed = parseInt(live[key]) || 0;
+        const pct   = (speed / 4) * 100;
+        return `<div class="fan-item" id="fan-${deviceId}-${key}">
+          <div class="fan-header">
+            <span class="fan-name">${label}</span>
+            <span class="fan-speed-badge" id="fanspd-${deviceId}-${key}">${speed}</span>
+          </div>
+          <input type="range" class="fan-slider" min="0" max="4" step="1" value="${speed}"
+            style="background:linear-gradient(to right,var(--accent) ${pct}%,var(--fan-track) ${pct}%)"
+            oninput="onSlider(this,'${deviceId}','${moduleId}','${key}')"
+            onchange="sendFan('${deviceId}','${moduleId}','${key}',this.value)">
+          <div class="fan-speed-btns">
+            ${[0,1,2,3,4].map(s=>`<button class="btn-speed ${speed===s?'active':''}"
+              onclick="sendFanBtn(this,'${deviceId}','${moduleId}','${key}',${s})">${s}</button>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  const extraKeys = Object.keys(live).filter(k => !modules[k] && k !== 'time');
+  const extraHtml = extraKeys.length ? `
+    <div>
+      <div class="module-label"><i class="bi bi-activity"></i> Telemetry</div>
+      <div class="info-row">
+        ${extraKeys.slice(0,12).map(k=>`<div class="info-chip">${k}: <span>${live[k]}</span></div>`).join('')}
+        ${live.time!==undefined?`<div class="info-chip">uptime: <span>${live.time}s</span></div>`:''}
+      </div>
+    </div>` : '';
+
+  const locationHtml = (info.s||info.a) ? `
+    <div class="info-row" style="border-top:1px solid var(--card-border);padding-top:12px;">
+      ${info.s?`<div class="info-chip">Space: <span>${info.s}</span></div>`:''}
+      ${info.a?`<div class="info-chip">Board: <span>${info.a}</span></div>`:''}
+      <div class="info-chip">Module: <span>${moduleId}</span></div>
+    </div>` : '';
+
+  const innerHtml = `
+    <div class="card-head">
+      <div class="card-head-left">
+        <div class="device-icon"><i class="bi bi-hdd-network-fill"></i></div>
+        <div>
+          <div class="device-name">${info.a || deviceId}</div>
+          <div class="device-id">${deviceId}</div>
+        </div>
+      </div>
+      <div class="status-badge">● Active</div>
+    </div>
+    <div class="card-body">
+      ${switchesHtml}${fansHtml}${extraHtml}${locationHtml}
+    </div>`;
+
+  let card = document.getElementById(`device-${deviceId}`);
+  if (!card) {
+    document.querySelector('.empty-state')?.remove();
+    card = document.createElement('div');
+    card.className = 'device-card';
+    card.id = `device-${deviceId}`;
+    document.getElementById('devices-container').appendChild(card);
+  }
+  card.innerHTML = innerHtml;
+  card.classList.add('pulse');
+  setTimeout(() => card.classList.remove('pulse'), 300);
+}
+
+// ── Control handlers ──────────────────────────────────────────────────────────
+function sendSwitch(deviceId, moduleId, key, value) {
+  if (!allDevicesData[deviceId]) allDevicesData[deviceId] = {};
+  if (!allDevicesData[deviceId].live) allDevicesData[deviceId].live = {};
+  allDevicesData[deviceId].live[key] = value;
+  renderDevice(deviceId);
+  publishCmd(deviceId, moduleId, key, value ? 'on' : 'off');
+}
+
+function onSlider(el, deviceId, moduleId, key) {
+  const v = parseInt(el.value);
+  const pct = (v/4)*100;
+  el.style.background = `linear-gradient(to right,var(--accent) ${pct}%,var(--fan-track) ${pct}%)`;
+  const badge = document.getElementById(`fanspd-${deviceId}-${key}`);
+  if (badge) badge.textContent = v;
+  el.nextElementSibling?.querySelectorAll('.btn-speed').forEach((b,i) => b.classList.toggle('active', i===v));
+}
+
+function sendFan(deviceId, moduleId, key, value) {
+  if (!allDevicesData[deviceId]) allDevicesData[deviceId] = {};
+  if (!allDevicesData[deviceId].live) allDevicesData[deviceId].live = {};
+  allDevicesData[deviceId].live[key] = parseInt(value);
+  publishCmd(deviceId, moduleId, key, value);
+}
+
+function sendFanBtn(btn, deviceId, moduleId, key, speed) {
+  const fanItem = btn.closest('.fan-item');
+  if (fanItem) {
+    const slider = fanItem.querySelector('.fan-slider');
+    const badge  = fanItem.querySelector('.fan-speed-badge');
+    if (slider) {
+      slider.value = speed;
+      const pct = (speed/4)*100;
+      slider.style.background = `linear-gradient(to right,var(--accent) ${pct}%,var(--fan-track) ${pct}%)`;
+    }
+    if (badge) badge.textContent = speed;
+    fanItem.querySelectorAll('.btn-speed').forEach((b,i) => b.classList.toggle('active', i===speed));
+  }
+  sendFan(deviceId, moduleId, key, speed);
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+(function boot() {
+  const creds = loadCreds();
+  if (creds) {
+    prefillForm(creds);
+    document.getElementById('login-overlay').classList.add('hidden');
+    initMQTT(creds);
+  } else {
+    // Show modal — defaults already filled in fields
+  }
+})();
+</script>
+</body>
+</html>
