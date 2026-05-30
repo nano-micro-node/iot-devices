@@ -269,7 +269,7 @@ let MQTT_USER      = '';
 // ── MQTT init ─────────────────────────────────────────────────────────────────
 function initMQTT(creds) {
   MQTT_USER = creds.user;
-  const broker = `ws://${creds.host}:${creds.port}/mqtt`;
+  const broker = `wss://${creds.host}:${creds.port}/mqtt`;
 
   document.getElementById('topbar-host').textContent = `${creds.host}:${creds.port}`;
   document.getElementById('status-text').textContent = 'Connecting…';
