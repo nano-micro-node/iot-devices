@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>IoT MQTT Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --sidebar-bg: #0a0c11;
+      --card-bg: #161b24;
+      --card-border: #232a38;
+      --accent: #3b82f6;
+      --accent-dim: #1d3557;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --fan-track: #1e2a3a;
+      --sidebar-w: 220px;
+      --topbar-h: 52px;
+      --device-tabs-h: 56px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh; overflow: hidden;
+    }
+
+    /* ── Login Modal ─────────────────────────────── */
+    #login-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(6,8,12,0.95);
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+    #login-overlay.hidden { display: none; }
+    .login-box {
+      background: #161b24; border: 1px solid #2a3348; border-radius: 16px;
+      padding: 36px 32px; width: calc(100% - 32px); max-width: 420px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+    }
+    .login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+    .login-logo i { font-size: 28px; color: var(--accent); }
+    .login-logo span { font-size: 20px; font-weight: 700; color: var(--text); }
+    .login-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    .field input {
+      width: 100%; padding: 10px 14px; background: #0d1117;
+      border: 1px solid var(--card-border); border-radius: 8px;
+      color: var(--text); font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: var(--accent); }
+    .field input::placeholder { color: #3a4a60; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .login-err { font-size: 12px; color: var(--danger); margin-bottom: 12px; min-height: 16px; }
+    .btn-login {
+      width: 100%; padding: 11px; background: var(--accent); color: #fff;
+      border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s; margin-top: 4px;
+    }
+    .btn-login:hover { background: #2563eb; }
+    .login-hint { font-size: 11px; color: #3a4a60; margin-top: 14px; text-align: center; }
+
+    /* ── Shell ───────────────────────────────────── */
+    .shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    /* ── Topbar ──────────────────────────────────── */
+    .topbar {
+      background: #0a0c10; border-bottom: 1px solid var(--card-border);
+      padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
+      height: var(--topbar-h); flex-shrink: 0; z-index: 200;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .btn-menu {
+      width: 34px; height: 34px; background: none; border: 1px solid var(--card-border);
+      border-radius: 8px; display: none; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted); font-size: 16px; transition: all 0.15s;
+    }
+    .btn-menu:hover { color: var(--accent); border-color: var(--accent); }
+    .topbar-brand { font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .topbar-brand i { color: var(--accent); font-size: 18px; }
+    .topbar-center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 16px; }
+    .breadcrumb { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .breadcrumb .bc-space { color: var(--accent); font-weight: 600; cursor:pointer; }
+    .breadcrumb .bc-space:hover { text-decoration: underline; }
+    .breadcrumb .bc-sep { color: #2a3346; font-size: 10px; }
+    .breadcrumb .bc-device { color: var(--text); font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .broker-status { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--danger); transition: background 0.4s; }
+    .dot.online { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .btn-logout {
+      font-size: 12px; color: var(--muted); background: none; border: 1px solid var(--card-border);
+      border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 5px;
+    }
+    .btn-logout:hover { color: var(--danger); border-color: var(--danger); }
+
+    /* ── Body row ────────────────────────────────── */
+    .body-row { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+    /* ── Sidebar ─────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--sidebar-bg); border-right: 1px solid var(--card-border);
+      display: flex; flex-direction: column; overflow: hidden;
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+      z-index: 150;
+    }
+    .sidebar-header { padding: 14px 14px 10px; border-bottom: 1px solid var(--card-border); flex-shrink: 0; }
+    .sidebar-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 5px; }
+    .sidebar-scroll { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .sidebar-scroll::-webkit-scrollbar { width: 3px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #232a38; border-radius: 3px; }
+
+    .space-item {
+      padding: 9px 14px; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; gap: 9px; position: relative; user-select: none;
+    }
+    .space-item::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: var(--accent); border-radius: 0 3px 3px 0;
+      transform: scaleY(0); transition: transform 0.18s;
+    }
+    .space-item:hover { background: rgba(59,130,246,0.07); }
+    .space-item.active { background: rgba(59,130,246,0.12); }
+    .space-item.active::before { transform: scaleY(1); }
+    .space-icon {
+      width: 30px; height: 30px; border-radius: 8px; background: #1a2030;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); font-size: 14px; flex-shrink: 0; transition: all 0.15s;
+    }
+    .space-item.active .space-icon, .space-item:hover .space-icon { background: var(--accent-dim); color: var(--accent); }
+    .space-info { flex: 1; min-width: 0; }
+    .space-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .space-count { font-size: 10px; color: var(--muted); margin-top: 1px; }
+    .space-item.active .space-name { color: var(--accent); }
+
+    .space-devices { overflow: hidden; transition: max-height 0.3s ease; max-height: 0; }
+    .space-devices.open { max-height: 600px; }
+    .device-sub-item {
+      padding: 7px 14px 7px 46px; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; gap: 7px; position: relative;
+    }
+    .device-sub-item::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: var(--success); border-radius: 0 3px 3px 0;
+      transform: scaleY(0); transition: transform 0.18s;
+    }
+    .device-sub-item:hover { background: rgba(34,197,94,0.06); }
+    .device-sub-item.active { background: rgba(34,197,94,0.10); }
+    .device-sub-item.active::before { transform: scaleY(1); }
+    .device-sub-name { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+    .device-sub-item.active .device-sub-name, .device-sub-item:hover .device-sub-name { color: var(--text); }
+    .device-sub-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+    .device-sub-item.active .device-sub-dot { background: var(--success); box-shadow: 0 0 5px var(--success); }
+
+    .sidebar-footer { padding: 10px 14px; border-top: 1px solid var(--card-border); flex-shrink: 0; }
+    .btn-all-devices {
+      width: 100%; padding: 8px 10px; background: var(--accent-dim);
+      border: 1px solid var(--accent); border-radius: 8px;
+      color: var(--accent); font-size: 12px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-all-devices:hover { background: var(--accent); color: #fff; }
+
+    /* Sidebar overlay mobile */
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0; z-index: 140;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.show { display: block; }
+
+    /* ── Main content ────────────────────────────── */
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── Device Tabs Bar (above cards) ───────────── */
+    .device-tabs-bar {
+      height: var(--device-tabs-h); flex-shrink: 0;
+      background: #0c0e14; border-bottom: 1px solid var(--card-border);
+      display: flex; align-items: center; gap: 8px;
+      padding: 0 16px; overflow-x: auto; overflow-y: hidden;
+    }
+    .device-tabs-bar::-webkit-scrollbar { height: 0; }
+
+    .tab-all-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 14px; border-radius: 9px; cursor: pointer;
+      border: 1px solid var(--accent); background: var(--accent-dim);
+      flex-shrink: 0; transition: all 0.18s; color: var(--accent);
+      font-size: 12px; font-weight: 700; white-space: nowrap;
+    }
+    .tab-all-btn:hover, .tab-all-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .tab-all-btn i { font-size: 14px; }
+
+    .tab-divider { width: 1px; height: 28px; background: var(--card-border); flex-shrink: 0; }
+
+    /* Device tab chip */
+    .device-tab {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 14px; border-radius: 9px; cursor: pointer;
+      border: 1px solid var(--card-border); background: #0d1117;
+      flex-shrink: 0; transition: all 0.2s; position: relative;
+      min-width: 0;
+    }
+    .device-tab::after {
+      content: ''; position: absolute; bottom: -1px; left: 10px; right: 10px;
+      height: 2px; background: var(--accent); border-radius: 2px 2px 0 0;
+      transform: scaleX(0); transition: transform 0.2s;
+    }
+    .device-tab:hover { border-color: var(--accent); background: rgba(59,130,246,0.07); }
+    .device-tab:hover::after { transform: scaleX(1); }
+    .device-tab.active { border-color: var(--accent); background: var(--accent-dim); }
+    .device-tab.active::after { transform: scaleX(1); }
+
+    /* Mini wave inside tab */
+    .tab-wave {
+      display: flex; align-items: center; gap: 2px; height: 16px;
+    }
+    .tab-wave-bar {
+      width: 3px; border-radius: 2px; background: var(--muted);
+      transition: background 0.15s;
+    }
+    .tab-wave-bar.animated {
+      animation: waveAnim 1.4s ease-in-out infinite;
+    }
+    .device-tab:hover .tab-wave-bar,
+    .device-tab.active .tab-wave-bar { background: var(--accent); }
+
+    /* Stagger wave delays */
+    .tab-wave-bar:nth-child(1).animated { animation-delay: 0.0s; }
+    .tab-wave-bar:nth-child(2).animated { animation-delay: 0.2s; }
+    .tab-wave-bar:nth-child(3).animated { animation-delay: 0.4s; }
+    .tab-wave-bar:nth-child(4).animated { animation-delay: 0.2s; }
+    .tab-wave-bar:nth-child(5).animated { animation-delay: 0.0s; }
+
+    .tab-name {
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 100px; transition: color 0.15s;
+    }
+    .device-tab:hover .tab-name,
+    .device-tab.active .tab-name { color: var(--text); }
+
+    /* ── Scrollable content area ─────────────────── */
+    .content-scroll { flex: 1; overflow-y: auto; }
+    .content-scroll::-webkit-scrollbar { width: 4px; }
+    .content-scroll::-webkit-scrollbar-thumb { background: #232a38; border-radius: 4px; }
+    .content-pad { padding: 20px; }
+
+    /* view states */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── Devices grid ─────────────────────────────── */
+    #devices-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
+    .section-label {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
+    }
+    .section-label i { color: var(--accent); }
+
+    /* ── Device Card ─────────────────────────────── */
+    .device-card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 14px; overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s, opacity 0.4s, transform 0.4s;
+    }
+    .device-card.pulse { border-color: var(--accent); }
+    .device-card.cmd-success {
+      border-color: var(--success) !important;
+      box-shadow: 0 0 0 2px rgba(34,197,94,0.18), 0 0 24px rgba(34,197,94,0.10);
+    }
+    .device-card.removing { opacity: 0; transform: scale(0.96); pointer-events: none; }
+
+    /* ── Single device view — full panel ─────────── */
+    /* On desktop single device fills the main area (sidebar stays visible) */
+    #view-single .device-card {
+      max-width: 680px; margin: 0 auto;
+    }
+    .single-back-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 13px; color: var(--muted); cursor: pointer;
+      padding: 6px 12px; border-radius: 8px;
+      border: 1px solid var(--card-border); margin-bottom: 18px;
+      background: #0d1117; transition: all 0.15s;
+    }
+    .single-back-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* ── Card head ───────────────────────────────── */
+    .card-head {
+      padding: 12px 14px 12px 16px; border-bottom: 1px solid var(--card-border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-head-left {
+      display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;
+      cursor: pointer; border-radius: 8px; padding: 4px 6px; transition: background 0.15s;
+    }
+    .card-head-left:hover { background: rgba(59,130,246,0.08); }
+    .device-icon { width: 34px; height: 34px; background: var(--accent-dim); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 15px; flex-shrink: 0; }
+    .device-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .device-id   { font-size: 11px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-click-hint { font-size: 10px; color: var(--accent); opacity: 0; transition: opacity 0.15s; margin-top: 2px; }
+    .card-head-left:hover .card-click-hint { opacity: 1; }
+
+    .card-head-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 8px; }
+    .card-action-btn {
+      width: 28px; height: 28px; background: #0d1117; border-radius: 7px;
+      border: 1px solid var(--card-border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.18s; color: var(--muted); font-size: 13px; position: relative;
+    }
+    .card-action-btn::after {
+      content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+      background: #0a0c10; border: 1px solid var(--card-border); color: var(--text); font-size: 10px; white-space: nowrap;
+      padding: 3px 7px; border-radius: 5px; opacity: 0; pointer-events: none; transition: opacity 0.15s;
+    }
+    .card-action-btn:hover::after { opacity: 1; }
+    .card-action-btn.btn-refresh:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 8px rgba(59,130,246,0.25); }
+    .card-action-btn.btn-refresh.spinning i { animation: spin 0.7s linear infinite; }
+    .card-action-btn.btn-remove:hover { background: #2a1010; border-color: var(--danger); color: var(--danger); box-shadow: 0 0 8px rgba(239,68,68,0.25); }
+
+    .card-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+    .module-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+
+    /* ── Switches ────────────────────────────────── */
+    .switches-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .switch-item { background: #0d1117; border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; position: relative; transition: border-color 0.2s; }
+    .switch-item.pending { opacity: 0.55; pointer-events: none; }
+    .switch-item.pending::after { content: ''; position: absolute; inset: 0; border-radius: 10px; background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.025) 4px, rgba(255,255,255,0.025) 8px); }
+    .switch-spinner { position: absolute; top: 8px; right: 8px; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    .switch-item.pending .switch-spinner { display: block; }
+    .switch-label { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switch-btns { display: flex; gap: 6px; }
+    .btn-on, .btn-off { flex: 1; border: none; border-radius: 6px; padding: 5px 0; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .btn-on  { background: #14261a; color: var(--success); border: 1px solid #1a3d24; }
+    .btn-on:hover  { background: #1a3326; box-shadow: 0 0 8px rgba(34,197,94,0.2); }
+    .btn-on.active  { background: var(--success); color: #0a1a10; border-color: var(--success); }
+    .btn-off { background: #1f1414; color: var(--danger);  border: 1px solid #3d1a1a; }
+    .btn-off:hover { background: #2a1818; box-shadow: 0 0 8px rgba(239,68,68,0.2); }
+    .btn-off.active { background: var(--danger);  color: #1a0808; border-color: var(--danger); }
+
+    /* ── Fans ────────────────────────────────────── */
+    .fan-item { background: #0d1117; border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 14px; position: relative; transition: opacity 0.2s; }
+    .fan-item.pending { opacity: 0.55; pointer-events: none; }
+    .fan-item.pending::after { content: ''; position: absolute; inset: 0; border-radius: 10px; background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.025) 4px, rgba(255,255,255,0.025) 8px); }
+    .fan-spinner { position: absolute; top: 10px; right: 10px; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    .fan-item.pending .fan-spinner { display: block; }
+    .fan-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .fan-name { font-size: 12px; color: var(--muted); }
+    .fan-speed-badge { font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border-radius: 6px; padding: 2px 8px; min-width: 28px; text-align: center; }
+    .fan-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-bottom: 10px; }
+    .fan-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #0d0f14; }
+    .fan-slider::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #0d0f14; }
+    .fan-speed-btns { display: flex; gap: 6px; }
+    .btn-speed { flex: 1; background: #1a1e28; border: 1px solid var(--card-border); color: var(--muted); border-radius: 6px; padding: 4px 0; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .btn-speed:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-speed.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+    /* ── Info chips ──────────────────────────────── */
+    .info-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .info-chip { background: #0d1117; border: 1px solid var(--card-border); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: var(--muted); display: flex; gap: 5px; }
+    .info-chip span { color: var(--text); font-weight: 500; }
+
+    /* ── Empty ───────────────────────────────────── */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty-state i { font-size: 44px; display: block; margin-bottom: 14px; color: #2a3346; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── Toast ───────────────────────────────────── */
+    #toast-container {
+      position: fixed; bottom: 20px; right: 20px; z-index: 9000;
+      display: flex; flex-direction: column; gap: 10px; pointer-events: none; max-width: 320px;
+    }
+    .toast-msg { background: #1a2035; border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; font-size: 12px; color: var(--muted); animation: fadeUp 0.2s; overflow: hidden; }
+    .toast-msg.toast-offline { border-color: #5a1d1d; background: #1c1010; }
+    .toast-msg.toast-pub     { border-color: #1d3557; background: #0e1521; }
+    .toast-msg.toast-remove  { border-color: #3d2a10; background: #1a1208; }
+    .toast-msg.toast-refresh { border-color: #1d3557; background: #0e1521; }
+    .toast-header { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+    .toast-icon { font-size: 14px; }
+    .toast-title { font-size: 12px; font-weight: 700; color: var(--text); }
+    .toast-row { display: flex; justify-content: space-between; align-items: center; margin-top: 3px; gap: 8px; }
+    .toast-key { color: var(--muted); font-size: 11px; }
+    .toast-val { color: var(--text); font-size: 11px; font-weight: 600; text-align: right; }
+    .toast-val.danger { color: var(--danger); }
+    .toast-val.warn   { color: var(--warning); }
+    .toast-val.code   { color: var(--accent); font-family: monospace; font-size: 10px; word-break: break-all; }
+    .toast-bar { height: 2px; background: var(--card-border); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    .toast-bar-inner { height: 100%; border-radius: 2px; animation: shrink linear forwards; }
+    .toast-msg.toast-offline .toast-bar-inner { background: var(--danger);  animation-duration: 5s; }
+    .toast-msg.toast-pub     .toast-bar-inner { background: var(--accent);  animation-duration: 3.5s; }
+    .toast-msg.toast-remove  .toast-bar-inner { background: var(--warning); animation-duration: 3.5s; }
+    .toast-msg.toast-refresh .toast-bar-inner { background: var(--accent);  animation-duration: 3.5s; }
+
+    /* ── Responsive ──────────────────────────────── */
+    @media (max-width: 900px) {
+      :root { --sidebar-w: 240px; }
+      .sidebar {
+        position: fixed; top: var(--topbar-h); bottom: 0;
+        left: 0; transform: translateX(-100%);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .btn-menu { display: flex; }
+      .broker-status span { display: none; }
+      #devices-container { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .content-pad { padding: 14px; }
+      .topbar { padding: 0 12px; }
+      .topbar-center { display: none; }
+      .login-box { padding: 24px 18px; }
+      .field-row { grid-template-columns: 1fr; }
+      .switches-grid { grid-template-columns: 1fr; }
+      .device-tabs-bar { padding: 0 10px; gap: 6px; }
+    }
+    @media (min-width: 1200px) {
+      #devices-container { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+    }
+
+    /* ── Animations ──────────────────────────────── */
+    @keyframes shrink  { from { width:100%; } to { width:0%; } }
+    @keyframes fadeUp  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spin    { to { transform: rotate(360deg); } }
+    @keyframes waveAnim {
+      0%, 100% { height: 3px; }
+      50%       { height: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Login ──────────────────────────────────────────────────────────────── -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo"><i class="bi bi-cpu-fill"></i><span>IoT Dashboard</span></div>
+    <div class="login-title">MQTT Broker Connection</div>
+    <div class="field-row">
+      <div class="field"><label>Host</label><input id="f-host" type="text" placeholder="mqtt.example.com" value="mqtt.teleson.in"></div>
+      <div class="field"><label>Port (WS)</label><input id="f-port" type="number" placeholder="8083" value="8084"></div>
+    </div>
+    <div class="field"><label>Username / Topic Prefix</label><input id="f-user" type="text" placeholder="username" value="sangmeshwar"></div>
+    <div class="field"><label>Password</label><input id="f-pass" type="password" placeholder="password" value=""></div>
+    <div class="login-err" id="login-err"></div>
+    <button class="btn-login" onclick="doLogin()"><i class="bi bi-plug-fill"></i> Connect &amp; Save</button>
+    <div class="login-hint">Credentials saved in localStorage.</div>
+  </div>
+</div>
+
+<!-- ── Shell ──────────────────────────────────────────────────────────────── -->
+<div class="shell">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="btn-menu" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+      <div class="topbar-brand"><i class="bi bi-cpu-fill"></i> IoT Dashboard</div>
+    </div>
+    <div class="topbar-center">
+      <div class="breadcrumb" id="breadcrumb" style="display:none">
+        <span class="bc-space" id="bc-space" onclick="goBack()"></span>
+        <span class="bc-sep"><i class="bi bi-chevron-right"></i></span>
+        <span class="bc-device" id="bc-device"></span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="broker-status"><span id="status-text">—</span><div class="dot" id="status-dot"></div></div>
+      <button class="btn-logout" onclick="doLogout()"><i class="bi bi-box-arrow-right"></i> <span class="logout-txt">Logout</span></button>
+    </div>
+  </div>
+
+  <!-- Body row -->
+  <div class="body-row">
+
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header"><div class="sidebar-label"><i class="bi bi-grid-3x3-gap-fill"></i> Spaces</div></div>
+      <div class="sidebar-scroll" id="sidebar-spaces">
+        <div class="empty-state" style="padding:30px 14px">
+          <i class="bi bi-broadcast" style="font-size:28px;display:block;margin-bottom:8px;color:#2a3346"></i>
+          <p style="font-size:11px;color:var(--muted)">Waiting for devices…</p>
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <button class="btn-all-devices" onclick="showAllDevices()"><i class="bi bi-grid-fill"></i> All Devices</button>
+      </div>
+    </div>
+
+    <!-- Main content column -->
+    <div class="main-content">
+
+      <!-- ── Device Tabs Bar (above content, below topbar) ── -->
+      <div class="device-tabs-bar" id="device-tabs-bar">
+        <button class="tab-all-btn active" id="tab-all-btn" onclick="showAllDevices()">
+          <i class="bi bi-grid-fill"></i> All
+        </button>
+        <div class="tab-divider" id="tab-divider" style="display:none"></div>
+        <!-- device tabs injected here by JS -->
+      </div>
+
+      <!-- Scrollable area -->
+      <div class="content-scroll">
+        <div class="content-pad">
+
+          <!-- All devices view -->
+          <div class="view active" id="view-all">
+            <div class="section-label"><i class="bi bi-router"></i> Live Devices</div>
+            <div id="devices-container">
+              <div class="empty-state">
+                <i class="bi bi-broadcast"></i>
+                <p>Waiting for device messages…</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Space view -->
+          <div class="view" id="view-space">
+            <div class="section-label"><i class="bi bi-house-fill"></i> <span id="view-space-name">Space</span></div>
+            <div id="space-devices-container"></div>
+          </div>
+
+          <!-- Single device view — full area, centred card -->
+          <div class="view" id="view-single">
+            <div class="single-back-btn" onclick="goBack()">
+              <i class="bi bi-arrow-left"></i> <span id="back-label">Back</span>
+            </div>
+            <div id="single-device-container"></div>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /main-content -->
+
+  </div><!-- /body-row -->
+</div><!-- /shell -->
+
+<div id="toast-container"></div>
+
+<script>
+// ── Creds ─────────────────────────────────────────────────────────────────────
+const LS_KEY = 'mqtt_creds';
+function loadCreds()  { try { return JSON.parse(localStorage.getItem(LS_KEY)) || null; } catch { return null; } }
+function saveCreds(o) { localStorage.setItem(LS_KEY, JSON.stringify(o)); }
+function clearCreds() { localStorage.removeItem(LS_KEY); }
+function doLogin() {
+  const host = document.getElementById('f-host').value.trim();
+  const port = document.getElementById('f-port').value.trim();
+  const user = document.getElementById('f-user').value.trim();
+  const pass = document.getElementById('f-pass').value.trim();
+  const err  = document.getElementById('login-err');
+  if (!host || !port || !user) { err.textContent = 'Host, port and username are required.'; return; }
+  err.textContent = '';
+  saveCreds({ host, port, user, pass });
+  document.getElementById('login-overlay').classList.add('hidden');
+  initMQTT({ host, port, user, pass });
+}
+function doLogout() { clearCreds(); location.reload(); }
+function prefillForm(c) {
+  if (!c) return;
+  ['host','port','user','pass'].forEach(k => { const el = document.getElementById('f-'+k); if(el) el.value = c[k] || ''; });
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let allDevicesData = {};
+let mqttClient     = null;
+let MQTT_USER      = '';
+const pendingCmds  = {};
+let currentView    = 'all';
+let currentSpace   = null;
+let currentDevice  = null;
+let prevView       = 'all';
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  currentView = name;
+  document.querySelector('.content-scroll').scrollTop = 0;
+  updateBreadcrumb();
+  updateTabHighlight();
+  closeSidebar();
+}
+
+function updateBreadcrumb() {
+  const bc = document.getElementById('breadcrumb');
+  if (currentView === 'single' && currentDevice) {
+    const info = (allDevicesData[currentDevice] || {}).info || {};
+    document.getElementById('bc-space').textContent = info.s || currentSpace || 'All Devices';
+    document.getElementById('bc-device').textContent = info.a || currentDevice;
+    bc.style.display = 'flex';
+  } else {
+    bc.style.display = 'none';
+  }
+}
+
+function updateTabHighlight() {
+  document.querySelectorAll('.device-tab').forEach(t => t.classList.toggle('active', t.dataset.deviceId === currentDevice));
+  const allBtn = document.getElementById('tab-all-btn');
+  if (currentView === 'all' || currentView === 'space') {
+    allBtn.classList.add('active');
+    document.querySelectorAll('.device-tab').forEach(t => t.classList.remove('active'));
+  } else {
+    allBtn.classList.remove('active');
+  }
+}
+
+function showAllDevices() {
+  currentSpace = null; currentDevice = null; prevView = 'all';
+  showView('all');
+  document.querySelectorAll('.space-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.device-sub-item').forEach(el => el.classList.remove('active'));
+}
+
+function showSpace(spaceName) {
+  currentSpace = spaceName; currentDevice = null; prevView = 'space';
+  document.getElementById('view-space-name').textContent = spaceName;
+  renderSpaceDevices(spaceName);
+  showView('space');
+  updateSidebarActive(spaceName, null);
+}
+
+function showSingleDevice(deviceId, fromView) {
+  prevView = fromView || currentView;
+  currentDevice = deviceId;
+  renderSingleDevice(deviceId);
+  const info = (allDevicesData[deviceId] || {}).info || {};
+  document.getElementById('back-label').textContent = prevView === 'space' ? (currentSpace || 'Space') : 'All Devices';
+  showView('single');
+  updateSidebarActive(info.s, deviceId);
+}
+
+function goBack() {
+  if (prevView === 'space' && currentSpace) showSpace(currentSpace);
+  else showAllDevices();
+}
+
+function updateSidebarActive(spaceName, deviceId) {
+  document.querySelectorAll('.space-item').forEach(el => el.classList.toggle('active', el.dataset.space === spaceName));
+  document.querySelectorAll('.device-sub-item').forEach(el => el.classList.toggle('active', el.dataset.deviceId === deviceId));
+}
+
+// ── MQTT ──────────────────────────────────────────────────────────────────────
+function initMQTT(creds) {
+  MQTT_USER = creds.user;
+  document.getElementById('status-text').textContent = 'Connecting…';
+  const options = {
+    username: creds.user, password: creds.pass,
+    clientId: 'dash_' + Math.random().toString(16).substr(2, 8),
+  };
+  if (mqttClient) { try { mqttClient.end(true); } catch {} }
+  mqttClient = mqtt.connect(`wss://${creds.host}:${creds.port}/mqtt`, options);
+
+  mqttClient.on('connect', () => {
+    document.getElementById('status-text').textContent = 'Online';
+    document.getElementById('status-dot').classList.add('online');
+    mqttClient.subscribe(`${MQTT_USER}/+/info`);
+    mqttClient.subscribe(`${MQTT_USER}/+/live`);
+  });
+  mqttClient.on('offline', () => { document.getElementById('status-text').textContent = 'Offline'; document.getElementById('status-dot').classList.remove('online'); });
+  mqttClient.on('error',   () => { document.getElementById('status-text').textContent = 'Error';   document.getElementById('status-dot').classList.remove('online'); });
+
+  mqttClient.on('message', (topic, message) => {
+    try {
+      const parts    = topic.split('/');
+      const deviceId = parts[1];
+      const msgType  = parts[2];
+      const raw      = message.toString();
+
+      if (raw === '') {
+        if (allDevicesData[deviceId]) {
+          delete allDevicesData[deviceId][msgType];
+          if (Object.keys(allDevicesData[deviceId]).length === 0) {
+            delete allDevicesData[deviceId];
+            removeCardFromDOM(deviceId);
+            refreshSidebar(); refreshDeviceTabs();
+          }
+        }
+        return;
+      }
+
+      const payload = JSON.parse(raw);
+      if (!allDevicesData[deviceId]) allDevicesData[deviceId] = {};
+      allDevicesData[deviceId][msgType] = payload;
+
+      if (msgType === 'live') {
+        Object.keys(pendingCmds).forEach(cmdKey => {
+          const [pendingDevice, pendingField] = cmdKey.split('|');
+          if (pendingDevice !== deviceId) return;
+          const pending  = pendingCmds[cmdKey];
+          const received = String(payload[pendingField]);
+          if (received === String(pending.expectedValue)) {
+            clearTimeout(pending.timer);
+            delete pendingCmds[cmdKey];
+            renderDevice(deviceId);
+            flashCardSuccess(deviceId);
+          }
+        });
+      }
+
+      renderDevice(deviceId);
+      refreshSidebar();
+      refreshDeviceTabs();
+    } catch(e) { console.error('Parse error:', e); }
+  });
+}
+
+// ── Spaces ────────────────────────────────────────────────────────────────────
+function getSpaces() {
+  const spaces = {};
+  Object.entries(allDevicesData).forEach(([deviceId, data]) => {
+    const space = (data.info || {}).s || '(No Space)';
+    if (!spaces[space]) spaces[space] = [];
+    spaces[space].push(deviceId);
+  });
+  return spaces;
+}
+const spaceIcons = { living:'bi-house-heart-fill', bedroom:'bi-moon-stars-fill', kitchen:'bi-cup-hot-fill', office:'bi-briefcase-fill', garage:'bi-car-front-fill', garden:'bi-tree-fill', bathroom:'bi-droplet-fill', hall:'bi-door-open-fill' };
+function getSpaceIcon(name) {
+  const lc = (name||'').toLowerCase();
+  for (const [k,v] of Object.entries(spaceIcons)) if (lc.includes(k)) return v;
+  return 'bi-house-fill';
+}
+
+// ── Sidebar render ────────────────────────────────────────────────────────────
+function refreshSidebar() {
+  const spaces = getSpaces();
+  const container = document.getElementById('sidebar-spaces');
+  if (!Object.keys(spaces).length) {
+    container.innerHTML = `<div class="empty-state" style="padding:30px 14px"><i class="bi bi-broadcast" style="font-size:28px;display:block;margin-bottom:8px;color:#2a3346"></i><p style="font-size:11px;color:var(--muted)">Waiting for devices…</p></div>`;
+    return;
+  }
+  container.innerHTML = Object.entries(spaces).map(([spaceName, deviceIds]) => {
+    const isActiveSpace = currentSpace === spaceName;
+    const devicesHtml = deviceIds.map(did => {
+      const info = (allDevicesData[did] || {}).info || {};
+      return `<div class="device-sub-item ${currentDevice===did?'active':''}" data-device-id="${did}"
+        onclick="showSingleDevice('${did}','${isActiveSpace?'space':'all'}')">
+        <div class="device-sub-dot"></div>
+        <div class="device-sub-name">${info.a || did}</div>
+      </div>`;
+    }).join('');
+    return `<div>
+      <div class="space-item ${isActiveSpace?'active':''}" data-space="${spaceName}" onclick="handleSpaceClick('${spaceName}')">
+        <div class="space-icon"><i class="bi ${getSpaceIcon(spaceName)}"></i></div>
+        <div class="space-info"><div class="space-name">${spaceName}</div><div class="space-count">${deviceIds.length} device${deviceIds.length!==1?'s':''}</div></div>
+        <i class="bi bi-chevron-${isActiveSpace?'down':'right'}" style="font-size:11px;color:var(--muted)"></i>
+      </div>
+      <div class="space-devices ${isActiveSpace?'open':''}" id="space-sub-${CSS.escape(spaceName)}">${devicesHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function handleSpaceClick(spaceName) {
+  if (currentSpace !== spaceName) { showSpace(spaceName); }
+  else {
+    const sub = document.querySelector(`#space-sub-${CSS.escape(spaceName)}`);
+    if (sub) sub.classList.toggle('open');
+  }
+}
+
+// ── Device Tabs render ────────────────────────────────────────────────────────
+function refreshDeviceTabs() {
+  const bar = document.getElementById('device-tabs-bar');
+  const divider = document.getElementById('tab-divider');
+
+  // Remove old device tabs
+  bar.querySelectorAll('.device-tab').forEach(t => t.remove());
+
+  const deviceIds = Object.keys(allDevicesData);
+  divider.style.display = deviceIds.length ? '' : 'none';
+
+  deviceIds.forEach(deviceId => {
+    const info = (allDevicesData[deviceId] || {}).info || {};
+    const name = info.a || deviceId;
+    const isActive = currentDevice === deviceId;
+
+    const tab = document.createElement('div');
+    tab.className = 'device-tab' + (isActive ? ' active' : '');
+    tab.dataset.deviceId = deviceId;
+    tab.title = name;
+
+    // Build 5 wave bars with random initial heights so they look alive
+    const heights = [4,8,12,6,4].map(h => h + Math.floor(Math.random()*4));
+    const waveBars = heights.map((h,i) =>
+      `<div class="tab-wave-bar animated" style="height:${h}px"></div>`
+    ).join('');
+
+    tab.innerHTML = `
+      <div class="tab-wave">${waveBars}</div>
+      <div class="tab-name">${name}</div>
+    `;
+    tab.onclick = () => showSingleDevice(deviceId);
+    bar.appendChild(tab);
+  });
+
+  updateTabHighlight();
+}
+
+// ── Render helpers ────────────────────────────────────────────────────────────
+function renderSpaceDevices(spaceName) {
+  const spaces  = getSpaces();
+  const ids     = spaces[spaceName] || [];
+  const cont    = document.getElementById('space-devices-container');
+  cont.innerHTML = '';
+  if (!ids.length) { cont.innerHTML = '<div class="empty-state"><i class="bi bi-broadcast"></i><p>No devices in this space.</p></div>'; return; }
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px';
+  ids.forEach(did => grid.appendChild(buildCardEl(did, 'space')));
+  cont.appendChild(grid);
+}
+
+function renderSingleDevice(deviceId) {
+  const cont = document.getElementById('single-device-container');
+  cont.innerHTML = '';
+  cont.appendChild(buildCardEl(deviceId, 'single'));
+}
+
+function buildCardEl(deviceId, context) {
+  const card = document.createElement('div');
+  card.className = 'device-card';
+  card.id = `device-${context}-${deviceId}`;
+  card.innerHTML = buildCardInner(deviceId, context);
+  return card;
+}
+
+function buildCardInner(deviceId, context) {
+  const data     = allDevicesData[deviceId] || {};
+  const info     = data.info   || {};
+  const live     = data.live   || {};
+  const moduleId = info.n || 'b0';
+  const modules  = info[moduleId] || {};
+
+  const switches = Object.entries(modules).filter(([k]) => /^r\d+$/.test(k));
+  const fans     = Object.entries(modules).filter(([k]) => /^fan\d+$/.test(k));
+
+  const switchesHtml = switches.length ? `
+    <div>
+      <div class="module-label"><i class="bi bi-toggle-on"></i> Switches</div>
+      <div class="switches-grid">
+        ${switches.map(([key, label]) => {
+          const isOn    = live[key] === 1 || live[key] === '1' || live[key] === true;
+          const pending = isPending(deviceId, key);
+          return `<div class="switch-item ${pending?'pending':''}" id="sw-${context}-${deviceId}-${key}">
+            <div class="switch-spinner"></div>
+            <div class="switch-label" title="${label}">${label}</div>
+            <div class="switch-btns">
+              <button class="btn-on  ${isOn ?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',1,'${context}')">ON</button>
+              <button class="btn-off ${!isOn?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',0,'${context}')">OFF</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : '';
+
+  const fansHtml = fans.length ? `
+    <div>
+      <div class="module-label"><i class="bi bi-fan"></i> Fans</div>
+      ${fans.map(([key, label]) => {
+        const speed   = parseInt(live[key]) || 0;
+        const pct     = (speed/4)*100;
+        const pending = isPending(deviceId, key);
+        return `<div class="fan-item ${pending?'pending':''}" id="fan-${context}-${deviceId}-${key}">
+          <div class="fan-spinner"></div>
+          <div class="fan-header"><span class="fan-name">${label}</span><span class="fan-speed-badge">${speed}</span></div>
+          <input type="range" class="fan-slider" min="0" max="4" step="1" value="${speed}"
+            style="background:linear-gradient(to right,var(--accent) ${pct}%,var(--fan-track) ${pct}%)"
+            oninput="onSlider(this,'${deviceId}','${moduleId}','${key}')"
+            onchange="sendFan('${deviceId}','${moduleId}','${key}',this.value)">
+          <div class="fan-speed-btns">
+            ${[0,1,2,3,4].map(s=>`<button class="btn-speed ${speed===s?'active':''}"
+              onclick="sendFanBtn(this,'${deviceId}','${moduleId}','${key}',${s})">${s}</button>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  const extraKeys = Object.keys(live).filter(k => !modules[k] && k !== 'time');
+  const extraHtml = extraKeys.length ? `
+    <div>
+      <div class="module-label"><i class="bi bi-activity"></i> Telemetry</div>
+      <div class="info-row">
+        ${extraKeys.slice(0,12).map(k=>`<div class="info-chip">${k}: <span>${live[k]}</span></div>`).join('')}
+        ${live.time!==undefined?`<div class="info-chip">uptime: <span>${live.time}s</span></div>`:''}
+      </div>
+    </div>` : '';
+
+  const locationHtml = (info.s||info.a) ? `
+    <div class="info-row" style="border-top:1px solid var(--card-border);padding-top:12px;">
+      ${info.s?`<div class="info-chip">Space: <span>${info.s}</span></div>`:''}
+      ${info.a?`<div class="info-chip">Board: <span>${info.a}</span></div>`:''}
+      <div class="info-chip">Module: <span>${moduleId}</span></div>
+    </div>` : '';
+
+  const actionBtns = `
+    <div class="card-head-right">
+      <button class="card-action-btn btn-refresh" data-tip="Refresh" onclick="refreshDevice('${deviceId}')"><i class="bi bi-arrow-clockwise"></i></button>
+      <button class="card-action-btn btn-remove"  data-tip="Remove"  onclick="removeDevice('${deviceId}')"><i class="bi bi-trash3"></i></button>
+    </div>`;
+
+  // In single context, clicking head does nothing (already single)
+  const headClick = context === 'single' ? '' : `onclick="showSingleDevice('${deviceId}','${context}')"`;
+  const hint      = context === 'single' ? '' : `<div class="card-click-hint"><i class="bi bi-arrow-right-short"></i> View only this device</div>`;
+
+  return `
+    <div class="card-head">
+      <div class="card-head-left" ${headClick} style="${context==='single'?'cursor:default':''}"
+>
+        <div class="device-icon"><i class="bi bi-hdd-network-fill"></i></div>
+        <div style="min-width:0">
+          <div class="device-name">${info.a || deviceId}</div>
+          <div class="device-id">${deviceId}</div>
+          ${hint}
+        </div>
+      </div>
+      ${actionBtns}
+    </div>
+    <div class="card-body">${switchesHtml}${fansHtml}${extraHtml}${locationHtml}</div>`;
+}
+
+// ── renderDevice: update every visible instance ───────────────────────────────
+function renderDevice(deviceId) {
+  ['all','space','single'].forEach(ctx => {
+    const card = document.getElementById(`device-${ctx}-${deviceId}`);
+    if (card) { card.innerHTML = buildCardInner(deviceId, ctx); pulseCard(card); }
+  });
+  // If no all-card yet and we're in all view, create it
+  if (!document.getElementById(`device-all-${deviceId}`) && currentView === 'all') {
+    const container = document.getElementById('devices-container');
+    container.querySelector('.empty-state')?.remove();
+    const card = buildCardEl(deviceId, 'all');
+    container.appendChild(card);
+    pulseCard(card);
+  }
+}
+
+function pulseCard(card) {
+  card.classList.add('pulse');
+  setTimeout(() => card.classList.remove('pulse'), 300);
+}
+
+// ── Remove from DOM ───────────────────────────────────────────────────────────
+function removeCardFromDOM(deviceId) {
+  ['all','space','single'].forEach(ctx => {
+    const el = document.getElementById(`device-${ctx}-${deviceId}`);
+    if (!el) return;
+    el.classList.add('removing');
+    setTimeout(() => {
+      el.remove();
+      if (ctx === 'all') {
+        const c = document.getElementById('devices-container');
+        if (c && !c.querySelector('.device-card')) {
+          c.innerHTML = `<div class="empty-state"><i class="bi bi-broadcast"></i><p>Waiting for device messages…</p></div>`;
+        }
+      }
+    }, 420);
+  });
+  if (currentDevice === deviceId) goBack();
+}
+
+// ── Publish ───────────────────────────────────────────────────────────────────
+function publish(topic, payload, opts = {}) {
+  if (!mqttClient || !mqttClient.connected) return false;
+  mqttClient.publish(topic, payload, opts);
+  return true;
+}
+
+function refreshDevice(deviceId) {
+  const topic = `${MQTT_USER}/${deviceId}/cmd`;
+  if (!publish(topic, 'refresh', { retain: false })) { showOfflineToast(deviceId); return; }
+  document.querySelectorAll('.btn-refresh').forEach(btn => {
+    const card = btn.closest('.device-card');
+    if (card && card.id.includes(deviceId)) {
+      btn.classList.add('spinning');
+      setTimeout(() => btn.classList.remove('spinning'), 1500);
+    }
+  });
+  showRefreshToast(topic, 'refresh');
+}
+
+function removeDevice(deviceId) {
+  publish(`${MQTT_USER}/${deviceId}/info`, '', { retain: true, qos: 1 });
+  publish(`${MQTT_USER}/${deviceId}/live`, '', { retain: true, qos: 1 });
+  showRemoveToast(deviceId);
+  delete allDevicesData[deviceId];
+  removeCardFromDOM(deviceId);
+  refreshSidebar(); refreshDeviceTabs();
+}
+
+// ── Pending ───────────────────────────────────────────────────────────────────
+function setPending(deviceId, key, expectedValue, moduleId) {
+  const cmdKey = `${deviceId}|${key}`;
+  if (pendingCmds[cmdKey]) clearTimeout(pendingCmds[cmdKey].timer);
+  const timer = setTimeout(() => { delete pendingCmds[cmdKey]; renderDevice(deviceId); showOfflineToast(deviceId); }, 3000);
+  pendingCmds[cmdKey] = { timer, expectedValue: String(expectedValue), moduleId };
+  setPendingUI(deviceId, key, true);
+}
+function isPending(deviceId, key) { return !!pendingCmds[`${deviceId}|${key}`]; }
+function setPendingUI(deviceId, key, pending) {
+  ['all','space','single'].forEach(ctx => {
+    const pfx = key.startsWith('fan') ? `fan-${ctx}-${deviceId}-${key}` : `sw-${ctx}-${deviceId}-${key}`;
+    document.getElementById(pfx)?.classList.toggle('pending', pending);
+  });
+}
+function flashCardSuccess(deviceId) {
+  ['all','space','single'].forEach(ctx => {
+    const card = document.getElementById(`device-${ctx}-${deviceId}`);
+    if (card) { card.classList.add('cmd-success'); setTimeout(() => card.classList.remove('cmd-success'), 1800); }
+  });
+}
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+function publishCmd(deviceId, moduleId, key, cmdValue, expectedLiveValue) {
+  const cmdType = key.startsWith('fan') ? 'FAN' : 'ry';
+  const cmd     = `${cmdType} ${moduleId} ${key} ${cmdValue} .${moduleId} ok .`;
+  const topic   = `${MQTT_USER}/${deviceId}/cmd`;
+  if (!publish(topic, cmd, { retain: false })) { showOfflineToast(deviceId); return; }
+  setPending(deviceId, key, expectedLiveValue, moduleId);
+  showPubToast(topic, cmd);
+}
+function sendSwitch(deviceId, moduleId, key, value) {
+  if (isPending(deviceId, key)) return;
+  publishCmd(deviceId, moduleId, key, value ? 'on' : 'off', value);
+  setPendingUI(deviceId, key, true);
+}
+function onSlider(el, deviceId, moduleId, key) {
+  const v = parseInt(el.value), pct = (v/4)*100;
+  el.style.background = `linear-gradient(to right,var(--accent) ${pct}%,var(--fan-track) ${pct}%)`;
+  const fanItem = el.closest('.fan-item');
+  if (fanItem) {
+    fanItem.querySelector('.fan-speed-badge').textContent = v;
+    fanItem.querySelectorAll('.btn-speed').forEach((b,i) => b.classList.toggle('active', i===v));
+  }
+}
+function sendFan(deviceId, moduleId, key, value) {
+  if (isPending(deviceId, key)) return;
+  publishCmd(deviceId, moduleId, key, value, parseInt(value));
+  setPendingUI(deviceId, key, true);
+}
+function sendFanBtn(btn, deviceId, moduleId, key, speed) {
+  if (isPending(deviceId, key)) return;
+  const fanItem = btn.closest('.fan-item');
+  if (fanItem) {
+    const slider = fanItem.querySelector('.fan-slider');
+    if (slider) { slider.value = speed; const pct=(speed/4)*100; slider.style.background=`linear-gradient(to right,var(--accent) ${pct}%,var(--fan-track) ${pct}%)`; }
+    fanItem.querySelector('.fan-speed-badge').textContent = speed;
+    fanItem.querySelectorAll('.btn-speed').forEach((b,i) => b.classList.toggle('active', i===speed));
+  }
+  sendFan(deviceId, moduleId, key, speed);
+}
+
+// ── Toasts ────────────────────────────────────────────────────────────────────
+function makeToast(cls, headerIcon, headerColor, title, rows, duration) {
+  const el = document.createElement('div');
+  el.className = `toast-msg ${cls}`;
+  el.innerHTML = `
+    <div class="toast-header">
+      <span class="toast-icon" style="color:${headerColor}"><i class="bi ${headerIcon}"></i></span>
+      <span class="toast-title">${title}</span>
+    </div>
+    ${rows.map(([k,v,vCls])=>`<div class="toast-row"><span class="toast-key">${k}</span><span class="toast-val ${vCls||''}">${v}</span></div>`).join('')}
+    <div class="toast-bar"><div class="toast-bar-inner"></div></div>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), duration + 200);
+}
+function showOfflineToast(deviceId) {
+  const info = (allDevicesData[deviceId] || {}).info || {};
+  makeToast('toast-offline','bi-wifi-off','var(--danger)','Device Offline',[['Name',info.a||deviceId,''],['Status','No response (3s)','danger']],5000);
+}
+function showPubToast(topic, cmd) {
+  makeToast('toast-pub','bi-send-fill','var(--accent)','Command Sent',[[topic,'','code'],[cmd,'','code']],3500);
+}
+function showRefreshToast(topic, cmd) {
+  makeToast('toast-refresh','bi-arrow-clockwise','var(--accent)','Refresh Requested',[['Topic',topic,'code'],['Cmd',cmd,'code']],3500);
+}
+function showRemoveToast(deviceId) {
+  const info = (allDevicesData[deviceId] || {}).info || {};
+  makeToast('toast-remove','bi-trash3','var(--warning)','Device Removed',[['Name',info.a||deviceId,''],['Note','Retained topics cleared','warn']],3500);
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+(function boot() {
+  const creds = loadCreds();
+  if (creds) { prefillForm(creds); document.getElementById('login-overlay').classList.add('hidden'); initMQTT(creds); }
+})();
+</script>
+</body>
+</html>
