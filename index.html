@@ -902,7 +902,6 @@ function buildCardInner(deviceId, context) {
   const locationHtml = (info.s||info.a) ? `
     <div class="info-row" style="border-top:1px solid var(--card-border);padding-top:12px;">
       ${info.s?`<div class="info-chip">Space: <span>${info.s}</span></div>`:''}
-      ${info.a?`<div class="info-chip">Board: <span>${info.a}</span></div>`:''}
       <div class="info-chip">Module: <span>${moduleId}</span></div>
     </div>` : '';
 
