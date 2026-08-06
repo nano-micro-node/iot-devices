@@ -898,14 +898,6 @@ function buildCardInner(deviceId, context) {
     </div>` : '';
 
   const extraKeys = Object.keys(live).filter(k => !modules[k] && k !== 'time');
-  const extraHtml = extraKeys.length ? `
-    <div>
-      <div class="module-label"><i class="bi bi-activity"></i> Telemetry</div>
-      <div class="info-row">
-        ${extraKeys.slice(0,12).map(k=>`<div class="info-chip">${k}: <span>${live[k]}</span></div>`).join('')}
-        ${live.time!==undefined?`<div class="info-chip">uptime: <span>${live.time}s</span></div>`:''}
-      </div>
-    </div>` : '';
 
   const locationHtml = (info.s||info.a) ? `
     <div class="info-row" style="border-top:1px solid var(--card-border);padding-top:12px;">
@@ -937,7 +929,7 @@ function buildCardInner(deviceId, context) {
       </div>
       ${actionBtns}
     </div>
-    <div class="card-body">${switchesHtml}${fansHtml}${extraHtml}${locationHtml}</div>`;
+    <div class="card-body">${switchesHtml}${fansHtml}${locationHtml}</div>`;
 }
 
 // ── renderDevice: update every visible instance ───────────────────────────────
