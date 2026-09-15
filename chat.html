@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>WhatsApp MQTT Clone</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js"></script>
+  <style>
+    .status-dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+    .status-yellow { background-color: #f59e0b; box-shadow: 0 0 5px #f59e0b; }
+    .status-green { background-color: #10b981; box-shadow: 0 0 5px #10b981; }
+    .status-red { background-color: #ef4444; }
+    .chat-bg { background-color: #efeae2; background-image: radial-gradient(#d1d5db 1px, transparent 1px); background-size: 16px 16px; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  </style>
+</head>
+<!-- h-[100dvh] ensures it fits mobile screens perfectly without hiding behind the URL bar -->
+<body class="bg-gray-100 font-sans h-[100dvh] flex overflow-hidden">
+
+  <!-- Main Container -->
+  <div class="flex w-full h-full max-w-7xl mx-auto shadow-2xl bg-white relative overflow-hidden">
+    
+    <!-- LEFT SIDEBAR (Full width on mobile, 1/3 on desktop) -->
+    <div id="sidebar" class="flex w-full md:w-1/3 md:min-w-[320px] bg-white border-r border-gray-200 flex-col h-full md:flex">
+      <!-- User Profile Header -->
+      <div class="bg-slate-100 p-3 flex items-center justify-between border-b border-gray-200">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="openModal('settingsModal')">
+          <div class="relative">
+            <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-lg" id="selfAvatar">U</div>
+            <span id="selfStatusDot" class="status-dot status-yellow absolute bottom-0 right-0 border-2 border-white"></span>
+          </div>
+          <div class="hidden sm:block md:hidden lg:block">
+            <div class="font-semibold text-gray-800 text-sm flex items-center space-x-1">
+              <span id="selfUsernameDisplay" class="truncate max-w-[100px]">User</span>
+            </div>
+            <div class="text-xs text-gray-500 font-mono truncate" id="selfUserIdDisplay">ID: ---</div>
+          </div>
+        </div>
+        <!-- Sidebar Controls -->
+        <div class="flex space-x-4 text-gray-600">
+          <button onclick="openModal('addFriendModal')" title="Add Friend" class="hover:text-emerald-600 transition"><i class="fa-solid fa-user-plus text-lg"></i></button>
+          <button onclick="openModal('createGroupModal')" title="Create Group" class="hover:text-emerald-600 transition"><i class="fa-solid fa-users text-lg"></i></button>
+          <button onclick="openModal('settingsModal')" title="MQTT & Profile Settings" class="hover:text-emerald-600 transition"><i class="fa-solid fa-gear text-lg"></i></button>
+        </div>
+      </div>
+
+      <!-- Search Input -->
+      <div class="p-2 bg-gray-50 border-b border-gray-100">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+          <input type="text" id="searchInput" oninput="renderChatList()" placeholder="Search friends or groups..." class="w-full pl-9 pr-3 py-1.5 bg-white text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-emerald-500">
+        </div>
+      </div>
+
+      <!-- Chats List -->
+      <div class="flex-1 overflow-y-auto custom-scroll divide-y divide-gray-100" id="chatList"></div>
+    </div>
+
+    <!-- RIGHT CHAT PANEL (Hidden on mobile by default, expanded on desktop) -->
+    <div id="chatArea" class="hidden md:flex flex-1 flex-col w-full h-full bg-slate-50 absolute md:relative z-20 md:z-0">
+      
+      <!-- Default No Active Chat View (Desktop only) -->
+      <div id="noChatSelected" class="flex-1 flex flex-col items-center justify-center bg-gray-50 text-gray-400">
+        <i class="fa-brands fa-whatsapp text-6xl text-emerald-500 mb-4"></i>
+        <h2 class="text-xl font-semibold text-gray-700">WhatsApp Web Clone</h2>
+        <p class="text-sm text-gray-500 mt-1">Select a friend or group to start messaging.</p>
+      </div>
+
+      <!-- Active Chat Interface -->
+      <div id="activeChatInterface" class="hidden flex-1 flex flex-col h-full">
+        <!-- Chat Header -->
+        <div class="bg-slate-100 px-3 md:px-4 py-3 flex items-center justify-between border-b border-gray-200">
+          <div class="flex items-center">
+            <!-- Mobile Back Button -->
+            <button onclick="closeChatMobile()" class="md:hidden mr-3 text-gray-500 hover:text-emerald-600 transition p-1">
+              <i class="fa-solid fa-arrow-left text-xl"></i>
+            </button>
+
+            <div class="flex items-center space-x-3">
+              <div class="relative">
+                <div class="w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold" id="chatHeaderAvatar">C</div>
+                <span id="chatHeaderStatusDot" class="status-dot status-yellow absolute bottom-0 right-0 border-2 border-white"></span>
+              </div>
+              <div>
+                <div class="font-semibold text-gray-800 text-sm truncate max-w-[150px] md:max-w-xs" id="chatHeaderTitle">Chat Name</div>
+                <div class="text-[11px] md:text-xs text-gray-500 font-mono truncate" id="chatHeaderSub">Status</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div class="flex-1 overflow-y-auto p-3 md:p-4 chat-bg space-y-3 custom-scroll" id="messagesContainer"></div>
+
+        <!-- Reply Preview Banner -->
+        <div id="replyPreviewBanner" class="hidden bg-emerald-50 px-3 md:px-4 py-2 border-t border-emerald-200 flex items-center justify-between text-xs">
+          <div class="border-l-4 border-emerald-600 pl-2">
+            <span class="font-bold text-emerald-800" id="replySender">Replying to</span>
+            <p class="text-gray-600 truncate max-w-[200px] md:max-w-md" id="replyText">Message content...</p>
+          </div>
+          <button onclick="cancelReply()" class="text-gray-400 hover:text-red-500 p-2"><i class="fa-solid fa-xmark text-sm"></i></button>
+        </div>
+
+        <!-- Input Control Panel -->
+        <div class="bg-slate-100 p-2 md:p-3 border-t border-gray-200 flex flex-col space-y-2">
+          <!-- Quick Emoji Toolbar -->
+          <div id="emojiToolbar" class="hidden flex flex-wrap gap-2 bg-white p-2 rounded-md shadow border text-xl md:text-lg">
+            <span class="cursor-pointer hover:scale-125 transition" onclick="appendEmoji('👍')">👍</span>
+            <span class="cursor-pointer hover:scale-125 transition" onclick="appendEmoji('❤️')">❤️</span>
+            <span class="cursor-pointer hover:scale-125 transition" onclick="appendEmoji('😂')">😂</span>
+            <span class="cursor-pointer hover:scale-125 transition" onclick="appendEmoji('😮')">😮</span>
+            <span class="cursor-pointer hover:scale-125 transition" onclick="appendEmoji('🙏')">🙏</span>
+            <span class="cursor-pointer hover:scale-125 transition" onclick="appendEmoji('🔥')">🔥</span>
+          </div>
+
+          <div class="flex items-center space-x-2 md:space-x-3">
+            <button onclick="toggleEmojiPicker()" class="text-gray-500 hover:text-emerald-600 text-xl p-1 md:p-0"><i class="fa-regular fa-face-smile"></i></button>
+            <label class="text-gray-500 hover:text-emerald-600 text-xl cursor-pointer p-1 md:p-0">
+              <i class="fa-solid fa-paperclip"></i>
+              <input type="file" id="photoInput" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+            </label>
+            <input type="text" id="messageInput" onkeypress="if(event.key==='Enter') sendMessage()" placeholder="Message..." class="flex-1 py-2 md:py-2.5 px-4 bg-white rounded-full border border-gray-200 focus:outline-none text-sm md:text-base">
+            <button onclick="sendMessage()" class="w-10 h-10 md:w-11 md:h-11 shrink-0 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center transition shadow"><i class="fa-solid fa-paper-plane text-sm md:text-base"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SETTINGS & PROFILE (Responsive Width) -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
+      <h3 class="text-lg font-bold text-gray-800 border-b pb-2">Profile & MQTT Config</h3>
+      <div class="space-y-3 text-sm">
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">Username</label>
+          <input type="text" id="cfgUsername" class="w-full p-2 border rounded-md">
+        </div>
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">User Unique ID</label>
+          <input type="text" id="cfgUserId" class="w-full p-2 border rounded-md font-mono bg-gray-50 text-xs" readonly>
+        </div>
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">MQTT WebSocket Host</label>
+          <input type="text" id="cfgMqttHost" placeholder="wss://broker.emqx.io:8083/mqtt" class="w-full p-2 border rounded-md font-mono text-xs">
+        </div>
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">MQTT Username</label>
+          <input type="text" id="cfgMqttUser" class="w-full p-2 border rounded-md">
+        </div>
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">MQTT Password</label>
+          <input type="password" id="cfgMqttPass" class="w-full p-2 border rounded-md">
+        </div>
+      </div>
+      <div class="flex justify-end space-x-2 pt-2 border-t">
+        <button onclick="closeModal('settingsModal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition">Cancel</button>
+        <button onclick="saveSettings()" class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition">Save & Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD FRIEND -->
+  <div id="addFriendModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
+      <h3 class="text-lg font-bold text-gray-800 border-b pb-2">Add Friend</h3>
+      <div class="space-y-3 text-sm">
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">Friend Name</label>
+          <input type="text" id="friendName" class="w-full p-2 border rounded-md">
+        </div>
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">Friend Unique Key (ID)</label>
+          <input type="text" id="friendId" class="w-full p-2 border rounded-md font-mono text-xs">
+        </div>
+      </div>
+      <div class="flex justify-end space-x-2 pt-2 border-t">
+        <button onclick="closeModal('addFriendModal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition">Cancel</button>
+        <button onclick="addFriend()" class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE GROUP -->
+  <div id="createGroupModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
+      <h3 class="text-lg font-bold text-gray-800 border-b pb-2">Create Group</h3>
+      <div class="space-y-3 text-sm">
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">Group Name</label>
+          <input type="text" id="groupName" class="w-full p-2 border rounded-md">
+        </div>
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">Select Members</label>
+          <div id="groupMembersList" class="max-h-40 overflow-y-auto border rounded-md p-2 space-y-1"></div>
+        </div>
+      </div>
+      <div class="flex justify-end space-x-2 pt-2 border-t">
+        <button onclick="closeModal('createGroupModal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition">Cancel</button>
+        <button onclick="createGroup()" class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Global Application State
+    const STORAGE_KEY = 'wa_mqtt_app_data';
+    let state = {
+      profile: { username: 'User_' + Math.floor(1000 + Math.random() * 9000), userId: 'usr_' + Date.now().toString(36), mqttHost: 'wss://mqtt.teleson.in:8083/mqtt', mqttUser: 'sangmeshwar', mqttPass: 'public123' },
+      friends: [],  // { userId, name, status: 'yellow' }
+      groups: [],   // { groupKey, name, members: [] }
+      messages: [], // { msgId, senderId, receiverId, groupKey, payload, type, replyToId, timestamp, status }
+      activeChat: null, // { type: 'friend'|'group', key: string }
+      replyTarget: null // msgId
+    };
+
+    let mqttClient = null;
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      initUI();
+      connectMQTT();
+    });
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          state.profile = parsed.profile || state.profile;
+          state.friends = parsed.friends || [];
+          state.groups = parsed.groups || [];
+          state.messages = parsed.messages || [];
+        } catch (e) {
+          console.error("Failed to parse localStorage data", e);
+        }
+      }
+      state.friends.forEach(f => f.status = 'yellow');
+      saveState();
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        profile: state.profile,
+        friends: state.friends,
+        groups: state.groups,
+        messages: state.messages
+      }));
+    }
+
+    function initUI() {
+      document.getElementById('selfAvatar').innerText = state.profile.username.charAt(0).toUpperCase();
+      document.getElementById('selfUsernameDisplay').innerText = state.profile.username;
+      document.getElementById('selfUserIdDisplay').innerText = 'ID: ' + state.profile.userId;
+
+      document.getElementById('cfgUsername').value = state.profile.username;
+      document.getElementById('cfgUserId').value = state.profile.userId;
+      document.getElementById('cfgMqttHost').value = state.profile.mqttHost;
+      document.getElementById('cfgMqttUser').value = state.profile.mqttUser;
+      document.getElementById('cfgMqttPass').value = state.profile.mqttPass;
+
+      renderChatList();
+    }
+
+    // --- MQTT CLIENT CONNECTION & PRESENCE ---
+    function connectMQTT() {
+      if (mqttClient) mqttClient.end(true);
+      setSelfStatus('yellow');
+      
+      const options = {
+        clientId: 'wa_client_' + state.profile.userId + '_' + Math.random().toString(16).substring(2, 8),
+        clean: true,
+        connectTimeout: 5000,
+        will: {
+          topic: `whatsapp_clone/presence/${state.profile.userId}`,
+          payload: JSON.stringify({ userId: state.profile.userId, status: 'offline' }),
+          qos: 1,
+          retain: true
+        }
+      };
+
+      if (state.profile.mqttUser) options.username = state.profile.mqttUser;
+      if (state.profile.mqttPass) options.password = state.profile.mqttPass;
+
+      try {
+        mqttClient = mqtt.connect(state.profile.mqttHost, options);
+
+        mqttClient.on('connect', () => {
+          console.log("Connected to MQTT Broker!");
+          setSelfStatus('green');
+
+          mqttClient.publish(
+            `whatsapp_clone/presence/${state.profile.userId}`,
+            JSON.stringify({ userId: state.profile.userId, status: 'online' }),
+            { qos: 1, retain: true }
+          );
+
+          mqttClient.subscribe(`whatsapp_clone/user/${state.profile.userId}`, { qos: 1 });
+          mqttClient.subscribe(`whatsapp_clone/presence/+`, { qos: 1 });
+          mqttClient.subscribe(`whatsapp_clone/group/+/info`, { qos: 1 });
+          
+          state.groups.forEach(g => {
+            mqttClient.subscribe(`whatsapp_clone/group/${g.groupKey}/chat`, { qos: 1 });
+          });
+        });
+
+        mqttClient.on('message', (topic, message) => {
+          try {
+            const data = JSON.parse(message.toString());
+            handleIncomingMQTT(topic, data);
+          } catch (e) {
+            console.error("Invalid MQTT payload", e);
+          }
+        });
+
+        mqttClient.on('offline', () => setSelfStatus('red'));
+        mqttClient.on('error', (err) => { console.error("MQTT Error:", err); setSelfStatus('red'); });
+      } catch (err) {
+        console.error("Connection failed", err);
+        setSelfStatus('red');
+      }
+    }
+
+    function setSelfStatus(status) {
+      const dot = document.getElementById('selfStatusDot');
+      dot.className = `status-dot status-${status} absolute bottom-0 right-0 border-2 border-white`;
+    }
+
+    // --- INCOMING MQTT DISPATCHER ---
+    function handleIncomingMQTT(topic, data) {
+      if (topic.startsWith('whatsapp_clone/presence/')) {
+        const targetUserId = topic.split('/')[2];
+        if (targetUserId === state.profile.userId) return;
+
+        const friend = state.friends.find(f => f.userId === targetUserId);
+        if (friend) {
+          friend.status = data.status === 'online' ? 'green' : 'red';
+          saveState();
+          renderChatList();
+          if (state.activeChat && state.activeChat.key === targetUserId) updateChatHeader();
+        }
+      }
+      else if (topic.endsWith('/info')) {
+        if (data.groupKey && data.members && data.members.includes(state.profile.userId)) {
+          const exists = state.groups.find(g => g.groupKey === data.groupKey);
+          if (!exists) {
+            state.groups.push({ groupKey: data.groupKey, name: data.name, members: data.members });
+            saveState();
+            mqttClient.subscribe(`whatsapp_clone/group/${data.groupKey}/chat`, { qos: 1 });
+            renderChatList();
+          }
+        }
+      }
+      else if (topic === `whatsapp_clone/user/${state.profile.userId}`) {
+        if (data.action === 'ack_delivered' || data.action === 'ack_seen') {
+          const msg = state.messages.find(m => m.msgId === data.msgId);
+          if (msg) {
+            msg.status = data.action === 'ack_seen' ? 'seen' : 'delivered';
+            saveState();
+            if (state.activeChat) renderMessages();
+          }
+          return;
+        }
+
+        addIncomingMessage(data);
+
+        mqttClient.publish(`whatsapp_clone/user/${data.senderId}`, JSON.stringify({ action: 'ack_delivered', msgId: data.msgId }));
+        if (state.activeChat && state.activeChat.key === data.senderId) {
+          mqttClient.publish(`whatsapp_clone/user/${data.senderId}`, JSON.stringify({ action: 'ack_seen', msgId: data.msgId }));
+        }
+      }
+      else if (topic.includes('/group/') && topic.endsWith('/chat')) {
+        if (data.senderId === state.profile.userId) return;
+        addIncomingMessage(data);
+      }
+    }
+
+    function addIncomingMessage(msg) {
+      if (!state.messages.some(m => m.msgId === msg.msgId)) {
+        msg.status = 'delivered';
+        state.messages.push(msg);
+        saveState();
+        renderChatList();
+        if (state.activeChat && (state.activeChat.key === msg.senderId || state.activeChat.key === msg.groupKey)) {
+          renderMessages();
+        }
+      }
+    }
+
+    // --- RESPONSIVE CHAT VIEWS & RENDERING ---
+    function renderChatList() {
+      const container = document.getElementById('chatList');
+      const filter = document.getElementById('searchInput').value.toLowerCase();
+      container.innerHTML = '';
+
+      const items = [
+        ...state.friends.map(f => ({ ...f, chatType: 'friend' })),
+        ...state.groups.map(g => ({ ...g, chatType: 'group' }))
+      ].filter(i => (i.name || i.userId).toLowerCase().includes(filter));
+
+      items.forEach(item => {
+        const key = item.chatType === 'friend' ? item.userId : item.groupKey;
+        const lastMsg = getLastMessage(key);
+        const isActive = state.activeChat && state.activeChat.key === key;
+
+        const div = document.createElement('div');
+        div.className = `p-3 flex items-center justify-between cursor-pointer border-b border-gray-50 hover:bg-gray-50 transition ${isActive ? 'bg-emerald-50/60 border-l-4 border-l-emerald-600' : ''}`;
+        div.onclick = () => selectChat(item.chatType, key);
+
+        const statusDotClass = item.chatType === 'friend' ? `status-${item.status || 'yellow'}` : 'hidden';
+
+        div.innerHTML = `
+          <div class="flex items-center space-x-3 truncate overflow-hidden">
+            <div class="relative shrink-0">
+              <div class="w-10 h-10 md:w-12 md:h-12 rounded-full ${item.chatType === 'group' ? 'bg-indigo-600' : 'bg-emerald-600'} text-white flex items-center justify-center font-bold text-sm md:text-base">
+                ${(item.name || item.userId).charAt(0).toUpperCase()}
+              </div>
+              <span class="status-dot ${statusDotClass} absolute bottom-0 right-0 border-2 border-white"></span>
+            </div>
+            <div class="truncate">
+              <div class="font-semibold text-gray-800 text-sm md:text-base truncate">${item.name || item.userId}</div>
+              <div class="text-xs text-gray-400 truncate">${lastMsg ? (lastMsg.type === 'photo' ? '📷 Photo' : lastMsg.payload) : 'No messages yet'}</div>
+            </div>
+          </div>
+          ${lastMsg ? `<div class="text-[10px] md:text-xs text-gray-400 whitespace-nowrap pl-2">${formatTime(lastMsg.timestamp)}</div>` : ''}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function selectChat(type, key) {
+      state.activeChat = { type, key };
+
+      // Responsive Mobile View Switching:
+      // 1. Hide Sidebar on mobile (add hidden), keep it on md (md:flex)
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.remove('flex');
+      sidebar.classList.add('hidden', 'md:flex');
+
+      // 2. Show Chat Area on mobile (remove hidden), ensure flex
+      const chatArea = document.getElementById('chatArea');
+      chatArea.classList.remove('hidden');
+      chatArea.classList.add('flex');
+
+      // Toggle internal UI components
+      document.getElementById('noChatSelected').classList.add('hidden');
+      document.getElementById('activeChatInterface').classList.remove('hidden');
+
+      updateChatHeader();
+      renderMessages();
+      renderChatList(); // Rerender to highlight active selection on desktop
+
+      // Send ACK Seen
+      if (type === 'friend') {
+        const unreadMsgs = state.messages.filter(m => m.senderId === key && m.receiverId === state.profile.userId);
+        unreadMsgs.forEach(m => {
+          mqttClient.publish(`whatsapp_clone/user/${key}`, JSON.stringify({ action: 'ack_seen', msgId: m.msgId }));
+        });
+      }
+    }
+
+    // Function specifically mapped to the Mobile "Back" arrow
+    function closeChatMobile() {
+      // 1. Show Sidebar on mobile
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.remove('hidden');
+      sidebar.classList.add('flex');
+
+      // 2. Hide Chat Area on mobile, keep it visible for desktop layout
+      const chatArea = document.getElementById('chatArea');
+      chatArea.classList.remove('flex');
+      chatArea.classList.add('hidden', 'md:flex');
+
+      // Reset selection state so if resized to Desktop it shows 'No Chat Selected'
+      state.activeChat = null;
+      document.getElementById('noChatSelected').classList.remove('hidden');
+      document.getElementById('activeChatInterface').classList.add('hidden');
+      
+      renderChatList();
+    }
+
+    function updateChatHeader() {
+      if (!state.activeChat) return;
+      const key = state.activeChat.key;
+      const titleEl = document.getElementById('chatHeaderTitle');
+      const subEl = document.getElementById('chatHeaderSub');
+      const avatarEl = document.getElementById('chatHeaderAvatar');
+      const statusDotEl = document.getElementById('chatHeaderStatusDot');
+
+      if (state.activeChat.type === 'friend') {
+        const friend = state.friends.find(f => f.userId === key);
+        titleEl.innerText = friend ? friend.name : key;
+        subEl.innerText = 'ID: ' + key;
+        avatarEl.className = "w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold";
+        avatarEl.innerText = (friend ? friend.name : key).charAt(0).toUpperCase();
+        statusDotEl.className = `status-dot status-${friend ? friend.status : 'yellow'} absolute bottom-0 right-0 border-2 border-white`;
+      } else {
+        const group = state.groups.find(g => g.groupKey === key);
+        titleEl.innerText = group ? group.name : 'Group Chat';
+        subEl.innerText = `${group ? group.members.length : 0} members`;
+        avatarEl.className = "w-10 h-10 rounded-full bg-indigo-700 text-white flex items-center justify-center font-bold";
+        avatarEl.innerText = (group ? group.name : 'G').charAt(0).toUpperCase();
+        statusDotEl.className = "hidden";
+      }
+    }
+
+    function renderMessages() {
+      const container = document.getElementById('messagesContainer');
+      container.innerHTML = '';
+
+      if (!state.activeChat) return;
+      const key = state.activeChat.key;
+
+      const chatMsgs = state.messages.filter(m => 
+        state.activeChat.type === 'friend' 
+          ? (m.senderId === state.profile.userId && m.receiverId === key) || (m.senderId === key && m.receiverId === state.profile.userId)
+          : m.groupKey === key
+      );
+
+      chatMsgs.forEach(m => {
+        const isSelf = m.senderId === state.profile.userId;
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
+
+        let replyBox = '';
+        if (m.replyToId) {
+          const refMsg = state.messages.find(x => x.msgId === m.replyToId);
+          if (refMsg) {
+            replyBox = `
+              <div class="bg-black/5 border-l-4 border-emerald-600 p-1.5 rounded text-[10px] md:text-xs mb-1">
+                <span class="font-bold text-emerald-800">${refMsg.senderId === state.profile.userId ? 'You' : refMsg.senderId}</span>
+                <p class="truncate text-gray-600 max-w-[150px] md:max-w-xs">${refMsg.type === 'photo' ? '📷 Photo' : refMsg.payload}</p>
+              </div>`;
+          }
+        }
+
+        let ticks = '';
+        if (isSelf) {
+          if (m.status === 'seen') ticks = '<i class="fa-solid fa-check-double text-sky-500 ml-1 text-[10px] md:text-xs"></i>';
+          else if (m.status === 'delivered') ticks = '<i class="fa-solid fa-check-double text-gray-400 ml-1 text-[10px] md:text-xs"></i>';
+          else ticks = '<i class="fa-solid fa-check text-gray-400 ml-1 text-[10px] md:text-xs"></i>';
+        }
+
+        const content = m.type === 'photo' 
+          ? `<img src="${m.payload}" class="rounded-lg max-w-[200px] md:max-w-xs max-h-40 md:max-h-60 object-cover cursor-pointer mb-1"/>`
+          : `<p class="text-sm md:text-base text-gray-800 break-words">${escapeHTML(m.payload)}</p>`;
+
+        msgDiv.innerHTML = `
+          <div class="relative group max-w-[85%] md:max-w-[70%] ${isSelf ? 'bg-emerald-100' : 'bg-white'} rounded-lg p-2 md:p-2.5 shadow-sm border border-gray-100">
+            ${!isSelf && state.activeChat.type === 'group' ? `<div class="text-[10px] md:text-[11px] font-bold text-indigo-600 mb-0.5">${m.senderId}</div>` : ''}
+            ${replyBox}
+            ${content}
+            <div class="flex items-center justify-end space-x-1 mt-1 text-[9px] md:text-[10px] text-gray-400">
+              <span>${formatTime(m.timestamp)}</span>
+              ${ticks}
+            </div>
+            <button onclick="setReply('${m.msgId}')" class="absolute top-1 right-1 hidden group-hover:block bg-gray-200/80 hover:bg-gray-300 text-gray-600 rounded p-1 text-[10px]">
+              <i class="fa-solid fa-reply"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(msgDiv);
+      });
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // --- SEND MESSAGE & MEDIA LOGIC ---
+    function sendMessage(type = 'text', payloadContent = null) {
+      if (!state.activeChat) return;
+      const input = document.getElementById('messageInput');
+      const payload = payloadContent || input.value.trim();
+      if (!payload) return;
+
+      const msgObj = {
+        msgId: 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        senderId: state.profile.userId,
+        receiverId: state.activeChat.type === 'friend' ? state.activeChat.key : null,
+        groupKey: state.activeChat.type === 'group' ? state.activeChat.key : null,
+        payload: payload,
+        type: type,
+        replyToId: state.replyTarget,
+        timestamp: Date.now(),
+        status: 'sent'
+      };
+
+      state.messages.push(msgObj);
+      saveState();
+
+      if (state.activeChat.type === 'friend') {
+        mqttClient.publish(`whatsapp_clone/user/${state.activeChat.key}`, JSON.stringify(msgObj), { qos: 1 });
+      } else {
+        mqttClient.publish(`whatsapp_clone/group/${state.activeChat.key}/chat`, JSON.stringify(msgObj), { qos: 1 });
+      }
+
+      if (type === 'text') input.value = '';
+      cancelReply();
+      renderMessages();
+      renderChatList();
+    }
+
+    function handlePhotoUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) { sendMessage('photo', evt.target.result); };
+      reader.readAsDataURL(file);
+    }
+
+    function setReply(msgId) {
+      const msg = state.messages.find(m => m.msgId === msgId);
+      if (!msg) return;
+      state.replyTarget = msgId;
+      document.getElementById('replyPreviewBanner').classList.remove('hidden');
+      document.getElementById('replySender').innerText = msg.senderId === state.profile.userId ? 'Replying to Yourself' : `Replying to ${msg.senderId}`;
+      document.getElementById('replyText').innerText = msg.type === 'photo' ? '📷 Photo' : msg.payload;
+    }
+
+    function cancelReply() {
+      state.replyTarget = null;
+      document.getElementById('replyPreviewBanner').classList.add('hidden');
+    }
+
+    function toggleEmojiPicker() { document.getElementById('emojiToolbar').classList.toggle('hidden'); }
+
+    function appendEmoji(emoji) {
+      const input = document.getElementById('messageInput');
+      input.value += emoji;
+      document.getElementById('emojiToolbar').classList.add('hidden');
+      input.focus();
+    }
+
+    // --- FRIENDS & GROUPS MODAL LOGIC ---
+    function addFriend() {
+      const name = document.getElementById('friendName').value.trim();
+      const id = document.getElementById('friendId').value.trim();
+      if (!name || !id) return alert('Fill all fields!');
+      if (id === state.profile.userId) return alert('Cannot add yourself!');
+
+      if (!state.friends.some(f => f.userId === id)) {
+        state.friends.push({ userId: id, name: name, status: 'yellow' });
+        saveState();
+        renderChatList();
+      }
+      closeModal('addFriendModal');
+    }
+
+    function createGroup() {
+      const name = document.getElementById('groupName').value.trim();
+      if (!name) return alert('Enter group name!');
+
+      const checkboxes = document.querySelectorAll('.group-member-cb:checked');
+      const selectedMembers = Array.from(checkboxes).map(cb => cb.value);
+      selectedMembers.push(state.profile.userId);
+
+      const groupKey = 'grp_' + Date.now().toString(36);
+      const groupData = { groupKey, name, members: selectedMembers };
+
+      state.groups.push(groupData);
+      saveState();
+
+      mqttClient.publish(`whatsapp_clone/group/${groupKey}/info`, JSON.stringify(groupData), { qos: 1, retain: true });
+      mqttClient.subscribe(`whatsapp_clone/group/${groupKey}/chat`, { qos: 1 });
+
+      renderChatList();
+      closeModal('createGroupModal');
+    }
+
+    function saveSettings() {
+      state.profile.username = document.getElementById('cfgUsername').value.trim();
+      state.profile.mqttHost = document.getElementById('cfgMqttHost').value.trim();
+      state.profile.mqttUser = document.getElementById('cfgMqttUser').value.trim();
+      state.profile.mqttPass = document.getElementById('cfgMqttPass').value.trim();
+      saveState();
+      initUI();
+      connectMQTT();
+      closeModal('settingsModal');
+    }
+
+    function openModal(id) {
+      if (id === 'createGroupModal') {
+        const container = document.getElementById('groupMembersList');
+        container.innerHTML = state.friends.length ? '' : '<p class="text-xs text-gray-400">No friends added yet.</p>';
+        state.friends.forEach(f => {
+          container.innerHTML += `
+            <label class="flex items-center space-x-2 text-xs md:text-sm py-1 cursor-pointer">
+              <input type="checkbox" value="${f.userId}" class="group-member-cb rounded text-emerald-600 w-4 h-4">
+              <span class="truncate">${f.name} (${f.userId})</span>
+            </label>`;
+        });
+      }
+      document.getElementById(id).classList.remove('hidden');
+      document.getElementById(id).classList.add('flex');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      document.getElementById(id).classList.remove('flex');
+    }
+
+    function getLastMessage(key) {
+      const list = state.messages.filter(m => m.receiverId === key || m.senderId === key || m.groupKey === key);
+      return list.length ? list[list.length - 1] : null;
+    }
+
+    function formatTime(ts) { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+    }
+  </script>
+</body>
+</html>
