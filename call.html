@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQTT WebRTC Video Call & Chat - Responsive</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121214; color: #fff; margin: 0; padding: 0; height: 100vh; overflow: hidden; }
+        
+        /* Modal for Settings & User Profile */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .modal { background: #202225; padding: 20px; border-radius: 10px; width: 90%; max-width: 460px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); max-height: 85vh; overflow-y: auto; }
+        .modal h3 { margin-top: 0; color: #fff; text-align: center; }
+        .modal label { font-size: 0.8em; color: #b9bbbe; text-transform: uppercase; font-weight: bold; margin-top: 10px; display: block; }
+        .modal input, .modal textarea { width: 100%; padding: 9px; margin: 4px 0 8px 0; border-radius: 5px; border: 1px solid #444; background: #2f3136; color: white; font-size: 0.9em; }
+        
+        /* App Layout Grid (Default Desktop View) */
+        .app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+        .sidebar-left { width: 260px; background: #2f3136; border-right: 1px solid #202225; display: flex; flex-direction: column; padding: 15px; }
+        .sidebar-right { width: 320px; background: #2f3136; border-left: 1px solid #202225; display: flex; flex-direction: column; padding: 15px; }
+        .main-stage { flex: 1; background: #18191c; display: flex; flex-direction: column; padding: 15px; position: relative; }
+
+        /* General Elements */
+        h3, h4 { margin: 0 0 10px 0; font-size: 1em; text-transform: uppercase; color: #b9bbbe; letter-spacing: 0.5px; }
+        button { padding: 9px 14px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; color: white; background: #5865f2; }
+        button:hover { background: #4752c4; }
+        .btn-success { background: #3ba55d; } .btn-success:hover { background: #2d8249; }
+        .btn-danger { background: #ed4245; } .btn-danger:hover { background: #c03537; }
+        .btn-secondary { background: #4f545c; } .btn-secondary:hover { background: #3c3f44; }
+        .btn-off { background: #4f545c; color: #f6f6f7; }
+        
+        /* Connection Status Dot */
+        .conn-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ed4245; margin-right: 6px; }
+        .conn-indicator.online { background: #3ba55d; }
+
+        /* Friends & Members List */
+        .friend-item { display: flex; flex-direction: column; padding: 8px 10px; background: #36393f; border-radius: 6px; margin-bottom: 8px; cursor: pointer; border: 2px solid transparent; }
+        .friend-item.active { border-color: #5865f2; background: #40444b; }
+        .friend-item .header { display: flex; align-items: center; justify-content: space-between; }
+        .friend-item .meta { font-size: 0.75em; color: #aaa; margin-top: 4px; word-break: break-all; }
+        .status-dot { width: 8px; height: 8px; background: #3ba55d; border-radius: 50%; display: inline-block; margin-right: 6px; }
+
+        /* Video Area */
+        .video-wrapper { flex: 1; position: relative; background: #000; border-radius: 10px; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 1px solid #36393f; min-height: 220px; }
+        #main-video { width: 100%; height: 100%; object-fit: contain; }
+        .main-label { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 4px; font-size: 0.85em; z-index: 10; }
+        
+        /* Self Video Overlay */
+        .local-video-overlay { position: absolute; bottom: 15px; right: 15px; width: 140px; height: 90px; background: #202225; border-radius: 8px; overflow: hidden; border: 2px solid #5865f2; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 10; }
+        #local-video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Controls Toolbar */
+        .toolbar { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; background: #2f3136; padding: 10px; border-radius: 8px; flex-wrap: wrap; }
+        .volume-box { display: flex; align-items: center; gap: 6px; background: #36393f; padding: 4px 8px; border-radius: 5px; }
+        .volume-box input[type=range] { width: 70px; accent-color: #5865f2; }
+
+        /* Chat System */
+        .chat-messages { flex: 1; overflow-y: auto; background: #36393f; padding: 10px; border-radius: 6px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .chat-msg { max-width: 85%; padding: 8px 12px; border-radius: 8px; font-size: 0.88em; word-break: break-word; display: flex; flex-direction: column; position: relative; cursor: pointer; }
+        .chat-msg.sent { align-self: flex-end; background: #005c4b; color: #e9edef; border-bottom-right-radius: 2px; }
+        .chat-msg.received { align-self: flex-start; background: #202c33; color: #e9edef; border-bottom-left-radius: 2px; }
+        .chat-msg .sender { font-weight: bold; color: #53bdeb; margin-bottom: 3px; font-size: 0.75em; }
+        .chat-msg.sent .sender { color: #70dfc4; }
+        .chat-msg .time { font-size: 0.65em; color: rgba(255,255,255,0.6); align-self: flex-end; margin-top: 3px; }
+        
+        .chat-msg .reply-quote { background: rgba(0,0,0,0.25); border-left: 3px solid #00a884; padding: 4px 8px; border-radius: 4px; margin-bottom: 5px; font-size: 0.8em; color: #d1d7db; }
+        .chat-msg .reply-quote .quote-sender { font-weight: bold; font-size: 0.75em; color: #00a884; }
+
+        .reply-preview-bar { background: #202c33; padding: 6px 10px; border-left: 3px solid #00a884; border-radius: 4px; font-size: 0.8em; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .reply-preview-bar button { padding: 2px 6px; font-size: 0.75em; background: transparent; color: #aaa; }
+
+        .chat-input-container { display: flex; gap: 5px; }
+        .chat-input-container input { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #40444b; color: white; }
+
+        /* Toast Notifications */
+        #toast-container { position: fixed; top: 15px; right: 15px; z-index: 3000; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: #202225; color: white; padding: 10px 14px; border-radius: 6px; border-left: 4px solid #5865f2; box-shadow: 0 4px 12px rgba(0,0,0,0.4); font-size: 0.85em; }
+        .toast.success { border-left-color: #3ba55d; }
+        .toast.danger { border-left-color: #ed4245; }
+
+        /* Mobile Bottom Tab Navigation */
+        .mobile-bottom-nav { display: none; background: #202225; border-top: 1px solid #2f3136; position: fixed; bottom: 0; left: 0; right: 0; height: 50px; z-index: 1500; }
+        .mobile-bottom-nav button { flex: 1; border-radius: 0; background: transparent; font-size: 0.8em; color: #b9bbbe; padding: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+        .mobile-bottom-nav button.active { color: #fff; background: #2f3136; border-top: 3px solid #5865f2; }
+
+        /* Responsive Mobile Styles (< 850px) */
+        @media (max-width: 850px) {
+            .app-container { flex-direction: column; height: calc(100vh - 50px); }
+            .sidebar-left, .sidebar-right, .main-stage { width: 100% !important; height: 100% !important; display: none; border: none; }
+            .sidebar-left.mobile-active, .sidebar-right.mobile-active, .main-stage.mobile-active { display: flex; }
+            .mobile-bottom-nav { display: flex; }
+            
+            #setup-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+            #call-idle-controls, #call-active-controls { flex-direction: column; align-items: stretch; }
+            .local-video-overlay { width: 100px; height: 65px; bottom: 10px; right: 10px; }
+            .toolbar button { flex: 1; min-width: 100px; text-align: center; }
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<!-- Settings & Profile Modal -->
+<div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal">
+        <h3>⚙️ Settings & User Profile</h3>
+        <label>Name *</label>
+        <input id="setting-display-name" type="text" placeholder="Your Name">
+        <label>Info / Title</label>
+        <input id="setting-user-info" type="text" placeholder="e.g. Software Engineer">
+        <label>Bio</label>
+        <textarea id="setting-user-bio" rows="2" placeholder="Tell friends about yourself..."></textarea>
+        <label>Contact Info</label>
+        <input id="setting-user-contact" type="text" placeholder="Email / Phone / Telegram">
+        <label>Default Group Name</label>
+        <input id="setting-group-name" type="text" placeholder="my frends">
+        <label>MQTT Host URL (WSS) *</label>
+        <input id="setting-mqtt-host" type="text" placeholder="wss://broker.emqx.io:8084/mqtt">
+        <label>MQTT Username</label>
+        <input id="setting-mqtt-user" type="text" placeholder="Optional">
+        <label>MQTT Password</label>
+        <input id="setting-mqtt-pass" type="password" placeholder="Optional">
+
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button id="btn-save-settings" style="flex: 1;" class="btn-success">Save & Connect</button>
+            <button id="btn-close-settings" style="flex: 1;" class="btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Main App Container -->
+<div class="app-container">
+    
+    <!-- LEFT SIDEBAR: Members List -->
+    <div id="tab-members" class="sidebar-left">
+        <h3 id="group-title">Group: my frends</h3>
+        <div id="friends-list" style="flex: 1; overflow-y: auto;">
+            <p id="no-friends-text" style="color: #72767d; font-size: 0.85em;">No members in call.</p>
+        </div>
+        <hr style="border-color: #40444b; width: 100%; margin: 10px 0;">
+        <div style="font-size: 0.8em; color: #b9bbbe;">
+            Logged in as: <br><strong id="display-my-name" style="color: #fff;">-</strong>
+            <div style="margin-top: 5px; font-size: 0.9em;">
+                <span id="status-dot-mqtt" class="conn-indicator"></span>
+                <span id="status-text-mqtt">MQTT Offline</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CENTER: Main Video Stage -->
+    <div id="tab-stage" class="main-stage mobile-active">
+        <div id="setup-bar" style="background: #2f3136; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+            <div id="call-idle-controls" style="display: flex; gap: 8px; align-items: center; flex: 1;">
+                <button id="btn-create-call" class="btn-success">📞 Create Call</button>
+                <div style="display: flex; gap: 5px; align-items: center; flex: 1;">
+                    <input id="room-key-input" type="text" value="scyxsd" placeholder="Key e.g. scyxsd" style="width: 100%; min-width: 100px; padding:8px; border-radius:4px; border:1px solid #444; background:#1e1e24; color:white;">
+                    <button id="btn-join-call">Join</button>
+                </div>
+            </div>
+
+            <div id="call-active-controls" class="hidden" style="display: flex; gap: 8px; align-items: center; flex: 1;">
+                <div style="background: #1e1e24; padding: 6px 10px; border-radius: 4px; font-size: 0.85em; border: 1px solid #444; display: flex; align-items: center; justify-content: space-between; flex: 1;">
+                    <span>Key: <strong id="active-key-display" style="color: #5865f2;">scyxsd</strong></span>
+                    <button id="btn-copy-key" style="padding: 2px 6px; font-size: 0.75em; background: #4f545c;">📋 Copy</button>
+                </div>
+                <button id="btn-leave-call" class="btn-danger">🛑 Leave</button>
+            </div>
+
+            <button id="btn-open-settings" class="btn-secondary">⚙️</button>
+        </div>
+
+        <div class="video-wrapper">
+            <video id="main-video" autoplay playsinline></video>
+            <div id="main-video-label" class="main-label">No member selected</div>
+
+            <div class="local-video-overlay">
+                <video id="local-video" autoplay muted playsinline></video>
+                <div style="position: absolute; bottom: 3px; left: 4px; background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 3px; font-size: 0.65em;">You</div>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <button id="btn-toggle-mic">🎤 Mic ON</button>
+            <button id="btn-toggle-cam">📹 Cam ON</button>
+            <div class="volume-box">
+                <button id="btn-toggle-mute" style="padding: 4px 6px; font-size: 0.78em;">🔊</button>
+                <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="1">
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR: Chat System -->
+    <div id="tab-chat" class="sidebar-right">
+        <h3>Group Chat</h3>
+        <div id="chat-messages" class="chat-messages"></div>
+
+        <div id="reply-preview" class="reply-preview-bar hidden">
+            <div>
+                <span style="color: #00a884; font-weight: bold;">Replying to </span>
+                <span id="reply-target-name"></span>: 
+                <i id="reply-target-text" style="color:#aaa;"></i>
+            </div>
+            <button id="btn-cancel-reply">✕</button>
+        </div>
+
+        <div class="chat-input-container">
+            <input id="chat-input" type="text" placeholder="Type a message...">
+            <button id="btn-send-chat">Send</button>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Bottom Navigation Bar -->
+<div class="mobile-bottom-nav">
+    <button id="nav-btn-members" onclick="switchMobileTab('members')">👥 <span>Members</span></button>
+    <button id="nav-btn-stage" class="active" onclick="switchMobileTab('stage')">📹 <span>Stage</span></button>
+    <button id="nav-btn-chat" onclick="switchMobileTab('chat')">💬 <span>Chat</span></button>
+</div>
+
+<script>
+    // --- Mobile Tab Navigation Router ---
+    function switchMobileTab(tabName) {
+        document.querySelectorAll('.sidebar-left, .sidebar-right, .main-stage').forEach(el => el.classList.remove('mobile-active'));
+        document.querySelectorAll('.mobile-bottom-nav button').forEach(btn => btn.classList.remove('active'));
+
+        if (tabName === 'members') {
+            document.getElementById('tab-members').classList.add('mobile-active');
+            document.getElementById('nav-btn-members').classList.add('active');
+        } else if (tabName === 'stage') {
+            document.getElementById('tab-stage').classList.add('mobile-active');
+            document.getElementById('nav-btn-stage').classList.add('active');
+        } else if (tabName === 'chat') {
+            document.getElementById('tab-chat').classList.add('mobile-active');
+            document.getElementById('nav-btn-chat').classList.add('active');
+        }
+    }
+
+    // --- State Variables ---
+    let myUserId = localStorage.getItem('webrtc_user_id') || ('usr_' + Math.random().toString(36).substr(2, 7));
+    let myUserName = localStorage.getItem('webrtc_username') || 'User_' + myUserId.substr(4, 4);
+    let myUserInfo = localStorage.getItem('webrtc_user_info') || 'Member';
+    let myUserBio = localStorage.getItem('webrtc_user_bio') || 'Hello world!';
+    let myUserContact = localStorage.getItem('webrtc_user_contact') || '';
+    
+    let groupName = localStorage.getItem('webrtc_group_name') || 'TELESON';
+    let mqttHost = localStorage.getItem('webrtc_mqtt_host') || 'wss://mqtt.teleson.in:8084/mqtt';
+    let mqttUsername = localStorage.getItem('webrtc_mqtt_username') || 'sangmeshwar';
+    let mqttPassword = localStorage.getItem('webrtc_mqtt_password') || 'public123';
+    
+    
+    let mqttClient = null, localStream = null, currentRoomKey = null, activeFocusedPeerId = null, activeReplyMessage = null;
+    let localGroupsStore = JSON.parse(localStorage.getItem('webrtc_groups') || '{}');
+    let localFriendsStore = JSON.parse(localStorage.getItem('webrtc_friends') || '{}');
+    let peers = {}; 
+    let isMicOn = true, isCamOn = true;
+
+    const iceServers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] };
+    localStorage.setItem('webrtc_user_id', myUserId);
+
+    // --- DOM Elements ---
+    const settingsModal = document.getElementById('settings-modal');
+    const settingDisplayName = document.getElementById('setting-display-name');
+    const settingUserInfo = document.getElementById('setting-user-info');
+    const settingUserBio = document.getElementById('setting-user-bio');
+    const settingUserContact = document.getElementById('setting-user-contact');
+    const settingGroupName = document.getElementById('setting-group-name');
+    const settingMqttHost = document.getElementById('setting-mqtt-host');
+    const settingMqttUser = document.getElementById('setting-mqtt-user');
+    const settingMqttPass = document.getElementById('setting-mqtt-pass');
+
+    const displayMyName = document.getElementById('display-my-name');
+    const groupTitle = document.getElementById('group-title');
+    const statusDotMqtt = document.getElementById('status-dot-mqtt');
+    const statusTextMqtt = document.getElementById('status-text-mqtt');
+    const toastContainer = document.getElementById('toast-container');
+    
+    const callIdleControls = document.getElementById('call-idle-controls');
+    const callActiveControls = document.getElementById('call-active-controls');
+    const activeKeyDisplay = document.getElementById('active-key-display');
+    const roomKeyInput = document.getElementById('room-key-input');
+
+    const localVideo = document.getElementById('local-video');
+    const mainVideo = document.getElementById('main-video');
+    const mainVideoLabel = document.getElementById('main-video-label');
+    const friendsListEl = document.getElementById('friends-list');
+    const noFriendsText = document.getElementById('no-friends-text');
+    
+    const chatMessagesEl = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const replyPreview = document.getElementById('reply-preview');
+    const replyTargetName = document.getElementById('reply-target-name');
+    const replyTargetText = document.getElementById('reply-target-text');
+    
+    const volumeSlider = document.getElementById('volume-slider');
+    const btnToggleMute = document.getElementById('btn-toggle-mute');
+
+    // --- Initialization ---
+    window.addEventListener('load', () => {
+        initLocalMedia();
+        updateUserIdentityUI();
+        if (!mqttHost || !myUserName) openSettingsModal();
+        else connectMQTT();
+    });
+
+    document.getElementById('btn-open-settings').onclick = openSettingsModal;
+    document.getElementById('btn-close-settings').onclick = () => settingsModal.classList.add('hidden');
+
+    function openSettingsModal() {
+        settingDisplayName.value = myUserName;
+        settingUserInfo.value = myUserInfo;
+        settingUserBio.value = myUserBio;
+        settingUserContact.value = myUserContact;
+        settingGroupName.value = groupName;
+        settingMqttHost.value = mqttHost;
+        settingMqttUser.value = mqttUsername;
+        settingMqttPass.value = mqttPassword;
+        settingsModal.classList.remove('hidden');
+    }
+
+    document.getElementById('btn-save-settings').onclick = () => {
+        const name = settingDisplayName.value.trim();
+        const host = settingMqttHost.value.trim();
+        if (!name || !host) return alert("Fill in Name & MQTT Host URL");
+
+        myUserName = name;
+        myUserInfo = settingUserInfo.value.trim();
+        myUserBio = settingUserBio.value.trim();
+        myUserContact = settingUserContact.value.trim();
+        groupName = settingGroupName.value.trim() || 'my frends';
+        mqttHost = host;
+        mqttUsername = settingMqttUser.value.trim();
+        mqttPassword = settingMqttPass.value.trim();
+
+        localStorage.setItem('webrtc_username', myUserName);
+        localStorage.setItem('webrtc_user_info', myUserInfo);
+        localStorage.setItem('webrtc_user_bio', myUserBio);
+        localStorage.setItem('webrtc_user_contact', myUserContact);
+        localStorage.setItem('webrtc_group_name', groupName);
+        localStorage.setItem('webrtc_mqtt_host', mqttHost);
+        localStorage.setItem('webrtc_mqtt_username', mqttUsername);
+        localStorage.setItem('webrtc_mqtt_password', mqttPassword);
+
+        settingsModal.classList.add('hidden');
+        updateUserIdentityUI();
+        connectMQTT();
+    };
+
+    function updateUserIdentityUI() {
+        displayMyName.innerText = `${myUserName} (${myUserId})`;
+        groupTitle.innerText = `Group: ${groupName}`;
+    }
+
+    function showNotification(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerText = message;
+        toastContainer.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+    }
+
+    async function initLocalMedia() {
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            localVideo.srcObject = localStream;
+        } catch (err) {
+            showNotification("Camera/Mic permission denied.", "danger");
+        }
+    }
+
+    // --- MQTT Connection ---
+    function connectMQTT() {
+        if (mqttClient) mqttClient.end(true);
+        statusDotMqtt.classList.remove('online');
+        statusTextMqtt.innerText = "Connecting...";
+
+        const opts = { clientId: myUserId, reconnectPeriod: 4000 };
+        if (mqttUsername) opts.username = mqttUsername;
+        if (mqttPassword) opts.password = mqttPassword;
+
+        try {
+            mqttClient = mqtt.connect(mqttHost, opts);
+            mqttClient.on('connect', () => {
+                statusDotMqtt.classList.add('online');
+                statusTextMqtt.innerText = "Connected";
+                showNotification("MQTT Connected", "success");
+            });
+            mqttClient.on('error', () => {
+                statusDotMqtt.classList.remove('online');
+                statusTextMqtt.innerText = "Error";
+            });
+            mqttClient.on('close', () => {
+                statusDotMqtt.classList.remove('online');
+                statusTextMqtt.innerText = "Offline";
+            });
+            mqttClient.on('message', handleSignalingMessage);
+        } catch (e) {
+            showNotification("Invalid MQTT Host URL", "danger");
+        }
+    }
+
+    // --- Room Logic & Retained Group Presences ---
+    document.getElementById('btn-create-call').onclick = () => joinRoomProcess(roomKeyInput.value.trim().toLowerCase() || 'scyxsd');
+    document.getElementById('btn-join-call').onclick = () => joinRoomProcess(roomKeyInput.value.trim().toLowerCase() || 'scyxsd');
+    document.getElementById('btn-leave-call').onclick = leaveCall;
+    document.getElementById('btn-copy-key').onclick = () => {
+        if (currentRoomKey) {
+            navigator.clipboard.writeText(currentRoomKey);
+            showNotification("Key copied to clipboard!", "success");
+        }
+    };
+
+    function joinRoomProcess(key) {
+        if (!mqttClient || !mqttClient.connected) return alert("Connect to MQTT Broker first.");
+        currentRoomKey = key;
+
+        mqttClient.subscribe(`webrtc/groups/${currentRoomKey}`);
+        mqttClient.subscribe(`webrtc/groups/${currentRoomKey}/direct/${myUserId}`);
+        mqttClient.subscribe(`webrtc/groups/${currentRoomKey}/chat`);
+
+        updateCallUIState(true);
+        showNotification(`Joined: ${currentRoomKey}`, "success");
+    }
+
+    function leaveCall() {
+        if (currentRoomKey && mqttClient) {
+            mqttClient.unsubscribe(`webrtc/groups/${currentRoomKey}`);
+            mqttClient.unsubscribe(`webrtc/groups/${currentRoomKey}/direct/${myUserId}`);
+            mqttClient.unsubscribe(`webrtc/groups/${currentRoomKey}/chat`);
+        }
+
+        Object.keys(peers).forEach(pId => cleanupPeer(pId));
+        currentRoomKey = null;
+        mainVideo.srcObject = null;
+        mainVideoLabel.innerText = "No member selected";
+
+        updateCallUIState(false);
+        showNotification("Left group call.", "danger");
+    }
+
+    function updateCallUIState(inCall) {
+        if (inCall) {
+            callIdleControls.classList.add('hidden');
+            callActiveControls.classList.remove('hidden');
+            activeKeyDisplay.innerText = currentRoomKey;
+        } else {
+            callActiveControls.classList.add('hidden');
+            callIdleControls.classList.remove('hidden');
+            activeKeyDisplay.innerText = '-';
+        }
+    }
+
+    // --- WebRTC Connections ---
+    function createPeerConnection(targetId, targetProfile, isInitiator) {
+        if (peers[targetId]) return peers[targetId].pc;
+
+        const pc = new RTCPeerConnection(iceServers);
+        peers[targetId] = { 
+            name: targetProfile.name || 'Friend',
+            info: targetProfile.info || '',
+            bio: targetProfile.bio || '',
+            contact: targetProfile.contact || '',
+            pc: pc, stream: null, iceQueue: [] 
+        };
+
+        if (localStream) localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+
+        pc.ontrack = (evt) => {
+            peers[targetId].stream = evt.streams[0];
+            if (!activeFocusedPeerId) focusFriendVideo(targetId);
+            renderFriendsList();
+        };
+
+        pc.onicecandidate = (evt) => {
+            if (evt.candidate) {
+                sendDirectMessage(targetId, { type: 'candidate', fromId: myUserId, candidate: evt.candidate });
+            }
+        };
+
+        pc.onconnectionstatechange = () => {
+            if (['disconnected', 'failed', 'closed'].includes(pc.connectionState)) cleanupPeer(targetId);
+        };
+
+        if (isInitiator) {
+            pc.onnegotiationneeded = async () => {
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                sendDirectMessage(targetId, { type: 'offer', fromId: myUserId, fromProfile: getMyProfileData(), sdp: offer });
+            };
+        }
+
+        renderFriendsList();
+        return pc;
+    }
+
+    function getMyProfileData() {
+        return { name: myUserName, info: myUserInfo, bio: myUserBio, contact: myUserContact };
+    }
+
+    // --- Message Processing ---
+    async function handleSignalingMessage(topic, payload) {
+        const payloadStr = payload.toString();
+        if (!payloadStr) return;
+
+        if (topic.endsWith('/chat')) {
+            appendChatMessage(JSON.parse(payloadStr));
+            return;
+        }
+
+        if (topic === `webrtc/groups/${currentRoomKey}`) {
+            let groupData = JSON.parse(payloadStr) || {};
+            const members = groupData.members || {};
+            
+            const myCurrentData = members[myUserId];
+            const myProfileObj = getMyProfileData();
+
+            if (!myCurrentData || JSON.stringify(myCurrentData) !== JSON.stringify(myProfileObj)) {
+                members[myUserId] = myProfileObj;
+                mqttClient.publish(`webrtc/groups/${currentRoomKey}`, JSON.stringify({
+                    group: groupName,
+                    key: currentRoomKey,
+                    members: members,
+                    timestamp: Date.now()
+                }), { retain: true, qos: 1 });
+            }
+
+            saveToLocalStorage(currentRoomKey, groupName, members);
+
+            Object.keys(members).forEach(mId => {
+                if (mId !== myUserId) {
+                    createPeerConnection(mId, members[mId], myUserId > mId);
+                }
+            });
+
+            renderFriendsList();
+            return;
+        }
+
+        const data = JSON.parse(payloadStr);
+        const fromId = data.fromId;
+        if (fromId === myUserId) return;
+
+        if (data.type === 'offer') {
+            const pc = createPeerConnection(fromId, data.fromProfile || {}, false);
+            await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            sendDirectMessage(fromId, { type: 'answer', fromId: myUserId, sdp: answer });
+            drainIceQueue(fromId);
+        } else if (data.type === 'answer') {
+            if (peers[fromId]) {
+                await peers[fromId].pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+                drainIceQueue(fromId);
+            }
+        } else if (data.type === 'candidate') {
+            const cand = new RTCIceCandidate(data.candidate);
+            if (peers[fromId] && peers[fromId].pc.remoteDescription) peers[fromId].pc.addIceCandidate(cand).catch(console.error);
+            else if (peers[fromId]) peers[fromId].iceQueue.push(cand);
+        }
+    }
+
+    function saveToLocalStorage(key, gName, membersObj) {
+        localGroupsStore[key] = { groupName: gName, key: key, members: membersObj, updatedAt: Date.now() };
+        localStorage.setItem('webrtc_groups', JSON.stringify(localGroupsStore));
+
+        Object.keys(membersObj).forEach(mId => {
+            if (mId !== myUserId) localFriendsStore[mId] = { id: mId, ...membersObj[mId], lastSeen: Date.now() };
+        });
+        localStorage.setItem('webrtc_friends', JSON.stringify(localFriendsStore));
+    }
+
+    function cleanupPeer(peerId) {
+        if (peers[peerId]) {
+            peers[peerId].pc.close();
+            delete peers[peerId];
+        }
+        if (activeFocusedPeerId === peerId) {
+            activeFocusedPeerId = null;
+            const nextId = Object.keys(peers)[0];
+            if (nextId) focusFriendVideo(nextId);
+            else {
+                mainVideo.srcObject = null;
+                mainVideoLabel.innerText = "No member selected";
+            }
+        }
+        renderFriendsList();
+    }
+
+    function focusFriendVideo(peerId) {
+        if (!peers[peerId] || !peers[peerId].stream) return;
+        activeFocusedPeerId = peerId;
+        mainVideo.srcObject = peers[peerId].stream;
+        mainVideoLabel.innerText = `${peers[peerId].name} (${peers[peerId].info || 'Member'})`;
+        renderFriendsList();
+    }
+
+    function renderFriendsList() {
+        friendsListEl.innerHTML = '';
+        const peerIds = Object.keys(peers);
+        if (peerIds.length === 0) {
+            noFriendsText.classList.remove('hidden');
+            return;
+        }
+        noFriendsText.classList.add('hidden');
+
+        peerIds.forEach(id => {
+            const peer = peers[id];
+            const item = document.createElement('div');
+            item.className = `friend-item ${activeFocusedPeerId === id ? 'active' : ''}`;
+            item.onclick = () => {
+                focusFriendVideo(id);
+                if (window.innerWidth <= 850) switchMobileTab('stage');
+            };
+            item.innerHTML = `
+                <div class="header">
+                    <div><span class="status-dot"></span><strong>${peer.name}</strong></div>
+                    <small style="color: #5865f2; font-size: 0.7em;">${peer.info || 'Member'}</small>
+                </div>
+                ${peer.bio ? `<div class="meta">"${peer.bio}"</div>` : ''}
+                ${peer.contact ? `<div class="meta" style="color: #8e9297;">📇 ${peer.contact}</div>` : ''}
+            `;
+            friendsListEl.appendChild(item);
+        });
+    }
+
+    // --- Audio/Video Controls ---
+    volumeSlider.oninput = () => { mainVideo.volume = volumeSlider.value; };
+    btnToggleMute.onclick = () => {
+        mainVideo.muted = !mainVideo.muted;
+        btnToggleMute.innerText = mainVideo.muted ? "🔇" : "🔊";
+        btnToggleMute.classList.toggle('btn-off', mainVideo.muted);
+    };
+
+    document.getElementById('btn-toggle-mic').onclick = function() {
+        if (!localStream) return;
+        isMicOn = !isMicOn;
+        localStream.getAudioTracks().forEach(t => t.enabled = isMicOn);
+        this.innerText = isMicOn ? "🎤 Mic ON" : "🎙️ Mic OFF";
+        this.classList.toggle('btn-off', !isMicOn);
+    };
+
+    document.getElementById('btn-toggle-cam').onclick = function() {
+        if (!localStream) return;
+        isCamOn = !isCamOn;
+        localStream.getVideoTracks().forEach(t => t.enabled = isCamOn);
+        this.innerText = isCamOn ? "📹 Cam ON" : "📷 Cam OFF";
+        this.classList.toggle('btn-off', !isCamOn);
+    };
+
+    // --- Chat System ---
+    document.getElementById('btn-send-chat').onclick = sendChatMessage;
+    chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendChatMessage(); };
+    document.getElementById('btn-cancel-reply').onclick = () => {
+        activeReplyMessage = null;
+        replyPreview.classList.add('hidden');
+    };
+
+    function sendChatMessage() {
+        const text = chatInput.value.trim();
+        if (!text || !currentRoomKey) return;
+
+        const payload = {
+            id: 'msg_' + Date.now(),
+            senderId: myUserId,
+            fromName: myUserName,
+            text: text,
+            timestamp: Date.now(),
+            replyTo: activeReplyMessage ? { fromName: activeReplyMessage.fromName, text: activeReplyMessage.text } : null
+        };
+
+        mqttClient.publish(`webrtc/groups/${currentRoomKey}/chat`, JSON.stringify(payload));
+        chatInput.value = '';
+        activeReplyMessage = null;
+        replyPreview.classList.add('hidden');
+    }
+
+    function appendChatMessage(msg) {
+        const isSelf = msg.senderId === myUserId;
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `chat-msg ${isSelf ? 'sent' : 'received'}`;
+        const timeStr = new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        let replyHTML = msg.replyTo ? `<div class="reply-quote"><div class="quote-sender">${msg.replyTo.fromName}</div><div>${msg.replyTo.text}</div></div>` : '';
+
+        msgDiv.innerHTML = `
+            ${replyHTML}
+            ${!isSelf ? `<div class="sender">${msg.fromName}</div>` : ''}
+            <div>${msg.text}</div>
+            <div class="time">${timeStr}</div>
+        `;
+
+        msgDiv.onclick = () => {
+            activeReplyMessage = msg;
+            replyTargetName.innerText = msg.fromName;
+            replyTargetText.innerText = msg.text.length > 20 ? msg.text.substr(0, 20) + '...' : msg.text;
+            replyPreview.classList.remove('hidden');
+            chatInput.focus();
+        };
+
+        chatMessagesEl.appendChild(msgDiv);
+        chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+    }
+
+    function sendDirectMessage(targetId, msg) {
+        if (mqttClient && currentRoomKey) {
+            mqttClient.publish(`webrtc/groups/${currentRoomKey}/direct/${targetId}`, JSON.stringify(msg));
+        }
+    }
+
+    function drainIceQueue(peerId) {
+        if (!peers[peerId]) return;
+        while (peers[peerId].iceQueue.length > 0) {
+            peers[peerId].pc.addIceCandidate(peers[peerId].iceQueue.shift()).catch(console.error);
+        }
+    }
+</script>
+
+</body>
+</html>
