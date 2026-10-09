@@ -322,14 +322,116 @@
       cursor: pointer; transition: all 0.18s; color: var(--muted); font-size: 13px; position: relative;
     }
     .card-action-btn::after {
-      content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
-      background: #0a0c10; border: 1px solid var(--card-border); color: var(--text); font-size: 10px; white-space: nowrap;
-      padding: 3px 7px; border-radius: 5px; opacity: 0; pointer-events: none; transition: opacity 0.15s;
+      content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%;
+      transform: translate(-50%, 4px) scale(0.95);
+      background: #0c111a; border: 1px solid #29384d; color: #f1f5f9;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+      padding: 4px 9px; border-radius: 6px; opacity: 0; pointer-events: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.4);
+      transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100; letter-spacing: 0.02em;
     }
-    .card-action-btn:hover::after { opacity: 1; }
+    .card-action-btn::before {
+      content: ''; position: absolute; bottom: calc(100% + 3px); left: 50%;
+      transform: translateX(-50%); border: 5px solid transparent;
+      border-top-color: #29384d; opacity: 0; pointer-events: none;
+      transition: opacity 0.16s; z-index: 101;
+    }
+    .card-action-btn:hover::after { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    .card-action-btn:hover::before { opacity: 1; }
     .card-action-btn.btn-refresh:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 8px rgba(59,130,246,0.25); }
     .card-action-btn.btn-refresh.spinning i { animation: spin 0.7s linear infinite; }
     .card-action-btn.btn-remove:hover { background: #2a1010; border-color: var(--danger); color: var(--danger); box-shadow: 0 0 8px rgba(239,68,68,0.25); }
+
+    /* ── Global Floating Tooltip ──────────────────── */
+    #app-tooltip {
+      position: fixed;
+      z-index: 99999;
+      pointer-events: none;
+      background: #0c111a;
+      color: #f1f5f9;
+      border: 1px solid #29384d;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 7px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), 0 2px 8px rgba(0, 0, 0, 0.5);
+      max-width: min(450px, calc(100vw - 28px));
+      white-space: pre-line;
+      word-break: break-word;
+      line-height: 1.45;
+      opacity: 0;
+      transform: translateY(4px) scale(0.96);
+      transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      display: block;
+      backdrop-filter: blur(8px);
+      letter-spacing: 0.01em;
+    }
+    #app-tooltip.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    #app-tooltip::after {
+      content: '';
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      background: #0c111a;
+      border-right: 1px solid #29384d;
+      border-bottom: 1px solid #29384d;
+      transform: rotate(45deg);
+      left: var(--arrow-x, calc(50% - 3.5px));
+      bottom: -4.5px;
+    }
+    #app-tooltip.placement-bottom::after {
+      top: -4.5px;
+      bottom: auto;
+      border-right: none;
+      border-bottom: none;
+      border-left: 1px solid #29384d;
+      border-top: 1px solid #29384d;
+    }
+
+    /* ── Downside 2nd Tooltip ─────────────────────── */
+    #app-tooltip-down {
+      position: fixed;
+      z-index: 99999;
+      pointer-events: none;
+      background: #080d14;
+      color: #cbd5e1;
+      border: 1px solid #1e293b;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 7px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.5);
+      max-width: min(450px, calc(100vw - 28px));
+      white-space: pre-line;
+      word-break: break-word;
+      line-height: 1.45;
+      opacity: 0;
+      transform: translateY(-4px) scale(0.96);
+      transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      display: block;
+      backdrop-filter: blur(8px);
+      letter-spacing: 0.01em;
+    }
+    #app-tooltip-down.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    #app-tooltip-down::after {
+      content: '';
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      background: #080d14;
+      border-left: 1px solid #1e293b;
+      border-top: 1px solid #1e293b;
+      transform: rotate(45deg);
+      left: var(--arrow-x, calc(50% - 3.5px));
+      top: -4.5px;
+    }
 
     .card-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
     .module-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
@@ -1114,6 +1216,86 @@
     }
     .btn-add-action-row:hover { background: var(--accent-dim); border-color: var(--accent); }
 
+    /* ── Multi-Command Selector in Builder ── */
+    .cmd-multi-select-container {
+      display: flex; flex-direction: column; gap: 10px;
+      background: #090c13; border: 1px solid #1f2737; border-radius: 9px;
+      padding: 12px;
+    }
+    .cmd-summary-bar {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 8px 12px; background: #0e131d; border: 1px solid #232d3f;
+      border-radius: 7px; font-size: 12px; color: var(--text);
+    }
+    .cmd-summary-text {
+      font-family: Consolas, monospace; font-size: 11px; color: var(--accent);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
+    }
+    .cmd-badge {
+      background: var(--accent-dim); border: 1px solid var(--accent);
+      color: var(--accent); font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 12px; white-space: nowrap;
+    }
+    .cmd-quick-bar {
+      display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+      padding-bottom: 6px; border-bottom: 1px dashed #1e2636;
+    }
+    .btn-cmd-quick {
+      background: #141a26; border: 1px solid #273449; color: var(--muted);
+      font-size: 10px; font-weight: 600; padding: 4px 9px; border-radius: 5px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-cmd-quick:hover {
+      background: var(--accent-dim); color: var(--accent); border-color: var(--accent);
+    }
+    .cmd-modules-list {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .cmd-module-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #0f141f; border: 1px solid #1c2433; border-radius: 7px;
+      padding: 6px 10px; gap: 10px; flex-wrap: wrap;
+    }
+    .cmd-module-info {
+      display: flex; align-items: center; gap: 6px; font-size: 12px;
+      color: var(--text); min-width: 120px;
+    }
+    .cmd-module-info i { color: var(--accent); }
+    .cmd-module-key { font-size: 10px; color: var(--muted); font-family: monospace; }
+    .cmd-btn-group { display: flex; align-items: center; gap: 4px; }
+    .btn-state-pill {
+      background: #151b26; border: 1px solid #283345; color: var(--muted);
+      font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 5px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-state-pill:hover { border-color: var(--text); color: var(--text); }
+    .btn-state-pill.active-on {
+      background: rgba(34, 197, 94, 0.2); border-color: #22c55e;
+      color: #22c55e; font-weight: 700;
+    }
+    .btn-state-pill.active-off {
+      background: rgba(239, 68, 68, 0.2); border-color: #ef4444;
+      color: #ef4444; font-weight: 700;
+    }
+    .btn-state-pill.active-speed {
+      background: var(--accent-dim); border-color: var(--accent);
+      color: var(--accent); font-weight: 700;
+    }
+    .cmd-chips-row {
+      display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 2px;
+    }
+    .cmd-chip {
+      background: #121824; border: 1px solid #253347; color: var(--text);
+      font-size: 11px; padding: 3px 8px; border-radius: 5px;
+      display: inline-flex; align-items: center; gap: 6px; font-family: monospace;
+    }
+    .cmd-chip.terminal {
+      background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.4);
+      color: #22c55e; font-weight: 600;
+    }
+    .cmd-chip-del { cursor: pointer; color: var(--muted); font-size: 11px; transition: color 0.15s; }
+    .cmd-chip-del:hover { color: var(--danger); }
+
     /* ── Import / Export UI ──────────────────────── */
     .io-tabs {
       display: flex; gap: 8px; border-bottom: 1px solid var(--card-border);
@@ -1138,6 +1320,109 @@
     .file-drop-area:hover { border-color: var(--accent); background: #0e1420; }
     .file-drop-area i { font-size: 32px; color: var(--accent); display: block; margin-bottom: 8px; }
     .file-drop-area p { font-size: 12px; color: var(--muted); }
+
+    /* ── Sidebar Language Selector ───────────────── */
+    .sidebar-lang-box {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sidebar-lang-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sidebar-lang-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .sidebar-lang-label i {
+      color: var(--accent);
+      font-size: 11px;
+    }
+    .sidebar-lang-edit-btn {
+      background: #111622;
+      border: 1px solid var(--card-border);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .sidebar-lang-edit-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .sidebar-lang-select-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .sidebar-lang-select {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid var(--card-border);
+      border-radius: 7px;
+      padding: 6px 26px 6px 9px;
+      color: var(--text);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      appearance: none;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .sidebar-lang-select:focus, .sidebar-lang-select:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+    }
+    .sidebar-lang-select option {
+      background: #0d1117;
+      color: var(--text);
+    }
+    .sidebar-lang-select-wrap .select-caret {
+      position: absolute;
+      right: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 9px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+    .lang-table-row {
+      display: grid;
+      grid-template-columns: 140px 130px 1fr 1fr;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      background: #0d1118;
+      border: 1px solid var(--card-border);
+      border-radius: 7px;
+      margin-bottom: 6px;
+    }
+    .lang-table-header {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
   </style>
 </head>
 <body>
@@ -1166,7 +1451,7 @@
   <div class="topbar">
     <div class="topbar-left">
       <button class="btn-menu" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
-      <div class="topbar-brand"><i class="bi bi-cpu-fill"></i> IoT Dashboard</div>
+      <div class="topbar-brand"><i class="bi bi-cpu-fill"></i> <span data-i18n="iotdashboard">IoT Dashboard</span></div>
     </div>
     <div class="topbar-center">
       <div class="breadcrumb" id="breadcrumb" style="display:none">
@@ -1180,7 +1465,7 @@
         <i class="bi bi-lightning-charge-fill"></i> <span id="topbar-actions-badge">Actions</span>
       </button>
       <div class="broker-status"><span id="status-text">—</span><div class="dot" id="status-dot"></div></div>
-      <button class="btn-logout" onclick="doLogout()"><i class="bi bi-box-arrow-right"></i> <span class="logout-txt">Logout</span></button>
+      <button class="btn-logout" onclick="doLogout()"><i class="bi bi-box-arrow-right"></i> <span class="logout-txt" data-i18n="disconnect">Logout</span></button>
     </div>
   </div>
 
@@ -1192,15 +1477,32 @@
 
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-      <div class="sidebar-header"><div class="sidebar-label"><i class="bi bi-grid-3x3-gap-fill"></i> Spaces</div></div>
+      <div class="sidebar-header"><div class="sidebar-label"><i class="bi bi-grid-3x3-gap-fill"></i> <span data-i18n="spaces">Spaces</span></div></div>
       <div class="sidebar-scroll" id="sidebar-spaces">
         <div class="empty-state" style="padding:30px 14px">
           <i class="bi bi-broadcast" style="font-size:28px;display:block;margin-bottom:8px;color:#2a3346"></i>
-          <p style="font-size:11px;color:var(--muted)">Waiting for devices…</p>
+          <p style="font-size:11px;color:var(--muted)" data-i18n="waitingfordevices">Waiting for devices…</p>
         </div>
       </div>
       <div class="sidebar-footer">
-        <button class="btn-all-devices" onclick="showAllDevices()"><i class="bi bi-grid-fill"></i> All Devices</button>
+        <button class="btn-all-devices" onclick="showAllDevices()"><i class="bi bi-grid-fill"></i> <span data-i18n="alldevices">All Devices</span></button>
+        <!-- Left Sidebar Language Selector -->
+        <div class="sidebar-lang-box">
+          <div class="sidebar-lang-header">
+            <span class="sidebar-lang-label"><i class="bi bi-translate"></i> <span data-i18n="language">Language</span></span>
+            <button class="sidebar-lang-edit-btn" onclick="openLangModal()" title="Manage Languages / Edit JSON">
+              <i class="bi bi-gear-fill"></i>
+            </button>
+          </div>
+          <div class="sidebar-lang-select-wrap">
+            <select id="lang-select" class="sidebar-lang-select" onchange="changeLanguage(this.value)">
+              <option value="en">English</option>
+              <option value="mr">मराठी (Marathi)</option>
+              <option value="hi">हिन्दी (Hindi)</option>
+            </select>
+            <i class="bi bi-chevron-down select-caret"></i>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1255,7 +1557,7 @@
                 <!-- Section Header -->
                 <div class="custom-section-header">
                   <div class="custom-section-title">
-                    <i class="bi bi-lightning-charge-fill"></i> Custom Actions
+                    <i class="bi bi-lightning-charge-fill"></i> Actions
                     <span class="custom-count-badge" id="custom-buttons-count">0</span>
                   </div>
                   <div style="display:flex;align-items:center;gap:6px">
@@ -1271,13 +1573,16 @@
                 <!-- Unlocked Mode Action Bar -->
                 <div class="unlocked-actions-bar" id="unlocked-actions-bar">
                   <button class="btn-custom-action btn-add-custom" onclick="openBuilderModal()">
-                    <i class="bi bi-plus-lg"></i> New Button
+                    <i class="bi bi-plus-lg"></i> <span data-i18n="newbutton">New Button</span>
                   </button>
                   <button class="btn-custom-action" onclick="openImportExportModal()">
-                    <i class="bi bi-arrow-left-right"></i> JSON Backup
+                    <i class="bi bi-arrow-left-right"></i> <span data-i18n="jsonbackup">JSON Backup</span>
                   </button>
                   <button class="btn-custom-action" onclick="toggleStyleCustomizer()">
-                    <i class="bi bi-sliders"></i> Styles
+                    <i class="bi bi-sliders"></i> <span data-i18n="styles">Styles</span>
+                  </button>
+                  <button class="btn-custom-action" onclick="openLangModal()">
+                    <i class="bi bi-translate"></i> <span data-i18n="languages">Languages</span>
                   </button>
                 </div>
 
@@ -1367,8 +1672,33 @@
       
       <!-- Button Name -->
       <div>
-        <label class="b-label">Button Name / Scene Title</label>
-        <input type="text" id="b-name" class="b-input" placeholder="e.g. Master Bedroom All Off, Evening Lights, All Off">
+        <label class="b-label" data-i18n="buttonname">Button Name / Scene Title</label>
+        <input type="text" id="b-name" class="b-input" placeholder="e.g. Master Bedroom All Off, Evening Lights, All Off" oninput="updateBuilderKeyPreview()">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:6px">
+          <span>Language Key:</span>
+          <code id="b-lang-key-preview" style="color:var(--accent);font-weight:700">none</code>
+          <span style="font-size:10px;color:var(--muted)">(english original without spaces)</span>
+        </div>
+      </div>
+
+      <!-- Multi-Language Translations for this button -->
+      <div style="background:#0f141f;border:1px solid var(--card-border);border-radius:8px;padding:10px 12px;margin-top:2px">
+        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleBuilderLangSection()">
+          <span style="font-size:11.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px">
+            <i class="bi bi-translate" style="color:var(--accent)"></i> Multi-Language Translations
+          </span>
+          <i class="bi bi-chevron-down" id="b-lang-sec-caret" style="font-size:11px;color:var(--muted)"></i>
+        </div>
+        <div id="b-lang-sec-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+          <div>
+            <label style="font-size:11px;color:var(--muted)">मराठी (Marathi):</label>
+            <input type="text" id="b-trans-mr" class="b-input" style="padding:5px 8px;font-size:12px" placeholder="उदा. बैठक खोली बंद">
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--muted)">हिन्दी (Hindi):</label>
+            <input type="text" id="b-trans-hi" class="b-input" style="padding:5px 8px;font-size:12px" placeholder="उदा. लिविंग रूम बंद">
+          </div>
+        </div>
       </div>
 
       <!-- Color Theme -->
@@ -1493,6 +1823,165 @@
   </div>
 </div>
 
+<!-- ── Language Manager Modal (JSON i18n) ─────────────────────────────────── -->
+<div id="lang-overlay" class="modal-overlay">
+  <div class="modal-box" style="max-width: 720px">
+    <div class="modal-head">
+      <div class="modal-head-title">
+        <i class="bi bi-translate"></i>
+        <span>Language Manager (JSON i18n)</span>
+      </div>
+      <button class="btn-modal-close" onclick="closeLangModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body-scroll">
+      <div class="io-tabs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+        <button class="io-tab-btn active" id="tab-lang-edit-btn" onclick="switchLangTab('edit')">
+          <i class="bi bi-code-square"></i> Edit JSON
+        </button>
+        <button class="io-tab-btn" id="tab-lang-create-btn" onclick="switchLangTab('create')">
+          <i class="bi bi-plus-circle"></i> Make Own Lang
+        </button>
+        <button class="io-tab-btn" id="tab-lang-buttons-btn" onclick="switchLangTab('buttons')">
+          <i class="bi bi-lightning-charge"></i> Button Lang
+        </button>
+        <button class="io-tab-btn" id="tab-lang-io-btn" onclick="switchLangTab('io')">
+          <i class="bi bi-arrow-left-right"></i> Backup &amp; Sync
+        </button>
+      </div>
+
+      <!-- Tab 1: Edit Language JSON -->
+      <div id="lang-pane-edit" style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:12px;font-weight:700;color:var(--text)">Target Language:</label>
+            <select id="lang-modal-edit-select" class="sidebar-lang-select" style="width:auto;padding:5px 24px 5px 8px" onchange="onModalLangSelectChange(this.value)">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+          <div style="font-size:11px;color:var(--muted)">
+            Key convention: <code style="color:var(--accent)">englishwithoutspaces</code> (e.g. <code style="color:var(--accent)">iotdashboard</code>)
+          </div>
+        </div>
+
+        <textarea id="lang-editor-json" class="json-code-box" style="height:260px;font-size:11.5px;line-height:1.45" placeholder="{ &quot;iotdashboard&quot;: &quot;...&quot; }"></textarea>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <button class="btn-modal-secondary" style="font-size:11px;padding:6px 12px" onclick="formatLangEditorJSON()">
+            <i class="bi bi-magic"></i> Format JSON
+          </button>
+          <div style="display:flex;gap:8px">
+            <button class="btn-modal-secondary" id="btn-lang-reset-or-del" style="color:var(--danger);border-color:rgba(239,68,68,0.3)" onclick="handleLangResetOrDelete()">
+              <i class="bi bi-arrow-counterclockwise"></i> Reset Default
+            </button>
+            <button class="btn-modal-primary" onclick="saveLangEditorJSON()">
+              <i class="bi bi-check-lg"></i> Save to localStorage
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Make Own Language -->
+      <div id="lang-pane-create" style="display:none;flex-direction:column;gap:14px">
+        <div style="font-size:12px;color:var(--muted)">
+          Create your own custom language pack. It will be stored in <code style="color:var(--accent)">localStorage</code> and immediately selectable from the Left Sidebar dropdown:
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label class="b-label">Language Code (e.g. gu, ta, es, custom):</label>
+            <input type="text" id="new-lang-code" class="b-input" placeholder="e.g. gu or custom1">
+          </div>
+          <div>
+            <label class="b-label">Language Display Name:</label>
+            <input type="text" id="new-lang-name" class="b-input" placeholder="e.g. ગુજરાતી (Gujarati)">
+          </div>
+        </div>
+
+        <div>
+          <label class="b-label">Copy Template Keys From:</label>
+          <select id="new-lang-template-base" class="b-input">
+            <option value="en">English (Default English Keys)</option>
+            <option value="mr">मराठी (Marathi)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+          </select>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end">
+          <button class="btn-modal-primary" onclick="createCustomLanguage()">
+            <i class="bi bi-plus-circle"></i> Create &amp; Save Language
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 3: Button Lang -->
+      <div id="lang-pane-buttons" style="display:none;flex-direction:column;gap:12px">
+        <div style="font-size:12px;color:var(--muted)">
+          Translate your custom buttons for multi-language support. Key is auto-derived from English name without spaces:
+        </div>
+        <div id="lang-buttons-table-container" style="max-height:280px;overflow-y:auto">
+          <!-- Dynamically populated rows for buttons -->
+        </div>
+        <div style="display:flex;justify-content:flex-end">
+          <button class="btn-modal-primary" onclick="saveButtonTranslationsFromTable()">
+            <i class="bi bi-check2-circle"></i> Save Button Translations
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 4: Import / Export Language JSON -->
+      <div id="lang-pane-io" style="display:none;flex-direction:column;gap:14px">
+        <div style="font-size:12px;color:var(--muted)">
+          Export or import language JSON files to share or back up your multi-language settings:
+        </div>
+
+        <div style="background:#101520;border:1px solid var(--card-border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:12px;font-weight:700;color:var(--text)"><i class="bi bi-download"></i> Export Language Pack</div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+            <button class="btn-modal-secondary" onclick="copyCurrentLangJSON()"><i class="bi bi-clipboard"></i> Copy JSON</button>
+            <button class="btn-modal-primary" onclick="downloadCurrentLangJSON()"><i class="bi bi-download"></i> Download Selected JSON</button>
+            <button class="btn-modal-secondary" style="border-color:var(--accent);color:var(--accent)" onclick="downloadAllLangsBundle()"><i class="bi bi-collection"></i> Download All Packs Bundle</button>
+          </div>
+        </div>
+
+        <div style="background:#101520;border:1px solid var(--card-border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px">
+            <i class="bi bi-cloud-arrow-down-fill" style="color:var(--accent)"></i> Fetch Language JSON from URL
+          </div>
+          <div style="font-size:11px;color:var(--muted)">
+            Load language JSON from local workspace (e.g. <code style="color:var(--accent)">lang/mr.json</code>) or any web URL:
+          </div>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="fetch-lang-url-input" class="b-input" style="flex:1" placeholder="e.g. lang/mr.json, lang/hi.json or https://example.com/gu.json">
+            <button class="btn-modal-primary" style="white-space:nowrap" onclick="fetchAndSaveFromCustomUrl()">
+              <i class="bi bi-download"></i> Fetch &amp; Save
+            </button>
+          </div>
+        </div>
+
+        <div style="background:#101520;border:1px solid var(--card-border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:12px;font-weight:700;color:var(--text)"><i class="bi bi-upload"></i> Import Language JSON</div>
+          <div class="file-drop-area" onclick="document.getElementById('lang-file-input').click()">
+            <i class="bi bi-file-earmark-arrow-up"></i>
+            <p>Upload a <strong>.json</strong> language file</p>
+            <input type="file" id="lang-file-input" accept=".json,application/json" style="display:none" onchange="handleLangFileImport(event)">
+          </div>
+          <div>
+            <label class="b-label">Or Paste Language JSON:</label>
+            <textarea id="import-lang-json-text" class="json-code-box" style="height:110px" placeholder="{ &quot;iotdashboard&quot;: &quot;...&quot; } or { &quot;code&quot;: &quot;...&quot;, &quot;dict&quot;: { ... } }"></textarea>
+          </div>
+          <div style="display:flex;justify-content:flex-end">
+            <button class="btn-modal-primary" onclick="executeImportLangJSON()"><i class="bi bi-box-arrow-in-down"></i> Import &amp; Apply</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn-modal-secondary" onclick="closeLangModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Mobile Floating Action Button (FAB) -->
 <button class="mobile-fab-actions" id="mobile-fab-actions" onclick="toggleRightSidebar()" title="Custom Actions">
   <i class="bi bi-lightning-charge-fill"></i>
@@ -1521,6 +2010,938 @@ function doLogout() { clearCreds(); location.reload(); }
 function prefillForm(c) {
   if (!c) return;
   ['host','port','user','pass'].forEach(k => { const el = document.getElementById('f-'+k); if(el) el.value = c[k] || ''; });
+}
+
+// ── Multi-Language i18n System (JSON DOM) ────────────────────────────────────
+function toI18nKey(str) {
+  if (!str && str !== 0) return '';
+  return String(str)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
+const I18N_PACKS_KEY   = 'mqtt_i18n_packs';
+const I18N_CURRENT_KEY = 'mqtt_i18n_current';
+
+const DEFAULT_LANG_PACKS = {
+  en: {
+    code: 'en',
+    name: 'English',
+    dict: {
+      iotdashboard: 'IoT Dashboard',
+      spaces: 'Spaces',
+      alldevices: 'All Devices',
+      livedevices: 'Live Devices',
+      actions: 'Actions',
+      customactions: 'Custom Actions',
+      locked: 'Locked',
+      unlocked: 'Unlocked',
+      newbutton: 'New Button',
+      buildcustombutton: 'Build Custom Button',
+      jsonbackup: 'JSON Backup',
+      styles: 'Styles',
+      languages: 'Languages',
+      language: 'Language',
+      connected: 'Connected',
+      disconnected: 'Disconnected',
+      connecting: 'Connecting...',
+      offline: 'Offline',
+      switches: 'Switches',
+      fans: 'Fans',
+      sensors: 'Sensors',
+      on: 'ON',
+      off: 'OFF',
+      allon: 'All ON',
+      alloff: 'All OFF',
+      speed: 'Speed',
+      temperature: 'Temperature',
+      humidity: 'Humidity',
+      broker: 'Broker',
+      port: 'Port',
+      clientid: 'Client ID',
+      username: 'Username',
+      password: 'Password',
+      connect: 'Connect',
+      disconnect: 'Logout',
+      save: 'Save',
+      cancel: 'Cancel',
+      delete: 'Delete',
+      edit: 'Edit',
+      export: 'Export',
+      import: 'Import',
+      waitingfordevices: 'Waiting for devices…',
+      waitingfordevicemessages: 'Waiting for device messages.',
+      nocustombuttons: 'No custom buttons configured yet.',
+      unlockabovetoadd: 'Unlock above to add buttons',
+      all: 'All',
+      cmd: 'cmd',
+      cmds: 'cmds',
+      command: 'command',
+      commands: 'commands',
+      base: 'Base',
+      buttonname: 'Button Name / Scene Title',
+      nightscene: 'Night Scene',
+      morningmode: 'Morning Mode',
+      livingroom: 'Living Room',
+      bedroom: 'Bedroom',
+      kitchen: 'Kitchen',
+      mainboard: 'Mainboard',
+      light: 'Light',
+      fan: 'Fan',
+      done: 'done'
+    }
+  },
+  mr: {
+    code: 'mr',
+    name: 'मराठी (Marathi)',
+    dict: {
+      iotdashboard: 'आयओटी डॅशबोर्ड',
+      spaces: 'खोल्या / जागा',
+      alldevices: 'सर्व उपकरणे',
+      livedevices: 'सक्रिय उपकरणे',
+      actions: 'क्रिया',
+      customactions: 'सानुकूल क्रिया',
+      locked: 'कुलूपबंद',
+      unlocked: 'उघडे (संपादन)',
+      newbutton: 'नवीन बटण',
+      buildcustombutton: 'सानुकूल बटण बनवा',
+      jsonbackup: 'जेसन बॅकअप',
+      styles: 'शैली',
+      languages: 'भाषा',
+      language: 'भाषा',
+      connected: 'जोडले आहे',
+      disconnected: 'संपर्क तुटला',
+      connecting: 'जोडत आहे...',
+      offline: 'ऑफलाईन',
+      switches: 'स्विचेस',
+      fans: 'पंखे',
+      sensors: 'सेन्सर्स',
+      on: 'सुरू',
+      off: 'बंद',
+      allon: 'सर्व सुरू',
+      alloff: 'सर्व बंद',
+      speed: 'वेग',
+      temperature: 'तापमान',
+      humidity: 'आर्द्रता',
+      broker: 'ब्रोकर',
+      port: 'पोर्ट',
+      clientid: 'क्लायंट आयडी',
+      username: 'वापरकर्ता नाव',
+      password: 'पासवर्ड',
+      connect: 'जोडा',
+      disconnect: 'लॉगआउट',
+      save: 'जतन करा',
+      cancel: 'रद्द करा',
+      delete: 'हटवा',
+      edit: 'संपादित करा',
+      export: 'निर्यात',
+      import: 'आयात',
+      waitingfordevices: 'उपकरणांची प्रतीक्षा करत आहे…',
+      waitingfordevicemessages: 'उपकरणांच्या संदेशांची प्रतीक्षा करत आहे.',
+      nocustombuttons: 'अद्याप कोणतीही सानुकूल बटणे तयार केलेली नाहीत.',
+      unlockabovetoadd: 'बटणे जोडण्यासाठी वरील अनलॉक करा',
+      all: 'सर्व',
+      cmd: 'कमांड',
+      cmds: 'कमांड्स',
+      command: 'कमांड',
+      commands: 'कमांड्स',
+      base: 'मूळ कमांड',
+      buttonname: 'बटणाचे नाव / देखावा शीर्षक',
+      nightscene: 'रात्र दृश्य',
+      morningmode: 'सकाळ मोड',
+      livingroom: 'बैठक खोली',
+      bedroom: 'शयनकक्ष',
+      kitchen: 'स्वयंपाकघर',
+      mainboard: 'मुख्य बोर्ड',
+      light: 'दिवा',
+      fan: 'पंखा',
+      done: 'पूर्ण'
+    }
+  },
+  hi: {
+    code: 'hi',
+    name: 'हिन्दी (Hindi)',
+    dict: {
+      iotdashboard: 'आईओटी डैशबोर्ड',
+      spaces: 'स्थान / कमरे',
+      alldevices: 'सभी उपकरण',
+      livedevices: 'सक्रिय उपकरण',
+      actions: 'कार्रवाई',
+      customactions: 'कस्टम एक्शन',
+      locked: 'लॉक',
+      unlocked: 'अनलॉक (संपादन)',
+      newbutton: 'नया बटन',
+      buildcustombutton: 'कस्टम बटन बनाएं',
+      jsonbackup: 'जेसन बैकअप',
+      styles: 'स्टाइल',
+      languages: 'भाषाएं',
+      language: 'भाषा',
+      connected: 'कनेक्टेड',
+      disconnected: 'डिस्कनेक्टेड',
+      connecting: 'कनेक्ट हो रहा है...',
+      offline: 'ऑफ़लाइन',
+      switches: 'स्विच',
+      fans: 'पंखे',
+      sensors: 'सेंसर',
+      on: 'चालू',
+      off: 'बंद',
+      allon: 'सभी चालू',
+      alloff: 'सभी बंद',
+      speed: 'गति',
+      temperature: 'तापमान',
+      humidity: 'नमी',
+      broker: 'ब्रोकर',
+      port: 'पोर्ट',
+      clientid: 'क्लाइंट आईडी',
+      username: 'यूज़रनेम',
+      password: 'पासवर्ड',
+      connect: 'कनेक्ट करें',
+      disconnect: 'लॉगआउट',
+      save: 'सेव करें',
+      cancel: 'रद्द करें',
+      delete: 'हटाएं',
+      edit: 'एडिट करें',
+      export: 'एक्सपोर्ट',
+      import: 'इंपोर्ट',
+      waitingfordevices: 'उपकरणों की प्रतीक्षा है…',
+      waitingfordevicemessages: 'डिवाइस संदेशों की प्रतीक्षा है।',
+      nocustombuttons: 'अभी कोई कस्टम बटन नहीं बनाया गया है।',
+      unlockabovetoadd: 'बटन जोड़ने के लिए ऊपर अनलॉक करें',
+      all: 'सभी',
+      cmd: 'कमांड',
+      cmds: 'कमांड्स',
+      command: 'कमांड',
+      commands: 'कमांड्स',
+      base: 'मूल कमांड',
+      buttonname: 'बटन का नाम / दृश्य शीर्षक',
+      nightscene: 'रात का दृश्य',
+      morningmode: 'सुबह का मोड',
+      livingroom: 'लिविंग रूम',
+      bedroom: 'बेडरूम',
+      kitchen: 'रसोई',
+      mainboard: 'मेन बोर्ड',
+      light: 'लाइट',
+      fan: 'पंखा',
+      done: 'पूर्ण'
+    }
+  }
+};
+
+function getLanguagePacks() {
+  try {
+    const raw = localStorage.getItem(I18N_PACKS_KEY);
+    if (!raw) {
+      saveLanguagePacks(DEFAULT_LANG_PACKS);
+      return JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS));
+    }
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      saveLanguagePacks(DEFAULT_LANG_PACKS);
+      return JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS));
+    }
+    ['en', 'mr', 'hi'].forEach(code => {
+      if (!parsed[code]) {
+        parsed[code] = JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS[code]));
+      } else {
+        if (!parsed[code].dict) parsed[code].dict = {};
+        for (const [k, v] of Object.entries(DEFAULT_LANG_PACKS[code].dict)) {
+          if (parsed[code].dict[k] === undefined) {
+            parsed[code].dict[k] = v;
+          }
+        }
+      }
+    });
+    return parsed;
+  } catch (e) {
+    return JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS));
+  }
+}
+
+function saveLanguagePacks(packs) {
+  try {
+    localStorage.setItem(I18N_PACKS_KEY, JSON.stringify(packs, null, 2));
+  } catch (e) {
+    console.error('Failed to save language packs:', e);
+  }
+}
+
+function getActiveLanguageCode() {
+  try {
+    return localStorage.getItem(I18N_CURRENT_KEY) || 'en';
+  } catch {
+    return 'en';
+  }
+}
+
+function saveActiveLanguageCode(code) {
+  try {
+    localStorage.setItem(I18N_CURRENT_KEY, code);
+  } catch {}
+}
+
+function t(textOrKey, fallback) {
+  if (!textOrKey && textOrKey !== 0) return fallback !== undefined ? fallback : '';
+  const currentLang = getActiveLanguageCode();
+  const packs = getLanguagePacks();
+  const pack = packs[currentLang] || packs['en'] || { dict: {} };
+  const dict = pack.dict || {};
+
+  const normKey = toI18nKey(textOrKey);
+
+  // 1. Normalized key in active language
+  if (dict[normKey] !== undefined && dict[normKey] !== '') {
+    return dict[normKey];
+  }
+  // 2. Direct string key
+  if (dict[textOrKey] !== undefined && dict[textOrKey] !== '') {
+    return dict[textOrKey];
+  }
+  // 3. Fallback to English pack
+  if (currentLang !== 'en') {
+    const enDict = packs['en']?.dict || {};
+    if (enDict[normKey] !== undefined && enDict[normKey] !== '') {
+      return enDict[normKey];
+    }
+    if (enDict[textOrKey] !== undefined && enDict[textOrKey] !== '') {
+      return enDict[textOrKey];
+    }
+  }
+  // 4. Fallback provided or original text
+  return fallback !== undefined ? fallback : textOrKey;
+}
+
+function renderLangDropdownOptions() {
+  const packs = getLanguagePacks();
+  const currentCode = getActiveLanguageCode();
+
+  const select = document.getElementById('lang-select');
+  const modalSelect = document.getElementById('lang-modal-edit-select');
+
+  const optionsHtml = Object.keys(packs).map(code => {
+    const p = packs[code];
+    return `<option value="${code}">${escapeHtmlAttr(p.name || code)} [${code}]</option>`;
+  }).join('');
+
+  if (select) {
+    select.innerHTML = optionsHtml;
+    select.value = packs[currentCode] ? currentCode : 'en';
+  }
+  if (modalSelect) {
+    modalSelect.innerHTML = optionsHtml;
+    modalSelect.value = packs[currentCode] ? currentCode : 'en';
+  }
+}
+
+function applyLanguage(langCode) {
+  if (!langCode) langCode = getActiveLanguageCode();
+  const packs = getLanguagePacks();
+  if (!packs[langCode]) langCode = 'en';
+  saveActiveLanguageCode(langCode);
+
+  renderLangDropdownOptions();
+
+  // Update text nodes with data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (key) {
+      el.textContent = t(key);
+    }
+  });
+
+  // Update attributes with data-i18n-title
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (key) {
+      el.setAttribute('title', t(key));
+    }
+  });
+
+  // Lock button text
+  const lockLbl = document.getElementById('lock-label');
+  if (lockLbl) {
+    lockLbl.textContent = isEditUnlocked ? t('unlocked') : t('locked');
+  }
+
+  // Re-render views & buttons
+  if (typeof renderCustomButtons === 'function') renderCustomButtons();
+  if (typeof refreshSidebar === 'function') refreshSidebar();
+  if (typeof allDevicesData === 'object' && typeof renderDevice === 'function') {
+    Object.keys(allDevicesData).forEach(did => renderDevice(did));
+  }
+}
+
+// ── Fetch Language Pack from URL / File ───────────────────────────────────────
+async function fetchLanguagePack(langCode, customUrl = null) {
+  const code = langCode ? toI18nKey(langCode) : null;
+
+  const urlsToTry = [];
+  if (customUrl) {
+    urlsToTry.push(customUrl);
+  }
+  if (code) {
+    urlsToTry.push(`lang/${code}.json`, `./lang/${code}.json`);
+  }
+
+  let fetchedData = null;
+  let successUrl = null;
+
+  for (const url of urlsToTry) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        fetchedData = await res.json();
+        successUrl = url;
+        break;
+      }
+    } catch (e) {
+      // Continue trying next URL
+    }
+  }
+
+  if (!fetchedData || typeof fetchedData !== 'object') {
+    return null;
+  }
+
+  let targetCode = code || toI18nKey(fetchedData.code) || 'custom';
+  let targetName = fetchedData.name || targetCode;
+  let rawDict = (fetchedData.dict && typeof fetchedData.dict === 'object') ? fetchedData.dict : fetchedData;
+
+  const cleanDict = {};
+  for (const [k, v] of Object.entries(rawDict)) {
+    if (k.startsWith('_')) continue;
+    const norm = toI18nKey(k);
+    if (norm) cleanDict[norm] = String(v);
+  }
+
+  if (!Object.keys(cleanDict).length) return null;
+
+  const packs = getLanguagePacks();
+  packs[targetCode] = {
+    code: targetCode,
+    name: targetName,
+    dict: cleanDict
+  };
+
+  saveLanguagePacks(packs);
+  return packs[targetCode];
+}
+
+async function changeLanguage(langCode, customUrl = null) {
+  const code = toI18nKey(langCode);
+  let packs = getLanguagePacks();
+
+  // If not available in localStorage, fetch JSON from URL!
+  if (!packs[code] || !packs[code].dict || !Object.keys(packs[code].dict).length) {
+    makeToast(
+      'toast-pub',
+      'bi-cloud-download',
+      'var(--accent)',
+      `Fetching Language (${(code || langCode).toUpperCase()})...`,
+      [['Source', customUrl || `lang/${code}.json`, 'code']],
+      2500
+    );
+
+    const fetchedPack = await fetchLanguagePack(code, customUrl);
+    if (fetchedPack) {
+      applyLanguage(code);
+      makeToast(
+        'toast-pub',
+        'bi-check2-circle',
+        'var(--success)',
+        `Loaded from URL & Saved to LocalStorage`,
+        [['Language', fetchedPack.name, ''], ['Code', code.toUpperCase(), 'code']],
+        3000
+      );
+      return;
+    } else {
+      // Check built-in fallback if available
+      if (DEFAULT_LANG_PACKS[code]) {
+        packs[code] = JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS[code]));
+        saveLanguagePacks(packs);
+        applyLanguage(code);
+        makeToast('toast-pub', 'bi-translate', 'var(--accent)', `Language Loaded (${code.toUpperCase()})`, [], 2000);
+        return;
+      }
+
+      makeToast(
+        'toast-offline',
+        'bi-exclamation-triangle',
+        'var(--danger)',
+        `Language Not Found`,
+        [['Error', `Could not fetch from URL`, 'danger']],
+        3500
+      );
+      const select = document.getElementById('lang-select');
+      if (select) select.value = getActiveLanguageCode();
+      return;
+    }
+  }
+
+  // Language is available in localStorage -> apply immediately
+  applyLanguage(code);
+  const name = packs[code]?.name || code;
+  makeToast(
+    'toast-pub',
+    'bi-translate',
+    'var(--accent)',
+    `${t('language')}: ${name}`,
+    [['Active Code', code.toUpperCase(), 'code']],
+    2500
+  );
+}
+
+async function fetchAndSaveFromCustomUrl() {
+  const urlInput = document.getElementById('fetch-lang-url-input');
+  const url = urlInput?.value?.trim();
+  if (!url) {
+    alert('Please enter a URL or file path (e.g. lang/mr.json or https://example.com/gu.json).');
+    return;
+  }
+
+  makeToast('toast-pub', 'bi-cloud-download', 'var(--accent)', 'Fetching Language from URL...', [['URL', url, 'code']], 2000);
+
+  const fetched = await fetchLanguagePack(null, url);
+  if (fetched) {
+    renderLangDropdownOptions();
+    applyLanguage(fetched.code);
+    switchLangTab('edit');
+    const select = document.getElementById('lang-modal-edit-select');
+    if (select) select.value = fetched.code;
+    populateLangEditor(fetched.code);
+    makeToast(
+      'toast-pub',
+      'bi-check-circle-fill',
+      'var(--success)',
+      `Language Saved to LocalStorage`,
+      [['Code', fetched.code.toUpperCase(), 'code'], ['Keys', `${Object.keys(fetched.dict).length}`, 'info']],
+      3500
+    );
+  } else {
+    alert(`Could not load language JSON from: ${url}\nPlease verify the path/URL and JSON structure.`);
+  }
+}
+
+async function initI18n() {
+  getLanguagePacks();
+  const active = getActiveLanguageCode();
+  applyLanguage(active);
+
+  // Discover any available languages listed in lang/languages.json
+  try {
+    const res = await fetch('lang/languages.json');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.languages)) {
+        const packs = getLanguagePacks();
+        let changed = false;
+        data.languages.forEach(item => {
+          const c = toI18nKey(item.code);
+          if (c && !packs[c]) {
+            packs[c] = {
+              code: c,
+              name: item.name || c,
+              dict: {},
+              url: item.url || `lang/${c}.json`
+            };
+            changed = true;
+          }
+        });
+        if (changed) {
+          saveLanguagePacks(packs);
+          renderLangDropdownOptions();
+        }
+      }
+    }
+  } catch (e) {
+    // Silent fail if local file or not available
+  }
+}
+
+// ── Language Manager Modal Logic ──────────────────────────────────────────────
+let currentLangModalTab = 'edit';
+
+function openLangModal(tab = 'edit') {
+  renderLangDropdownOptions();
+  switchLangTab(tab);
+  document.getElementById('lang-overlay').classList.add('open');
+}
+
+function closeLangModal() {
+  document.getElementById('lang-overlay').classList.remove('open');
+}
+
+function switchLangTab(tab) {
+  currentLangModalTab = tab;
+  ['edit', 'create', 'buttons', 'io'].forEach(tKey => {
+    const btn = document.getElementById(`tab-lang-${tKey}-btn`);
+    const pane = document.getElementById(`lang-pane-${tKey}`);
+    if (btn) btn.classList.toggle('active', tKey === tab);
+    if (pane) pane.style.display = (tKey === tab) ? 'flex' : 'none';
+  });
+
+  if (tab === 'edit') {
+    const code = document.getElementById('lang-modal-edit-select')?.value || getActiveLanguageCode();
+    populateLangEditor(code);
+  } else if (tab === 'buttons') {
+    populateButtonTranslationsTable();
+  }
+}
+
+function onModalLangSelectChange(code) {
+  populateLangEditor(code);
+}
+
+function populateLangEditor(code) {
+  const packs = getLanguagePacks();
+  const pack = packs[code] || packs['en'] || { dict: {} };
+  const textarea = document.getElementById('lang-editor-json');
+  if (textarea) {
+    textarea.value = JSON.stringify(pack.dict || {}, null, 2);
+  }
+
+  const resetBtn = document.getElementById('btn-lang-reset-or-del');
+  if (resetBtn) {
+    const isBuiltIn = ['en', 'mr', 'hi'].includes(code);
+    resetBtn.innerHTML = isBuiltIn ? '<i class="bi bi-arrow-counterclockwise"></i> Reset Default' : '<i class="bi bi-trash3"></i> Delete Lang';
+    resetBtn.title = isBuiltIn ? 'Reset this language to built-in default' : 'Delete this custom language';
+  }
+}
+
+function formatLangEditorJSON() {
+  const textarea = document.getElementById('lang-editor-json');
+  if (!textarea) return;
+  try {
+    const parsed = JSON.parse(textarea.value);
+    textarea.value = JSON.stringify(parsed, null, 2);
+  } catch (err) {
+    alert('JSON Syntax Error: ' + err.message);
+  }
+}
+
+function saveLangEditorJSON() {
+  const code = document.getElementById('lang-modal-edit-select')?.value || getActiveLanguageCode();
+  const textarea = document.getElementById('lang-editor-json');
+  if (!textarea) return;
+
+  let newDict;
+  try {
+    newDict = JSON.parse(textarea.value);
+    if (!newDict || typeof newDict !== 'object' || Array.isArray(newDict)) {
+      throw new Error('Root JSON must be an object of key:value translations.');
+    }
+  } catch (err) {
+    alert('Invalid JSON: ' + err.message);
+    return;
+  }
+
+  const cleanDict = {};
+  for (const [k, v] of Object.entries(newDict)) {
+    const normKey = toI18nKey(k);
+    if (normKey) {
+      cleanDict[normKey] = String(v);
+    }
+  }
+
+  const packs = getLanguagePacks();
+  if (!packs[code]) {
+    packs[code] = { code, name: code, dict: cleanDict };
+  } else {
+    packs[code].dict = cleanDict;
+  }
+
+  saveLanguagePacks(packs);
+  applyLanguage(code);
+
+  makeToast(
+    'toast-pub',
+    'bi-check2-circle',
+    'var(--success)',
+    `Language Saved (${code.toUpperCase()})`,
+    [['Keys Saved', `${Object.keys(cleanDict).length} entries`, 'code']],
+    3000
+  );
+}
+
+function handleLangResetOrDelete() {
+  const code = document.getElementById('lang-modal-edit-select')?.value || getActiveLanguageCode();
+  const packs = getLanguagePacks();
+
+  if (['en', 'mr', 'hi'].includes(code)) {
+    if (!confirm(`Reset ${packs[code]?.name || code} to original built-in translations?`)) return;
+    packs[code].dict = JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS[code].dict));
+    saveLanguagePacks(packs);
+    populateLangEditor(code);
+    applyLanguage(code);
+    makeToast('toast-pub', 'bi-arrow-counterclockwise', 'var(--accent)', `Reset ${code.toUpperCase()} to Default`, [], 2500);
+  } else {
+    if (!confirm(`Are you sure you want to delete custom language "${packs[code]?.name || code}"?`)) return;
+    delete packs[code];
+    saveLanguagePacks(packs);
+    const fallbackCode = 'en';
+    saveActiveLanguageCode(fallbackCode);
+    renderLangDropdownOptions();
+    applyLanguage(fallbackCode);
+    populateLangEditor(fallbackCode);
+    makeToast('toast-pub', 'bi-trash3', 'var(--danger)', `Deleted Language ${code}`, [], 2500);
+  }
+}
+
+function createCustomLanguage() {
+  const codeInput = document.getElementById('new-lang-code');
+  const nameInput = document.getElementById('new-lang-name');
+  const baseSelect = document.getElementById('new-lang-template-base');
+
+  const rawCode = (codeInput?.value || '').trim();
+  const name = (nameInput?.value || '').trim();
+  const baseCode = baseSelect?.value || 'en';
+
+  const code = toI18nKey(rawCode);
+  if (!code) {
+    alert('Please enter a valid language code (e.g. gu, ta, es).');
+    return;
+  }
+  if (!name) {
+    alert('Please enter a display name for the language (e.g. Gujarati).');
+    return;
+  }
+
+  const packs = getLanguagePacks();
+  if (packs[code]) {
+    alert(`Language code "${code}" already exists. Please choose a different code or edit the existing one.`);
+    return;
+  }
+
+  const baseDict = packs[baseCode]?.dict || packs['en']?.dict || {};
+  packs[code] = {
+    code,
+    name,
+    dict: JSON.parse(JSON.stringify(baseDict))
+  };
+
+  saveLanguagePacks(packs);
+  saveActiveLanguageCode(code);
+  renderLangDropdownOptions();
+  applyLanguage(code);
+
+  codeInput.value = '';
+  nameInput.value = '';
+
+  switchLangTab('edit');
+  document.getElementById('lang-modal-edit-select').value = code;
+  populateLangEditor(code);
+
+  makeToast(
+    'toast-pub',
+    'bi-plus-circle',
+    'var(--success)',
+    `Created Language: ${name}`,
+    [['Code', code, 'code'], ['Keys Cloned', `${Object.keys(baseDict).length}`, 'info']],
+    3500
+  );
+}
+
+function populateButtonTranslationsTable() {
+  const container = document.getElementById('lang-buttons-table-container');
+  if (!container) return;
+
+  const buttons = loadCustomButtons();
+  if (!buttons.length) {
+    container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">No custom buttons configured yet. Build buttons in Edit Mode first.</div>`;
+    return;
+  }
+
+  const packs = getLanguagePacks();
+  let html = `
+    <div class="lang-table-row lang-table-header">
+      <div>English Original</div>
+      <div>Key (No Spaces)</div>
+      <div>मराठी (Marathi)</div>
+      <div>हिन्दी (Hindi)</div>
+    </div>
+  `;
+
+  buttons.forEach(btn => {
+    const key = toI18nKey(btn.name);
+    const mrVal = packs['mr']?.dict?.[key] || '';
+    const hiVal = packs['hi']?.dict?.[key] || '';
+
+    html += `
+      <div class="lang-table-row" data-btn-key="${key}">
+        <div style="font-weight:600;color:var(--text);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtmlAttr(btn.name)}</div>
+        <div><code style="color:var(--accent);font-size:11px">${key}</code></div>
+        <div><input type="text" class="b-input b-input-mr" style="padding:4px 8px;font-size:11.5px" value="${escapeHtmlAttr(mrVal)}" placeholder="उदा. भाषांतर"></div>
+        <div><input type="text" class="b-input b-input-hi" style="padding:4px 8px;font-size:11.5px" value="${escapeHtmlAttr(hiVal)}" placeholder="उदा. अनुवाद"></div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function saveButtonTranslationsFromTable() {
+  const rows = document.querySelectorAll('#lang-buttons-table-container .lang-table-row[data-btn-key]');
+  if (!rows.length) return;
+
+  const packs = getLanguagePacks();
+  if (!packs['mr']) packs['mr'] = JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS['mr']));
+  if (!packs['hi']) packs['hi'] = JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS['hi']));
+
+  let count = 0;
+  rows.forEach(row => {
+    const key = row.getAttribute('data-btn-key');
+    const mrInput = row.querySelector('.b-input-mr');
+    const hiInput = row.querySelector('.b-input-hi');
+
+    if (key) {
+      if (mrInput && mrInput.value.trim()) packs['mr'].dict[key] = mrInput.value.trim();
+      if (hiInput && hiInput.value.trim()) packs['hi'].dict[key] = hiInput.value.trim();
+      count++;
+    }
+  });
+
+  saveLanguagePacks(packs);
+  applyLanguage(getActiveLanguageCode());
+
+  makeToast(
+    'toast-pub',
+    'bi-check2-all',
+    'var(--success)',
+    'Button Translations Saved',
+    [['Buttons', `${count} processed`, 'code']],
+    2500
+  );
+}
+
+function copyCurrentLangJSON() {
+  const code = document.getElementById('lang-modal-edit-select')?.value || getActiveLanguageCode();
+  const packs = getLanguagePacks();
+  const pack = packs[code] || { dict: {} };
+  navigator.clipboard.writeText(JSON.stringify(pack.dict || {}, null, 2)).then(() => {
+    makeToast('toast-pub', 'bi-clipboard-check', 'var(--success)', `Copied ${code.toUpperCase()} JSON`, [], 2000);
+  });
+}
+
+function downloadCurrentLangJSON() {
+  const code = document.getElementById('lang-modal-edit-select')?.value || getActiveLanguageCode();
+  const packs = getLanguagePacks();
+  const pack = packs[code] || { dict: {} };
+  const blob = new Blob([JSON.stringify(pack.dict || {}, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `lang_${code}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadAllLangsBundle() {
+  const packs = getLanguagePacks();
+  const blob = new Blob([JSON.stringify(packs, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `iot_languages_bundle.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function handleLangFileImport(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const raw = e.target.result;
+    document.getElementById('import-lang-json-text').value = raw;
+  };
+  reader.readAsText(file);
+}
+
+function executeImportLangJSON() {
+  const raw = document.getElementById('import-lang-json-text')?.value?.trim();
+  if (!raw) {
+    alert('Please upload a file or paste JSON code to import.');
+    return;
+  }
+
+  let imported;
+  try {
+    imported = JSON.parse(raw);
+    if (!imported || typeof imported !== 'object') throw new Error('Root JSON must be an object.');
+  } catch (err) {
+    alert('Invalid JSON format: ' + err.message);
+    return;
+  }
+
+  const packs = getLanguagePacks();
+  const currentCode = document.getElementById('lang-modal-edit-select')?.value || getActiveLanguageCode();
+
+  if (imported.en && (imported.en.dict || imported.en.code)) {
+    for (const [code, pack] of Object.entries(imported)) {
+      if (pack && typeof pack === 'object') {
+        const c = toI18nKey(pack.code || code);
+        const name = pack.name || c;
+        const dict = pack.dict || pack;
+        packs[c] = { code: c, name, dict };
+      }
+    }
+    saveLanguagePacks(packs);
+    applyLanguage(currentCode);
+    alert('Successfully imported all language packs bundle!');
+    switchLangTab('edit');
+    return;
+  }
+
+  if (imported.code && imported.dict && typeof imported.dict === 'object') {
+    const c = toI18nKey(imported.code);
+    packs[c] = {
+      code: c,
+      name: imported.name || c,
+      dict: imported.dict
+    };
+    saveLanguagePacks(packs);
+    saveActiveLanguageCode(c);
+    applyLanguage(c);
+    alert(`Successfully imported language pack "${imported.name || c}"!`);
+    switchLangTab('edit');
+    return;
+  }
+
+  const cleanDict = {};
+  for (const [k, v] of Object.entries(imported)) {
+    const norm = toI18nKey(k);
+    if (norm) cleanDict[norm] = String(v);
+  }
+
+  if (!packs[currentCode]) {
+    packs[currentCode] = { code: currentCode, name: currentCode, dict: cleanDict };
+  } else {
+    packs[currentCode].dict = Object.assign({}, packs[currentCode].dict, cleanDict);
+  }
+
+  saveLanguagePacks(packs);
+  applyLanguage(currentCode);
+  alert(`Imported ${Object.keys(cleanDict).length} translations into ${packs[currentCode].name || currentCode}!`);
+  switchLangTab('edit');
+}
+
+// ── Builder Multi-Language Helpers ───────────────────────────────────────────
+function updateBuilderKeyPreview() {
+  const name = document.getElementById('b-name')?.value || '';
+  const key = toI18nKey(name);
+  const preview = document.getElementById('b-lang-key-preview');
+  if (preview) {
+    preview.textContent = key || 'none';
+  }
+}
+
+let isBuilderLangSectionOpen = true;
+function toggleBuilderLangSection() {
+  isBuilderLangSectionOpen = !isBuilderLangSectionOpen;
+  const body = document.getElementById('b-lang-sec-body');
+  const caret = document.getElementById('b-lang-sec-caret');
+  if (body) body.style.display = isBuilderLangSectionOpen ? 'grid' : 'none';
+  if (caret) caret.className = isBuilderLangSectionOpen ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -1813,7 +3234,7 @@ function buildCardInner(deviceId, context) {
 
   const switchesHtml = switches.length ? `
     <div>
-      <div class="module-label"><i class="bi bi-toggle-on"></i> Switches</div>
+      <div class="module-label"><i class="bi bi-toggle-on"></i> ${t('switches')}</div>
       <div class="switches-grid">
         ${switches.map(([key, label]) => {
           const isOn    = live[key] === 1 || live[key] === '1' || live[key] === true;
@@ -1822,8 +3243,8 @@ function buildCardInner(deviceId, context) {
             <div class="switch-spinner"></div>
             <div class="switch-label" title="${label}">${label}</div>
             <div class="switch-btns">
-              <button class="btn-on  ${isOn ?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',1,'${context}')">ON</button>
-              <button class="btn-off ${!isOn?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',0,'${context}')">OFF</button>
+              <button class="btn-on  ${isOn ?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',1,'${context}')">${t('on')}</button>
+              <button class="btn-off ${!isOn?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',0,'${context}')">${t('off')}</button>
             </div>
           </div>`;
         }).join('')}
@@ -1832,7 +3253,7 @@ function buildCardInner(deviceId, context) {
 
   const fansHtml = fans.length ? `
     <div>
-      <div class="module-label"><i class="bi bi-fan"></i> Fans</div>
+      <div class="module-label"><i class="bi bi-fan"></i> ${t('fans')}</div>
       ${fans.map(([key, label]) => {
         const speed   = parseInt(live[key]) || 0;
         const pct     = (speed/4)*100;
@@ -2258,6 +3679,82 @@ function handleCustomButtonClick(btnId) {
   executeCustomButton(btnId);
 }
 
+// ── Custom Button Human-Readable Tooltip Helpers ──────────────────────────────
+function escapeHtmlAttr(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function getButtonFullHumanTooltip(btn) {
+  const actions = btn.actions || [];
+  if (!actions.length) return btn.name || 'Custom Button';
+
+  const humanCmdLines = [];
+
+  actions.forEach((act) => {
+    let cmdText = (act.humanCmd || '').trim();
+    if (!cmdText && Array.isArray(act.selectedCommands) && act.selectedCommands.length) {
+      const bName = act.boardName || act.deviceId || act.moduleId || 'board';
+      const chunks = act.selectedCommands.map(c => (c.humanChunk || `${bName} ${c.label || c.key} ${c.state} .`).trim());
+      cmdText = chunks.join('') + `${bName} done .`;
+    }
+    if (!cmdText && act.label && act.state) {
+      const bName = act.boardName || act.deviceId || act.moduleId || 'board';
+      cmdText = `${bName} ${act.label} ${act.state} .${bName} done .`;
+    }
+    if (!cmdText && act.rawCmd) {
+      cmdText = act.rawCmd.trim();
+    }
+
+    if (cmdText) {
+      humanCmdLines.push(cmdText);
+    }
+  });
+
+  if (!humanCmdLines.length) return btn.name || 'Custom Button';
+  return humanCmdLines.join('\n');
+}
+
+function getButtonDownsideTooltip(btn) {
+  const actions = btn.actions || [];
+  const totalCmdCount = actions.reduce((acc, a) => acc + (a.selectedCommands?.length || 1), 0);
+  //const nameLine = `${btn.name || 'Custom Button'} (${totalCmdCount} command${totalCmdCount !== 1 ? 's' : ''})`;
+
+  const rawCmdLines = [];
+  actions.forEach((act) => {
+    let raw = (act.rawCmd || '').trim();
+    if (!raw && Array.isArray(act.selectedCommands) && act.selectedCommands.length) {
+      const mId = act.moduleId || 'b0';
+      const chunks = act.selectedCommands.map(c => (c.rawChunk || `ry ${mId} ${c.key} ${c.state} .`).trim());
+      raw = chunks.join('') + `${mId} ok .`;
+    }
+    if (!raw && act.key && act.state) {
+      const mId = act.moduleId || 'b0';
+      raw = `ry ${mId} ${act.key} ${act.state} .${mId} ok .`;
+    }
+    if (raw) {
+      rawCmdLines.push(raw);
+    }
+  });
+
+  const btnDisplayName = t(btn.name || 'Custom Button');
+  const cmdWord = totalCmdCount !== 1 ? t('commands', 'commands') : t('command', 'command');
+  const nameLine = `${btnDisplayName} (${totalCmdCount} ${cmdWord})`;
+  const baseWord = t('base', 'Base');
+
+  if (rawCmdLines.length === 1) {
+    return `${nameLine}\n${baseWord}: ${rawCmdLines[0]}`;
+  } else if (rawCmdLines.length > 1) {
+    return `${nameLine}\n${rawCmdLines.map((r, i) => `${baseWord} ${i + 1}: ${r}`).join('\n')}`;
+  }
+  return nameLine;
+}
+
 // ── Render Custom Buttons ─────────────────────────────────────────────────────
 function renderCustomButtons() {
   const container  = document.getElementById('custom-buttons-container');
@@ -2268,7 +3765,7 @@ function renderCustomButtons() {
   const fabBadge = document.getElementById('fab-actions-badge');
   if (fabBadge) fabBadge.textContent = buttons.length;
   const topbarBadge = document.getElementById('topbar-actions-badge');
-  if (topbarBadge) topbarBadge.textContent = `Actions (${buttons.length})`;
+  if (topbarBadge) topbarBadge.textContent = `${t('actions', 'Actions')} (${buttons.length})`;
 
   const st = loadButtonStyles();
   applyButtonStyles(st);
@@ -2278,14 +3775,14 @@ function renderCustomButtons() {
     container.innerHTML = `
       <div class="custom-empty-state">
         <i class="bi bi-sliders2-vertical"></i>
-        <p>No custom buttons configured yet.</p>
+        <p data-i18n="nocustombuttons">${t('nocustombuttons', 'No custom buttons configured yet.')}</p>
         ${isEditUnlocked ? `
           <button class="btn-custom-action btn-add-custom" onclick="openBuilderModal()">
-            <i class="bi bi-plus-lg"></i> Build Custom Button
+            <i class="bi bi-plus-lg"></i> <span data-i18n="buildcustombutton">${t('buildcustombutton', 'Build Custom Button')}</span>
           </button>
         ` : `
           <div style="font-size:11px;color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;gap:5px" onclick="toggleEditLock()">
-            <i class="bi bi-unlock"></i> Unlock above to add buttons
+            <i class="bi bi-unlock"></i> <span data-i18n="unlockabovetoadd">${t('unlockabovetoadd', 'Unlock above to add buttons')}</span>
           </div>
         `}
       </div>`;
@@ -2293,15 +3790,22 @@ function renderCustomButtons() {
   }
 
   container.innerHTML = buttons.map((btn, idx) => {
-    const isFirst    = idx === 0;
-    const isLast     = idx === buttons.length - 1;
-    const widthVal   = btn.width || '50%';
-    const is50       = widthVal === '50%';
-    const widthClass = is50 ? 'w-50' : 'w-100';
-    const themeColor = btn.color || 'accent';
-    const hoverColor = btn.hoverColor || themeColor;
-    const iconClass  = btn.icon || 'bi-lightning-charge-fill';
-    const actions    = btn.actions || [];
+    const isFirst         = idx === 0;
+    const isLast          = idx === buttons.length - 1;
+    const widthVal        = btn.width || '50%';
+    const is50            = widthVal === '50%';
+    const widthClass      = is50 ? 'w-50' : 'w-100';
+    const themeColor      = btn.color || 'accent';
+    const hoverColor      = btn.hoverColor || themeColor;
+    const iconClass       = btn.icon || 'bi-lightning-charge-fill';
+    const actions         = btn.actions || [];
+    const tooltipText     = getButtonFullHumanTooltip(btn);
+    const safeTooltip     = escapeHtmlAttr(tooltipText);
+    //const downTooltipText = getButtonDownsideTooltip(btn);
+    //const safeDownTooltip = escapeHtmlAttr(downTooltipText);  data-tip-down="${safeDownTooltip}"
+    const totalCmdCount   = actions.reduce((acc, a) => acc + (a.selectedCommands?.length || 1), 0);
+    const cmdUnit         = totalCmdCount !== 1 ? t('cmds', 'cmds') : t('cmd', 'cmd');
+    const translatedName  = t(btn.name);
 
     return `
       <div class="cb-item-wrapper ${widthClass}" id="cbtn-${btn.id}">
@@ -2316,18 +3820,18 @@ function renderCustomButtons() {
 
         <!-- Single Interactive Action Button -->
         <button class="cb-single-btn theme-${themeColor} hover-${hoverColor}"
-          onclick="handleCustomButtonClick('${btn.id}')" title="${btn.name} (${actions.length} commands)">
+          onclick="handleCustomButtonClick('${btn.id}')" data-tip="${safeTooltip}">
           <div class="cb-icon"><i class="bi ${iconClass}"></i></div>
           <div class="cb-content">
-            <div class="cb-name">${btn.name}</div>
-            <div class="cb-meta">${actions.length} cmd${actions.length !== 1 ? 's' : ''}</div>
+            <div class="cb-name">${escapeHtmlAttr(translatedName)}</div>
+            <div class="cb-meta">${totalCmdCount} ${cmdUnit}</div>
           </div>
         </button>
       </div>`;
   }).join('');
 }
 
-function executeCustomButton(btnId) {
+async function executeCustomButton(btnId) {
   const buttons = loadCustomButtons();
   const btn = buttons.find(b => b.id === btnId);
   if (!btn) return;
@@ -2341,27 +3845,51 @@ function executeCustomButton(btnId) {
   const btnEl   = wrapper?.querySelector('.cb-single-btn');
   if (btnEl) {
     btnEl.classList.add('executing');
-    setTimeout(() => btnEl.classList.remove('executing'), 1000);
   }
 
-  const actions = btn.actions || [];
+  const actions = (btn.actions || []).filter(a => a.deviceId && a.rawCmd);
   if (!actions.length) {
     makeToast('toast-pub', 'bi-exclamation-triangle', 'var(--warning)', 'No Actions', [['Button', btn.name, '']], 3000);
+    if (btnEl) btnEl.classList.remove('executing');
     return;
   }
 
   let sentCount = 0;
-  actions.forEach(act => {
-    if (!act.deviceId || !act.rawCmd) return;
+  let totalSubCommands = 0;
+  let hadDelay = false;
+
+  for (let i = 0; i < actions.length; i++) {
+    const act = actions[i];
+
+    // If more than one action and switching to different devices (or sequential actions), apply 300ms delay
+    if (i > 0) {
+      hadDelay = true;
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+
     const topic = `${MQTT_USER}/${act.deviceId}/cmd`;
     const pubOk = publish(topic, act.rawCmd, { retain: false });
     if (pubOk) {
       sentCount++;
-      if (act.key && act.expectedValue !== undefined && act.expectedValue !== '') {
-        setPending(act.deviceId, act.key, act.expectedValue, act.moduleId || 'b0');
+      if (Array.isArray(act.selectedCommands) && act.selectedCommands.length) {
+        act.selectedCommands.forEach(cmdItem => {
+          totalSubCommands++;
+          if (cmdItem.key && cmdItem.expectedValue !== undefined && cmdItem.expectedValue !== '') {
+            setPending(act.deviceId, cmdItem.key, cmdItem.expectedValue, act.moduleId || 'b0');
+          }
+        });
+      } else {
+        totalSubCommands++;
+        if (act.key && act.expectedValue !== undefined && act.expectedValue !== '') {
+          setPending(act.deviceId, act.key, act.expectedValue, act.moduleId || 'b0');
+        }
       }
     }
-  });
+  }
+
+  if (btnEl) {
+    setTimeout(() => btnEl.classList.remove('executing'), 800);
+  }
 
   makeToast(
     'toast-pub',
@@ -2370,7 +3898,8 @@ function executeCustomButton(btnId) {
     'Scene Executed',
     [
       ['Button', btn.name, ''],
-      ['Commands Sent', `${sentCount} of ${actions.length}`, 'code'],
+      ['Commands Sent', `${sentCount} device${sentCount !== 1 ? 's' : ''} (${totalSubCommands} action${totalSubCommands !== 1 ? 's' : ''})`, 'code'],
+      ['Timing', hadDelay ? '300ms multi-device delay applied' : 'Immediate', ''],
       ['Status', 'Telemetry ACK pending (3s)', '']
     ],
     3500
@@ -2408,16 +3937,53 @@ function openBuilderModal(editBtnId = null) {
       titleEl.textContent = 'Edit Custom Button';
       editIdEl.value = btn.id;
       nameInput.value = btn.name || '';
+      updateBuilderKeyPreview();
+      const bKey = toI18nKey(btn.name);
+      const packs = getLanguagePacks();
+      const mrIn = document.getElementById('b-trans-mr');
+      const hiIn = document.getElementById('b-trans-hi');
+      if (mrIn) mrIn.value = (bKey && packs['mr']?.dict?.[bKey]) ? packs['mr'].dict[bKey] : '';
+      if (hiIn) hiIn.value = (bKey && packs['hi']?.dict?.[bKey]) ? packs['hi'].dict[bKey] : '';
       if (widthSelect) widthSelect.value = btn.width || '50%';
       if (hoverSelect) hoverSelect.value = btn.hoverColor || btn.color || 'accent';
       selectBuilderColor(btn.color || 'accent');
       selectBuilderIcon(btn.icon || 'bi-lightning-charge-fill');
       currentBuilderActions = JSON.parse(JSON.stringify(btn.actions || []));
+      // Normalize older actions to ensure selectedCommands array exists
+      currentBuilderActions.forEach(act => {
+        if (!Array.isArray(act.selectedCommands) || !act.selectedCommands.length) {
+          if (act.key) {
+            const isFan = act.itemType === 'fan' || /^(fan|f)\d+$/i.test(act.key);
+            const moduleId = act.moduleId || 'b0';
+            const boardName = act.boardName || act.deviceId || moduleId;
+            const label = act.label || act.key;
+            const state = act.state || (act.expectedValue !== undefined ? String(act.expectedValue) : 'on');
+            const rawKey = act.key.replace(/^fan/i, 'f');
+            const rawChunk = isFan ? `ry ${moduleId} ${rawKey} ${state} .` : `ry ${moduleId} ${act.key} ${state} .`;
+            const humanChunk = isFan ? `${boardName} ${label} speed ${state} .` : `${boardName} ${label} ${state} .`;
+            act.selectedCommands = [{
+              key: act.key,
+              itemType: isFan ? 'fan' : 'switch',
+              label,
+              state,
+              expectedValue: act.expectedValue,
+              rawChunk,
+              humanChunk
+            }];
+            buildCompoundCommands(act);
+          }
+        }
+      });
     }
   } else {
     titleEl.textContent = 'Custom Button Builder';
     editIdEl.value = '';
     nameInput.value = '';
+    updateBuilderKeyPreview();
+    const mrIn = document.getElementById('b-trans-mr');
+    const hiIn = document.getElementById('b-trans-hi');
+    if (mrIn) mrIn.value = '';
+    if (hiIn) hiIn.value = '';
     if (widthSelect) widthSelect.value = '50%';
     if (hoverSelect) hoverSelect.value = 'accent';
     selectBuilderColor('accent');
@@ -2427,13 +3993,9 @@ function openBuilderModal(editBtnId = null) {
       deviceId: '',
       boardName: '',
       moduleId: 'b0',
-      key: '',
-      itemType: '',
-      label: '',
-      state: '',
+      selectedCommands: [],
       humanCmd: '',
-      rawCmd: '',
-      expectedValue: ''
+      rawCmd: ''
     }];
   }
 
@@ -2480,13 +4042,9 @@ function addBuilderAction() {
     deviceId: '',
     boardName: '',
     moduleId: 'b0',
-    key: '',
-    itemType: '',
-    label: '',
-    state: '',
+    selectedCommands: [],
     humanCmd: '',
-    rawCmd: '',
-    expectedValue: ''
+    rawCmd: ''
   });
   renderBuilderActions();
 }
@@ -2497,68 +4055,194 @@ function removeBuilderAction(idx) {
   else renderBuilderActions();
 }
 
-function getBoardCommandOptions(deviceId) {
+// ── Multi-Command Helpers (Compound Commands) ─────────────────────────────────
+function getBoardModules(deviceId) {
   const data      = allDevicesData[deviceId] || {};
   const info      = data.info || {};
   const moduleId  = info.n || 'b0';
   const boardName = info.a || deviceId;
   const modules   = info[moduleId] || {};
 
-  const switches = Object.entries(modules).filter(([k]) => /^r\d+$/.test(k));
-  const fans     = Object.entries(modules).filter(([k]) => /^fan\d+$/.test(k));
+  const switches = Object.entries(modules).filter(([k]) => /^r\d+$/i.test(k));
+  const fans     = Object.entries(modules).filter(([k]) => /^(fan|f)\d+$/i.test(k));
 
-  const options = [];
+  return { boardName, moduleId, switches, fans };
+}
 
-  // Relays: ON & OFF for each switch
-  switches.forEach(([key, label]) => {
-    const switchLabel = label || key;
-    options.push({
-      group: 'Relay Switches',
-      label: `${boardName} ${switchLabel} on .${boardName} done .`,
-      humanCmd: `${boardName} ${switchLabel} on .${boardName} done .`,
-      rawCmd: `ry ${moduleId} ${key} on .${moduleId} ok .`,
-      key,
-      moduleId,
-      itemType: 'switch',
-      fieldLabel: switchLabel,
-      state: 'on',
-      expectedValue: 1
-    });
-    options.push({
-      group: 'Relay Switches',
-      label: `${boardName} ${switchLabel} off .${boardName} done .`,
-      humanCmd: `${boardName} ${switchLabel} off .${boardName} done .`,
-      rawCmd: `ry ${moduleId} ${key} off .${moduleId} ok .`,
-      key,
-      moduleId,
-      itemType: 'switch',
-      fieldLabel: switchLabel,
-      state: 'off',
-      expectedValue: 0
-    });
-  });
+function buildCompoundCommands(action) {
+  if (!action) return;
+  const selected = action.selectedCommands || [];
+  if (!selected.length) {
+    action.rawCmd = '';
+    action.humanCmd = '';
+    return;
+  }
 
-  // Fans: Speeds 0, 1, 2, 3, 4
-  fans.forEach(([key, label]) => {
-    const fanLabel = label || key;
-    [0, 1, 2, 3, 4].forEach(spd => {
-      const suffix = spd === 0 ? ' (OFF)' : ` (Speed ${spd})`;
-      options.push({
-        group: 'Fans',
-        label: `${boardName} ${fanLabel} ${spd} .${boardName} done .${suffix}`,
-        humanCmd: `${boardName} ${fanLabel} ${spd} .${boardName} done .`,
-        rawCmd: `FAN ${moduleId} ${key} ${spd} .${moduleId} ok .`,
+  const moduleId  = action.moduleId || 'b0';
+  const boardName = action.boardName || action.deviceId || moduleId;
+
+  // Each rawChunk: "ry b0 r2 on ." (ends with ".")
+  // Each humanChunk: "mainboard led off ." (ends with ".")
+  const rawChunks   = selected.map(item => item.rawChunk.trim());
+  const humanChunks = selected.map(item => item.humanChunk.trim());
+
+  // Terminal components:
+  // Base MQTT ends with: `${moduleId} ok .`
+  // Human readable ends with: `${boardName} done .`
+  const rawTerminal   = `${moduleId} ok .`;
+  const humanTerminal = `${boardName} done .`;
+
+  // Concatenate without extra space so: "ry b0 r2 on .ry b0 r1 on .ry b0 f1 3 .b0 ok ."
+  action.rawCmd   = rawChunks.join('') + rawTerminal;
+  action.humanCmd = humanChunks.join('') + humanTerminal;
+}
+
+function toggleModuleCommand(actionIdx, key, itemType, stateVal, label) {
+  const act = currentBuilderActions[actionIdx];
+  if (!act) return;
+  if (!Array.isArray(act.selectedCommands)) act.selectedCommands = [];
+
+  const moduleId  = act.moduleId || 'b0';
+  const boardName = act.boardName || act.deviceId || moduleId;
+
+  const existingIdx = act.selectedCommands.findIndex(c => c.key === key);
+
+  if (existingIdx !== -1) {
+    const cur = act.selectedCommands[existingIdx];
+    if (cur.state === String(stateVal)) {
+      // User tapped active state again -> deselect / remove
+      act.selectedCommands.splice(existingIdx, 1);
+    } else {
+      // Switch to new state (e.g. from ON to OFF, or speed 1 to speed 3)
+      let rawChunk = '';
+      let humanChunk = '';
+      let expectedValue = 0;
+
+      if (itemType === 'switch') {
+        expectedValue = (stateVal === 'on' ? 1 : 0);
+        rawChunk = `ry ${moduleId} ${key} ${stateVal} .`;
+        humanChunk = `${boardName} ${label} ${stateVal} .`;
+      } else {
+        const spd = parseInt(stateVal) || 0;
+        expectedValue = spd;
+        const rawKey = key.replace(/^fan/i, 'fan');
+        rawChunk = `FAN ${moduleId} ${rawKey} ${spd} .`;
+        humanChunk = `${boardName} ${label} speed ${spd} .`;
+      }
+
+      act.selectedCommands[existingIdx] = {
         key,
-        moduleId,
-        itemType: 'fan',
-        fieldLabel: fanLabel,
-        state: String(spd),
-        expectedValue: spd
+        itemType,
+        label,
+        state: String(stateVal),
+        expectedValue,
+        rawChunk,
+        humanChunk
+      };
+    }
+  } else {
+    // Add newly selected state
+    let rawChunk = '';
+    let humanChunk = '';
+    let expectedValue = 0;
+
+    if (itemType === 'switch') {
+      expectedValue = (stateVal === 'on' ? 1 : 0);
+      rawChunk = `ry ${moduleId} ${key} ${stateVal} .`;
+      humanChunk = `${boardName} ${label} ${stateVal} .`;
+    } else {
+      const spd = parseInt(stateVal) || 0;
+      expectedValue = spd;
+      const rawKey = key.replace(/^fan/i, 'fan');
+      rawChunk = `FAN ${moduleId} ${rawKey} ${spd} .`;
+      humanChunk = `${boardName} ${label} speed ${spd} .`;
+    }
+
+    act.selectedCommands.push({
+      key,
+      itemType,
+      label,
+      state: String(stateVal),
+      expectedValue,
+      rawChunk,
+      humanChunk
+    });
+  }
+
+  buildCompoundCommands(act);
+  renderBuilderActions();
+}
+
+function removeSelectedCommandItem(actionIdx, cmdIdx) {
+  const act = currentBuilderActions[actionIdx];
+  if (!act || !act.selectedCommands) return;
+  act.selectedCommands.splice(cmdIdx, 1);
+  buildCompoundCommands(act);
+  renderBuilderActions();
+}
+
+function quickSetBoardCommands(actionIdx, mode) {
+  const act = currentBuilderActions[actionIdx];
+  if (!act || !act.deviceId) return;
+
+  const { boardName, moduleId, switches, fans } = getBoardModules(act.deviceId);
+  act.selectedCommands = [];
+
+  if (mode === 'all-on') {
+    switches.forEach(([key, label]) => {
+      const switchLabel = label || key;
+      act.selectedCommands.push({
+        key,
+        itemType: 'switch',
+        label: switchLabel,
+        state: 'on',
+        expectedValue: 1,
+        rawChunk: `ry ${moduleId} ${key} on .`,
+        humanChunk: `${boardName} ${switchLabel} on .`
       });
     });
-  });
+  } else if (mode === 'all-off') {
+    switches.forEach(([key, label]) => {
+      const switchLabel = label || key;
+      act.selectedCommands.push({
+        key,
+        itemType: 'switch',
+        label: switchLabel,
+        state: 'off',
+        expectedValue: 0,
+        rawChunk: `ry ${moduleId} ${key} off .`,
+        humanChunk: `${boardName} ${switchLabel} off .`
+      });
+    });
+    fans.forEach(([key, label]) => {
+      const fanLabel = label || key;
+      const rawKey = key.replace(/^fan/i, 'f');
+      act.selectedCommands.push({
+        key,
+        itemType: 'fan',
+        label: fanLabel,
+        state: '0',
+        expectedValue: 0,
+        rawChunk: `FAN ${moduleId} ${rawKey} 0 .`,
+        humanChunk: `${boardName} ${fanLabel} speed 0 .`
+      });
+    });
+  } else if (mode === 'clear') {
+    act.selectedCommands = [];
+  }
 
-  return { boardName, moduleId, options };
+  buildCompoundCommands(act);
+  renderBuilderActions();
+}
+
+function onBuilderDropdownSelect(actionIdx, encodedVal) {
+  if (!encodedVal) return;
+  try {
+    const item = JSON.parse(decodeURIComponent(encodedVal));
+    toggleModuleCommand(actionIdx, item.key, item.itemType, item.state, item.label);
+  } catch (e) {
+    console.error('Failed to parse dropdown item:', e);
+  }
 }
 
 function renderBuilderActions() {
@@ -2589,61 +4273,216 @@ function renderBuilderActions() {
       deviceOptionsHtml += `<option value="${did}" ${isSel}>${bName} (${did})</option>`;
     });
 
-    let cmdSelectHtml = '<option value="" disabled selected>-- Select Command --</option>';
-    let inspectorHtml = `
-      <div class="inspector-row"><span class="inspector-key">Status</span><span class="inspector-val" style="color:var(--muted)">Select board and command</span></div>
+    const spaceOptionsHtml = ['<option value="">-- All / Any Space --</option>']
+      .concat(allSpaces.map(s => `<option value="${s}" ${action.space === s ? 'selected' : ''}>${s}</option>`))
+      .join('');
+
+    let commandBuilderHtml = `
+      <div style="font-size:12px;color:var(--muted);padding:8px 0">
+        <i class="bi bi-info-circle"></i> Please select a Board / Device above to configure module commands.
+      </div>
     `;
 
     if (action.deviceId) {
-      const { boardName, moduleId, options } = getBoardCommandOptions(action.deviceId);
-      if (options.length) {
-        const switchOpts = options.filter(o => o.group === 'Relay Switches');
-        const fanOpts    = options.filter(o => o.group === 'Fans');
+      const { boardName, moduleId, switches, fans } = getBoardModules(action.deviceId);
+      const selectedList = action.selectedCommands || [];
+      const selectedMap = new Map();
+      selectedList.forEach(c => selectedMap.set(c.key, c.state));
 
-        if (switchOpts.length) {
-          cmdSelectHtml += `<optgroup label="Relay Switches">`;
-          switchOpts.forEach(opt => {
-            const isMatch = action.rawCmd === opt.rawCmd;
-            const encoded = encodeURIComponent(JSON.stringify(opt));
-            cmdSelectHtml += `<option value="${encoded}" ${isMatch ? 'selected' : ''}>${opt.label}</option>`;
+      if (switches.length || fans.length) {
+        // Dropdown options for single/multi select
+        let dropdownOptionsHtml = '<option value="" selected>-- Pick from Dropdown to Add / Toggle --</option>';
+        if (switches.length) {
+          dropdownOptionsHtml += `<optgroup label="Relay Switches">`;
+          switches.forEach(([key, label]) => {
+            const swLabel = label || key;
+            const onVal = encodeURIComponent(JSON.stringify({ key, itemType: 'switch', state: 'on', label: swLabel }));
+            const offVal = encodeURIComponent(JSON.stringify({ key, itemType: 'switch', state: 'off', label: swLabel }));
+            const isOn = selectedMap.get(key) === 'on';
+            const isOff = selectedMap.get(key) === 'off';
+            dropdownOptionsHtml += `<option value="${onVal}">${isOn ? '✓ ' : ''}${boardName} ${swLabel} on .</option>`;
+            dropdownOptionsHtml += `<option value="${offVal}">${isOff ? '✓ ' : ''}${boardName} ${swLabel} off .</option>`;
           });
-          cmdSelectHtml += `</optgroup>`;
+          dropdownOptionsHtml += `</optgroup>`;
+        }
+        if (fans.length) {
+          dropdownOptionsHtml += `<optgroup label="Fans">`;
+          fans.forEach(([key, label]) => {
+            const fnLabel = label || key;
+            [0, 1, 2, 3, 4].forEach(spd => {
+              const spdVal = encodeURIComponent(JSON.stringify({ key, itemType: 'fan', state: String(spd), label: fnLabel }));
+              const isSpeed = selectedMap.get(key) === String(spd);
+              const suffix = spd === 0 ? ' (OFF)' : ` (Speed ${spd})`;
+              dropdownOptionsHtml += `<option value="${spdVal}">${isSpeed ? '✓ ' : ''}${boardName} ${fnLabel} speed ${spd} .${suffix}</option>`;
+            });
+          });
+          dropdownOptionsHtml += `</optgroup>`;
         }
 
-        if (fanOpts.length) {
-          cmdSelectHtml += `<optgroup label="Fans">`;
-          fanOpts.forEach(opt => {
-            const isMatch = action.rawCmd === opt.rawCmd;
-            const encoded = encodeURIComponent(JSON.stringify(opt));
-            cmdSelectHtml += `<option value="${encoded}" ${isMatch ? 'selected' : ''}>${opt.label}</option>`;
-          });
-          cmdSelectHtml += `</optgroup>`;
+        // Module interactive rows
+        let moduleRowsHtml = '';
+        if (switches.length) {
+          moduleRowsHtml += `
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-top:2px">
+              <i class="bi bi-toggle-on" style="color:var(--accent)"></i> Relay Switches
+            </div>
+            ${switches.map(([key, label]) => {
+              const swLabel = (label || key).replace(/'/g, "\\'");
+              const curState = selectedMap.get(key);
+              const isOn = curState === 'on';
+              const isOff = curState === 'off';
+              return `
+                <div class="cmd-module-row">
+                  <div class="cmd-module-info">
+                    <i class="bi bi-lightbulb-fill"></i>
+                    <span title="${label || key}">${label || key}</span>
+                    <span class="cmd-module-key">${key}</span>
+                  </div>
+                  <div class="cmd-btn-group">
+                    <button type="button" class="btn-state-pill ${isOn ? 'active-on' : ''}"
+                      onclick="toggleModuleCommand(${idx}, '${key}', 'switch', 'on', '${swLabel}')"
+                      title="Set ${label || key} ON">
+                      ${isOn ? '✓ ' : ''}ON
+                    </button>
+                    <button type="button" class="btn-state-pill ${isOff ? 'active-off' : ''}"
+                      onclick="toggleModuleCommand(${idx}, '${key}', 'switch', 'off', '${swLabel}')"
+                      title="Set ${label || key} OFF">
+                      ${isOff ? '✓ ' : ''}OFF
+                    </button>
+                  </div>
+                </div>`;
+            }).join('')}
+          `;
         }
+
+        if (fans.length) {
+          moduleRowsHtml += `
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-top:4px">
+              <i class="bi bi-fan" style="color:var(--accent)"></i> Fans
+            </div>
+            ${fans.map(([key, label]) => {
+              const fnLabel = (label || key).replace(/'/g, "\\'");
+              const curSpeed = selectedMap.get(key);
+              return `
+                <div class="cmd-module-row">
+                  <div class="cmd-module-info">
+                    <i class="bi bi-fan"></i>
+                    <span title="${label || key}">${label || key}</span>
+                    <span class="cmd-module-key">${key}</span>
+                  </div>
+                  <div class="cmd-btn-group">
+                    ${[0, 1, 2, 3, 4].map(spd => {
+                      const isAct = curSpeed === String(spd);
+                      return `
+                        <button type="button" class="btn-state-pill ${isAct ? 'active-speed' : ''}"
+                          onclick="toggleModuleCommand(${idx}, '${key}', 'fan', '${spd}', '${fnLabel}')"
+                          title="${spd === 0 ? 'Fan OFF' : 'Speed ' + spd}">
+                          ${spd === 0 ? 'OFF' : spd}
+                        </button>`;
+                    }).join('')}
+                  </div>
+                </div>`;
+            }).join('')}
+          `;
+        }
+
+        // Chips sequence
+        let chipsHtml = '';
+        if (selectedList.length) {
+          chipsHtml = `
+            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:4px">Execution Sequence:</div>
+            <div class="cmd-chips-row">
+              ${selectedList.map((c, cIdx) => `
+                <div class="cmd-chip">
+                  <span>${c.humanChunk}</span>
+                  <span class="cmd-chip-del" onclick="removeSelectedCommandItem(${idx}, ${cIdx})" title="Remove"><i class="bi bi-x"></i></span>
+                </div>
+              `).join('')}
+              <div class="cmd-chip terminal" title="Terminal Suffix (Required by Hardware)">
+                <span>✓ ${boardName} done .</span>
+              </div>
+            </div>
+          `;
+        }
+
+        commandBuilderHtml = `
+          <div class="cmd-multi-select-container">
+            <!-- Full Command Summary Dropdown Display -->
+            <div class="cmd-summary-bar">
+              <i class="bi bi-terminal" style="color:var(--accent);font-size:14px;flex-shrink:0"></i>
+              <span class="cmd-summary-text" title="${action.humanCmd || 'No commands selected'}">
+                ${action.humanCmd || '-- No commands selected (Pick options below) --'}
+              </span>
+              <span class="cmd-badge">${selectedList.length} action${selectedList.length !== 1 ? 's' : ''}</span>
+            </div>
+
+            <!-- Quick Preset Action Bar -->
+            <div class="cmd-quick-bar">
+              <span style="font-size:11px;color:var(--muted)">Presets:</span>
+              <button type="button" class="btn-cmd-quick" onclick="quickSetBoardCommands(${idx}, 'all-on')">
+                <i class="bi bi-lightning-fill" style="color:#22c55e"></i> All Switches ON
+              </button>
+              <button type="button" class="btn-cmd-quick" onclick="quickSetBoardCommands(${idx}, 'all-off')">
+                <i class="bi bi-power" style="color:#ef4444"></i> All OFF
+              </button>
+              <button type="button" class="btn-cmd-quick" onclick="quickSetBoardCommands(${idx}, 'clear')">
+                <i class="bi bi-eraser"></i> Clear
+              </button>
+            </div>
+
+            <!-- Full Command Select Dropdown -->
+            <div>
+              <label class="b-label" style="font-size:11px">Command Dropdown (Click to Add / Toggle)</label>
+              <select class="b-select" onchange="onBuilderDropdownSelect(${idx}, this.value)">
+                ${dropdownOptionsHtml}
+              </select>
+            </div>
+
+            <!-- Interactive Modules Toggle Grid -->
+            <div class="cmd-modules-list">
+              ${moduleRowsHtml}
+            </div>
+
+            <!-- Selected Sequence Chips -->
+            ${chipsHtml}
+          </div>
+        `;
       } else {
-        cmdSelectHtml = `<option value="" disabled>No modules defined for this board</option>`;
-      }
-
-      if (action.rawCmd) {
-        inspectorHtml = `
-          <div class="inspector-row">
-            <span class="inspector-key">Human Action</span>
-            <span class="inspector-val">${action.humanCmd || '—'}</span>
-          </div>
-          <div class="inspector-row">
-            <span class="inspector-key">Base MQTT Command</span>
-            <span class="inspector-val">${action.rawCmd}</span>
-          </div>
-          <div class="inspector-row">
-            <span class="inspector-key">Target Topic</span>
-            <span class="inspector-val">${MQTT_USER}/${action.deviceId}/cmd</span>
+        commandBuilderHtml = `
+          <div style="font-size:12px;color:var(--muted);padding:8px;background:#0c1017;border-radius:6px;border:1px solid #1c2433">
+            <i class="bi bi-exclamation-triangle" style="color:var(--warning)"></i> No module switches or fans found in configuration for this board (${action.deviceId}).
           </div>
         `;
       }
     }
 
-    const spaceOptionsHtml = ['<option value="">-- All / Any Space --</option>']
-      .concat(allSpaces.map(s => `<option value="${s}" ${action.space === s ? 'selected' : ''}>${s}</option>`))
-      .join('');
+    let inspectorHtml = `
+      <div class="inspector-row">
+        <span class="inspector-key">Status</span>
+        <span class="inspector-val" style="color:var(--muted)">Select board and commands</span>
+      </div>
+    `;
+
+    if (action.deviceId && action.rawCmd) {
+      inspectorHtml = `
+        <div class="inspector-row">
+          <span class="inspector-key">Human Action</span>
+          <span class="inspector-val">${action.humanCmd || '—'}</span>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-key">Base MQTT Command</span>
+          <span class="inspector-val">${action.rawCmd}</span>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-key">Target Topic</span>
+          <span class="inspector-val">${MQTT_USER}/${action.deviceId}/cmd</span>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-key">Hardware Terminal</span>
+          <span class="inspector-val">${action.moduleId || 'b0'} ok .</span>
+        </div>
+      `;
+    }
 
     return `
       <div class="builder-action-card">
@@ -2670,10 +4509,8 @@ function renderBuilderActions() {
         </div>
 
         <div>
-          <label class="b-label">3. Module Command Dropdown (Human-Readable)</label>
-          <select class="b-select" onchange="onBuilderCmdChange(${idx}, this.value)">
-            ${cmdSelectHtml}
-          </select>
+          <label class="b-label">3. Module Commands (Multi-Select &amp; Dropdown)</label>
+          ${commandBuilderHtml}
         </div>
 
         <div class="action-inspector-box">
@@ -2690,6 +4527,7 @@ function onBuilderSpaceChange(idx, spaceName) {
   act.space = spaceName;
   act.deviceId = '';
   act.boardName = '';
+  act.selectedCommands = [];
   act.rawCmd = '';
   act.humanCmd = '';
   renderBuilderActions();
@@ -2703,28 +4541,10 @@ function onBuilderBoardChange(idx, deviceId) {
   act.boardName = info.a || deviceId;
   act.moduleId  = info.n || 'b0';
   if (!act.space && info.s) act.space = info.s;
+  act.selectedCommands = [];
   act.rawCmd   = '';
   act.humanCmd = '';
   renderBuilderActions();
-}
-
-function onBuilderCmdChange(idx, encodedVal) {
-  const act = currentBuilderActions[idx];
-  if (!act || !encodedVal) return;
-  try {
-    const opt = JSON.parse(decodeURIComponent(encodedVal));
-    act.rawCmd        = opt.rawCmd;
-    act.humanCmd      = opt.humanCmd;
-    act.key           = opt.key;
-    act.moduleId      = opt.moduleId;
-    act.itemType      = opt.itemType;
-    act.label         = opt.fieldLabel;
-    act.state         = opt.state;
-    act.expectedValue = opt.expectedValue;
-    renderBuilderActions();
-  } catch (e) {
-    console.error('Failed to parse command selection:', e);
-  }
 }
 
 function saveBuilderButton() {
@@ -2767,6 +4587,24 @@ function saveBuilderButton() {
   }
 
   saveCustomButtons(updatedList);
+
+  // Save multi-language translations for this button if provided
+  const btnKey = toI18nKey(name);
+  const mrVal = document.getElementById('b-trans-mr')?.value?.trim();
+  const hiVal = document.getElementById('b-trans-hi')?.value?.trim();
+  if (btnKey && (mrVal || hiVal)) {
+    const packs = getLanguagePacks();
+    if (mrVal) {
+      if (!packs['mr']) packs['mr'] = JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS['mr']));
+      packs['mr'].dict[btnKey] = mrVal;
+    }
+    if (hiVal) {
+      if (!packs['hi']) packs['hi'] = JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS['hi']));
+      packs['hi'].dict[btnKey] = hiVal;
+    }
+    saveLanguagePacks(packs);
+  }
+
   renderCustomButtons();
   closeBuilderModal();
 
@@ -2900,6 +4738,126 @@ function executeImportJSON(mode = 'merge') {
   );
 }
 
+// ── Global Modern Tooltip System ─────────────────────────────────────────────
+(function initGlobalTooltips() {
+  const tipEl = document.createElement('div');
+  tipEl.id = 'app-tooltip';
+  document.body.appendChild(tipEl);
+
+  const tipDownEl = document.createElement('div');
+  tipDownEl.id = 'app-tooltip-down';
+  document.body.appendChild(tipDownEl);
+
+  let currentTarget = null;
+  let showTimeout = null;
+
+  function showTooltip(el, text, downText) {
+    const rect = el.getBoundingClientRect();
+
+    // 1. Top / Upside Tooltip (Human-readable full commands)
+    if (!text || !text.trim()) {
+      tipEl.classList.remove('show');
+    } else {
+      tipEl.textContent = text;
+      tipEl.classList.remove('placement-bottom', 'show');
+
+      const tipRect = tipEl.getBoundingClientRect();
+      let top = rect.top - tipRect.height - 8;
+
+      // If near top of viewport and no down tooltip, flip to bottom
+      if (top < 8 && (!downText || !downText.trim())) {
+        top = rect.bottom + 8;
+        tipEl.classList.add('placement-bottom');
+      } else if (top < 8) {
+        top = 8;
+      }
+
+      let left = rect.left + (rect.width / 2) - (tipRect.width / 2);
+      if (left < 8) left = 8;
+      if (left + tipRect.width > window.innerWidth - 8) {
+        left = window.innerWidth - tipRect.width - 8;
+      }
+
+      const arrowX = Math.max(10, Math.min(tipRect.width - 10, (rect.left + rect.width / 2) - left));
+      tipEl.style.setProperty('--arrow-x', `${Math.round(arrowX - 3.5)}px`);
+
+      tipEl.style.top = `${Math.round(top)}px`;
+      tipEl.style.left = `${Math.round(left)}px`;
+      tipEl.classList.add('show');
+    }
+
+    // 2. Bottom / Downside Tooltip (2nd tooltip: Button name & base MQTT commands)
+    if (!downText || !downText.trim()) {
+      tipDownEl.classList.remove('show');
+    } else {
+      tipDownEl.textContent = downText;
+      tipDownEl.classList.remove('show');
+
+      const tipDownRect = tipDownEl.getBoundingClientRect();
+      let downTop = rect.bottom + 8;
+
+      // Viewport bottom overflow protection
+      if (downTop + tipDownRect.height > window.innerHeight - 8) {
+        downTop = Math.max(rect.bottom + 4, window.innerHeight - tipDownRect.height - 8);
+      }
+
+      let downLeft = rect.left + (rect.width / 2) - (tipDownRect.width / 2);
+      if (downLeft < 8) downLeft = 8;
+      if (downLeft + tipDownRect.width > window.innerWidth - 8) {
+        downLeft = window.innerWidth - tipDownRect.width - 8;
+      }
+
+      const downArrowX = Math.max(10, Math.min(tipDownRect.width - 10, (rect.left + rect.width / 2) - downLeft));
+      tipDownEl.style.setProperty('--arrow-x', `${Math.round(downArrowX - 3.5)}px`);
+
+      tipDownEl.style.top = `${Math.round(downTop)}px`;
+      tipDownEl.style.left = `${Math.round(downLeft)}px`;
+      tipDownEl.classList.add('show');
+    }
+  }
+
+  function hideTooltip() {
+    clearTimeout(showTimeout);
+    tipEl.classList.remove('show');
+    tipDownEl.classList.remove('show');
+    currentTarget = null;
+  }
+
+  document.addEventListener('mouseover', (e) => {
+    const el = e.target.closest('[data-tip]:not(.card-action-btn), [data-tooltip], [data-tip-down], [title], .cb-ctrl-btn, .btn-state-pill, .icon-picker-btn');
+    if (!el || el === currentTarget) return;
+
+    let text = el.getAttribute('data-tip') || el.getAttribute('data-tooltip');
+    let downText = el.getAttribute('data-tip-down');
+
+    if (!text && el.hasAttribute('title')) {
+      const rawTitle = el.getAttribute('title');
+      if (rawTitle) {
+        el.setAttribute('data-tip', rawTitle);
+        el.removeAttribute('title'); // Removes native browser yellow tooltip
+        text = rawTitle;
+      }
+    }
+
+    if ((!text || !text.trim()) && (!downText || !downText.trim())) return;
+
+    currentTarget = el;
+    clearTimeout(showTimeout);
+    showTimeout = setTimeout(() => {
+      if (currentTarget === el) showTooltip(el, text, downText);
+    }, 60);
+  }, true);
+
+  document.addEventListener('mouseout', (e) => {
+    if (currentTarget && !currentTarget.contains(e.relatedTarget)) {
+      hideTooltip();
+    }
+  }, true);
+
+  document.addEventListener('mousedown', hideTooltip, true);
+  window.addEventListener('scroll', hideTooltip, true);
+})();
+
 // ── Keyboard Shortcuts ────────────────────────────────────────────────────────
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -2907,11 +4865,13 @@ window.addEventListener('keydown', (e) => {
     closeSidebar();
     closeBuilderModal();
     closeImportExportModal();
+    closeLangModal();
   }
 });
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 (function boot() {
+  initI18n();
   const creds = loadCreds();
   renderCustomButtons();
   if (creds) { prefillForm(creds); document.getElementById('login-overlay').classList.add('hidden'); initMQTT(creds); }

@@ -1,0 +1,19 @@
+{
+  "languages": [
+    {
+      "code": "en",
+      "name": "English",
+      "url": "lang/en.json"
+    },
+    {
+      "code": "mr",
+      "name": "मराठी (Marathi)",
+      "url": "lang/mr.json"
+    },
+    {
+      "code": "hi",
+      "name": "हिन्दी (Hindi)",
+      "url": "lang/hi.json"
+    }
+  ]
+}
