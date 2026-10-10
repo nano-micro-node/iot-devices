@@ -258,11 +258,15 @@
     .view { display: none; }
     .view.active { display: block; }
 
-    /* ── Devices grid ─────────────────────────────── */
-    #devices-container {
+    /* ── Devices grid (Desktop: Two Columns) ── */
+    #devices-container,
+    .devices-grid,
+    .space-devices-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .section-label {
       font-size: 11px; font-weight: 700; color: var(--muted);
@@ -436,39 +440,150 @@
     .card-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
     .module-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
 
-    /* ── Switches ────────────────────────────────── */
-    .switches-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .switch-item { background: #0d1117; border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; position: relative; transition: border-color 0.2s; }
+    /* ── Switches (Two Columns: 2x2 grid for 4 switches, float left) ── */
+    .switches-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .switches-grid::after {
+      content: '';
+      display: table;
+      clear: both;
+    }
+    .switch-item {
+      background: #0d1117;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 7px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      position: relative;
+      transition: border-color 0.2s, background 0.15s;
+      container-type: inline-size;
+      box-sizing: border-box;
+      width: 100%;
+      float: left;
+    }
+    .switch-item:hover {
+      border-color: #263346;
+      background: #0e131c;
+    }
     .switch-item.pending { opacity: 0.55; pointer-events: none; }
-    .switch-item.pending::after { content: ''; position: absolute; inset: 0; border-radius: 10px; background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.025) 4px, rgba(255,255,255,0.025) 8px); }
-    .switch-spinner { position: absolute; top: 8px; right: 8px; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    .switch-item.pending::after { content: ''; position: absolute; inset: 0; border-radius: 8px; background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.025) 4px, rgba(255,255,255,0.025) 8px); }
+    .switch-spinner { position: absolute; top: 6px; right: 6px; width: 11px; height: 11px; border: 2px solid rgba(255,255,255,0.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
     .switch-item.pending .switch-spinner { display: block; }
-    .switch-label { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .switch-btns { display: flex; gap: 6px; }
-    .btn-on, .btn-off { flex: 1; border: none; border-radius: 6px; padding: 5px 0; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .switch-label { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+    .switch-btns { display: flex; gap: 5px; width: 100%; }
+    .btn-on, .btn-off {
+      flex: 1;
+      border: none;
+      border-radius: 5px;
+      height: 25px;
+      padding: 0 4px;
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      overflow: hidden;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .btn-on i, .btn-off i {
+      font-size: 10.5px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .btn-on .btn-txt, .btn-off .btn-txt {
+      font-size: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1;
+    }
     .btn-on  { background: #14261a; color: var(--success); border: 1px solid #1a3d24; }
-    .btn-on:hover  { background: #1a3326; box-shadow: 0 0 8px rgba(34,197,94,0.2); }
-    .btn-on.active  { background: var(--success); color: #0a1a10; border-color: var(--success); }
+    .btn-on:hover  { background: #1a3326; box-shadow: 0 0 8px rgba(34,197,94,0.25); }
+    .btn-on.active  { background: var(--success); color: #0a1a10; border-color: var(--success); font-weight: 700; }
     .btn-off { background: #1f1414; color: var(--danger);  border: 1px solid #3d1a1a; }
-    .btn-off:hover { background: #2a1818; box-shadow: 0 0 8px rgba(239,68,68,0.2); }
-    .btn-off.active { background: var(--danger);  color: #1a0808; border-color: var(--danger); }
+    .btn-off:hover { background: #2a1818; box-shadow: 0 0 8px rgba(239,68,68,0.25); }
+    .btn-off.active { background: var(--danger);  color: #1a0808; border-color: var(--danger); font-weight: 700; }
 
-    /* ── Fans ────────────────────────────────────── */
-    .fan-item { background: #0d1117; border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 14px; position: relative; transition: opacity 0.2s; }
+    /* If button doesn't fit, remove text & only use icons */
+    @container (max-width: 125px) {
+      .btn-on .btn-txt, .btn-off .btn-txt {
+        display: none;
+      }
+      .btn-on, .btn-off {
+        gap: 0;
+        padding: 0;
+      }
+      .btn-on i, .btn-off i {
+        font-size: 11.5px;
+      }
+    }
+    @media (max-width: 440px) {
+      .btn-on .btn-txt, .btn-off .btn-txt {
+        display: none;
+      }
+      .btn-on, .btn-off {
+        gap: 0;
+      }
+    }
+
+    /* ── Fans (Full Width) ───────────────────────── */
+    .card-module-fans {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .fan-item {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0d1117;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      position: relative;
+      transition: opacity 0.2s;
+    }
     .fan-item.pending { opacity: 0.55; pointer-events: none; }
-    .fan-item.pending::after { content: ''; position: absolute; inset: 0; border-radius: 10px; background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.025) 4px, rgba(255,255,255,0.025) 8px); }
+    .fan-item.pending::after { content: ''; position: absolute; inset: 0; border-radius: 8px; background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.025) 4px, rgba(255,255,255,0.025) 8px); }
     .fan-spinner { position: absolute; top: 10px; right: 10px; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
     .fan-item.pending .fan-spinner { display: block; }
-    .fan-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .fan-name { font-size: 12px; color: var(--muted); }
-    .fan-speed-badge { font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border-radius: 6px; padding: 2px 8px; min-width: 28px; text-align: center; }
-    .fan-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-bottom: 10px; }
-    .fan-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #0d0f14; }
-    .fan-slider::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #0d0f14; }
-    .fan-speed-btns { display: flex; gap: 6px; }
-    .btn-speed { flex: 1; background: #1a1e28; border: 1px solid var(--card-border); color: var(--muted); border-radius: 6px; padding: 4px 0; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .fan-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .fan-name { font-size: 11.5px; font-weight: 600; color: var(--muted); }
+    .fan-speed-badge { font-size: 11.5px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border-radius: 5px; padding: 1px 7px; min-width: 24px; text-align: center; }
+    .fan-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-bottom: 8px; }
+    .fan-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #0d0f14; }
+    .fan-slider::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #0d0f14; }
+    .fan-speed-btns { display: flex; gap: 5px; width: 100%; box-sizing: border-box; }
+    .btn-speed {
+      flex: 1;
+      background: #1a1e28;
+      border: 1px solid var(--card-border);
+      color: var(--muted);
+      border-radius: 5px;
+      height: 25px;
+      padding: 0;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
     .btn-speed:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-speed.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+    .btn-speed.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+    .btn-speed i { font-size: 10px; }
+    .btn-speed .btn-txt { font-size: 10.5px; }
 
     /* ── Info chips ──────────────────────────────── */
     .info-row { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -516,19 +631,24 @@
       .sidebar.open { transform: translateX(0); }
       .btn-menu { display: flex; }
       .broker-status span { display: none; }
-      #devices-container { grid-template-columns: 1fr; }
+      #devices-container, .devices-grid, .space-devices-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 600px) {
-      .content-pad { padding: 14px; }
-      .topbar { padding: 0 12px; }
+      :root { --topbar-h: 48px; }
+      .content-pad { padding: 10px 8px; }
+      .topbar { padding: 0 10px; height: 48px; }
+      .topbar-brand { font-size: 13.5px; gap: 6px; }
+      .topbar-brand i { font-size: 16px; }
       .topbar-center { display: none; }
-      .login-box { padding: 24px 18px; }
+      .btn-menu { width: 32px; height: 32px; font-size: 16px; }
+      .btn-right-sidebar-toggle { padding: 4px 8px; font-size: 11px; }
+      .btn-logout { padding: 4px 8px; font-size: 11px; }
+      .logout-txt { display: none; }
+      .broker-status span { display: none; }
+      .login-box { padding: 20px 16px; }
       .field-row { grid-template-columns: 1fr; }
-      .switches-grid { grid-template-columns: 1fr; }
-      .device-tabs-bar { padding: 0 10px; gap: 6px; }
-    }
-    @media (min-width: 1200px) {
-      #devices-container { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+      .switches-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+      .device-tabs-bar { padding: 0 8px; gap: 5px; }
     }
 
     /* ── Animations ──────────────────────────────── */
@@ -543,7 +663,7 @@
     .dashboard-split-layout {
       display: grid;
       grid-template-columns: 8fr 4fr;
-      gap: 20px;
+      gap: 16px;
       align-items: start;
     }
     .dash-col-left {
@@ -561,16 +681,17 @@
         top: var(--topbar-h);
         bottom: 0;
         right: 0;
-        width: var(--mobile-sidebar-w, 90vw);
-        max-width: var(--mobile-sidebar-w, 90vw);
+        width: min(var(--mobile-sidebar-w, 92vw), 440px);
+        max-width: 100vw;
         background: #0d1118;
         border-left: 1px solid var(--card-border);
         z-index: 155;
         transform: translateX(100%);
-        transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+        transition: transform 0.26s cubic-bezier(0.4,0,0.2,1);
         overflow-y: auto;
-        padding: 14px;
+        padding: 12px 10px;
         box-shadow: -10px 0 36px rgba(0,0,0,0.85);
+        -webkit-overflow-scrolling: touch;
       }
       .dash-col-right.open {
         transform: translateX(0);
@@ -640,20 +761,20 @@
     .mobile-fab-actions {
       display: none;
       position: fixed;
-      bottom: 22px;
-      right: 22px;
-      width: 52px;
-      height: 52px;
+      bottom: 18px;
+      right: 18px;
+      width: 46px;
+      height: 46px;
       border-radius: 50%;
       background: var(--accent);
       border: 2px solid rgba(255,255,255,0.25);
       color: #fff;
-      font-size: 20px;
+      font-size: 18px;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       z-index: 130;
-      box-shadow: 0 6px 22px rgba(59,130,246,0.55);
+      box-shadow: 0 4px 18px rgba(59,130,246,0.5);
       transition: transform 0.18s, background 0.18s;
     }
     .mobile-fab-actions:active {
@@ -841,12 +962,14 @@
 
     /* ── Custom Buttons Flow (50% or 100%, float left / flex) ── */
     .custom-buttons-flow {
-      --cb-radius: 10px;
-      --cb-padding: 8px 10px;
-      --cb-gap: 8px;
-      --cb-font-size: 12px;
-      --cb-min-height: 48px;
+      --cb-radius: 8px;
+      --cb-padding: 5px 8px;
+      --cb-gap: 6px;
+      --cb-font-size: 11.5px;
+      --cb-min-height: 35px;
       --cb-border-width: 1px;
+      --cb-icon-size: 22px;
+      --cb-icon-font-size: 11.5px;
       display: flex;
       flex-wrap: wrap;
       gap: var(--cb-gap);
@@ -879,6 +1002,7 @@
       box-sizing: border-box;
       position: relative;
       transition: width 0.2s, transform 0.15s;
+      container-type: inline-size;
     }
     .cb-item-wrapper.w-50 {
       width: calc(50% - (var(--cb-gap) / 2));
@@ -890,14 +1014,23 @@
       flex: 0 0 100%;
       float: left;
     }
+    @container (max-width: 95px) {
+      .cb-content {
+        display: none !important;
+      }
+      .cb-single-btn {
+        justify-content: center !important;
+        padding: 4px !important;
+      }
+    }
 
     /* Single Interactive Action Button */
     .cb-single-btn {
       width: 100%;
-      min-height: var(--cb-min-height);
-      padding: var(--cb-padding);
-      border-radius: var(--cb-radius);
-      border: var(--cb-border-width) solid var(--card-border);
+      min-height: var(--cb-min-height, 35px);
+      padding: var(--cb-padding, 5px 8px);
+      border-radius: var(--cb-radius, 8px);
+      border: var(--cb-border-width, 1px) solid var(--card-border);
       background: #141923;
       color: var(--text);
       cursor: pointer;
@@ -905,10 +1038,10 @@
       overflow: hidden;
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 7px;
       text-align: left;
       user-select: none;
-      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
       box-sizing: border-box;
     }
     .cb-single-btn:active {
@@ -984,18 +1117,18 @@
     .cb-single-btn.theme-pink .cb-icon { color: #ec4899; background: rgba(236,72,153,0.15); }
 
     .cb-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
+      width: var(--cb-icon-size, 22px);
+      height: var(--cb-icon-size, 22px);
+      border-radius: 5px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: var(--cb-icon-font-size, 11.5px);
       flex-shrink: 0;
       transition: transform 0.15s;
     }
     .cb-single-btn:hover .cb-icon {
-      transform: scale(1.1);
+      transform: scale(1.08);
     }
 
     .cb-content {
@@ -1005,20 +1138,21 @@
       flex-direction: column;
     }
     .cb-name {
-      font-size: var(--cb-font-size);
-      font-weight: 700;
+      font-size: var(--cb-font-size, 11.5px);
+      font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      line-height: 1.25;
+      line-height: 1.2;
     }
     .cb-meta {
-      font-size: 10px;
+      font-size: 9.5px;
       color: var(--muted);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       margin-top: 1px;
+      line-height: 1.1;
     }
 
     /* Unlocked toolbar overlay for each button */
@@ -1121,18 +1255,158 @@
       gap: 10px; flex-shrink: 0;
     }
     .btn-modal-secondary {
-      padding: 8px 16px; background: #1c2230; border: 1px solid var(--card-border);
-      color: var(--text); border-radius: 8px; font-size: 13px; font-weight: 600;
-      cursor: pointer; transition: all 0.15s;
+      padding: 7px 15px;
+      background: #141b27;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
     }
-    .btn-modal-secondary:hover { border-color: #3f4e6b; }
+    .btn-modal-secondary:hover {
+      border-color: #3b506e;
+      background: #1c2637;
+      color: #fff;
+      transform: translateY(-1.5px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+    }
+    .btn-modal-secondary:active {
+      transform: translateY(0.5px) scale(0.98);
+    }
     .btn-modal-primary {
-      padding: 8px 18px; background: var(--accent); border: none;
-      color: #fff; border-radius: 8px; font-size: 13px; font-weight: 700;
-      cursor: pointer; display: flex; align-items: center; gap: 6px;
-      transition: background 0.15s;
+      padding: 7px 16px;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      border: 1px solid rgba(147, 197, 253, 0.3);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+      position: relative;
     }
-    .btn-modal-primary:hover { background: #2563eb; }
+    .btn-modal-primary:hover {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      border-color: #bfdbfe;
+      box-shadow: 0 5px 20px rgba(59, 130, 246, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      transform: translateY(-2px);
+    }
+    .btn-modal-primary:active {
+      transform: translateY(0.5px) scale(0.98);
+      box-shadow: 0 1px 4px rgba(37, 99, 235, 0.3);
+    }
+    .btn-modal-primary i {
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-modal-primary:hover i {
+      transform: scale(1.15);
+    }
+
+    /* Save buttons special hover enhancements */
+    button[onclick*="saveAllDiscoveredToLocalStorage"],
+    button[onclick*="savePeerActionProfileByIdx"],
+    button[onclick*="savePeerLangPackByCode"] {
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      position: relative;
+      overflow: hidden;
+    }
+    button[onclick*="saveAllDiscoveredToLocalStorage"]:hover {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+      border-color: #6ee7b7 !important;
+      color: #fff !important;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+      transform: translateY(-2px) !important;
+    }
+    button[onclick*="saveAllDiscoveredToLocalStorage"]:active {
+      transform: translateY(0.5px) scale(0.98) !important;
+    }
+    .peer-discovered-item .btn-modal-secondary:hover {
+      border-color: #10b981 !important;
+      color: #34d399 !important;
+      box-shadow: 0 3px 12px rgba(16, 185, 129, 0.3) !important;
+      transform: translateY(-1.5px) !important;
+    }
+
+    /* Universal Save Buttons Hover & Interaction Experience */
+    button[onclick*="save"],
+    button[onclick*="Save"],
+    button[onclick*="fetchAndSave"],
+    .btn-save {
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    button[onclick*="save"]:hover,
+    button[onclick*="Save"]:hover,
+    button[onclick*="fetchAndSave"]:hover {
+      box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+    }
+    button[onclick*="save"]:active,
+    button[onclick*="Save"]:active,
+    button[onclick*="fetchAndSave"]:active {
+      transform: translateY(0.5px) scale(0.98);
+    }
+    .btn-save-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+      border-color: #6ee7b7 !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5) !important;
+      transform: scale(1.02) !important;
+    }
+
+    /* ── App Dialog Popup (Prompt / Alert / Confirm) ── */
+    .app-dialog-overlay {
+      z-index: 10000;
+      backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.75);
+    }
+    .app-dialog-box {
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      background: #0f1422;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.9), 0 0 26px rgba(59, 130, 246, 0.2);
+      border-radius: 14px;
+      animation: dialogPop 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes dialogPop {
+      0% { opacity: 0; transform: scale(0.92) translateY(12px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .btn-modal-danger {
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      background: #dc2626;
+      border: 1px solid #f87171;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+    }
+    .btn-modal-danger:hover {
+      background: #b91c1c;
+      border-color: #fca5a5;
+      box-shadow: 0 5px 16px rgba(220, 38, 38, 0.55);
+      transform: translateY(-2px);
+    }
+    .btn-modal-danger:active {
+      transform: translateY(0.5px) scale(0.98);
+    }
 
     /* Builder Form Controls */
     .b-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
@@ -1423,6 +1697,509 @@
       padding-bottom: 6px;
       margin-bottom: 8px;
     }
+
+    /* ── Action Profile Top-Left Icon Button & Dropdown ── */
+    .action-profile-switcher-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .btn-action-profile-56,
+    .btn-action-profile {
+      width: 34px;
+      height: 34px;
+      min-width: 34px;
+      min-height: 34px;
+      max-width: 34px;
+      max-height: 34px;
+      padding: 0;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #161c28 0%, #0d121c 100%);
+      border: 1px solid rgba(59, 130, 246, 0.45);
+      color: #60a5fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .btn-action-profile-56:hover,
+    .btn-action-profile:hover {
+      border-color: #93c5fd;
+      color: #ffffff;
+      background: linear-gradient(135deg, #1e283b 0%, #111726 100%);
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+    .btn-action-profile-56:active,
+    .btn-action-profile:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    }
+    .btn-action-profile-56.open,
+    .btn-action-profile.open {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, #1f2c44 0%, #131a29 100%);
+      box-shadow: 0 0 14px rgba(59, 130, 246, 0.5);
+    }
+    .btn-action-profile-56 i,
+    .btn-action-profile i {
+      font-size: 15px;
+      line-height: 1;
+    }
+    .btn-action-profile-56 .profile-mini-label,
+    .btn-action-profile .profile-mini-label {
+      display: none;
+    }
+    .action-profile-indicator-dot {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 5px var(--success);
+      transition: all 0.2s;
+    }
+    @media (max-width: 600px) {
+      .btn-action-profile-56,
+      .btn-action-profile {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        min-height: 30px;
+        max-width: 30px;
+        max-height: 30px;
+        border-radius: 7px;
+      }
+      .btn-action-profile-56 i,
+      .btn-action-profile i {
+        font-size: 13.5px;
+      }
+    }
+
+    .custom-profile-active-name {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 140px;
+    }
+    .btn-top-sync {
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 8px;
+      color: #60a5fa;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 9px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+    .btn-top-sync:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Action Profiles Dropdown */
+    .action-profiles-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      width: min(300px, calc(100vw - 28px));
+      background: #0f1420;
+      border: 1px solid #28354c;
+      border-radius: 14px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.15);
+      padding: 10px;
+      z-index: 1200;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      animation: fadeUp 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .action-profiles-dropdown.open {
+      display: flex;
+    }
+    .ap-dropdown-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .ap-dropdown-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .ap-btn-new-head {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .ap-btn-new-head:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+    .ap-profiles-list {
+      max-height: 240px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding-right: 2px;
+    }
+    .ap-profile-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #131825;
+      border: 1px solid #202b3d;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .ap-profile-item:hover {
+      background: #182030;
+      border-color: #384964;
+    }
+    .ap-profile-item.active {
+      background: rgba(59, 130, 246, 0.14);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+    }
+    .ap-item-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+    .ap-item-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: #1a2333;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .ap-profile-item.active .ap-item-icon {
+      background: var(--accent);
+      color: #fff;
+    }
+    .ap-item-details {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1;
+    }
+    .ap-item-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ap-profile-item.active .ap-item-name {
+      color: #93c5fd;
+    }
+    .ap-item-meta {
+      font-size: 10px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ap-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .ap-action-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: #18202d;
+      border: 1px solid #283549;
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .ap-action-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .ap-action-btn.danger:hover {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+    }
+    .ap-dropdown-foot {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .ap-foot-btn {
+      background: #121824;
+      border: 1px solid #253146;
+      border-radius: 7px;
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .ap-foot-btn:hover {
+      background: #1a2233;
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── MQTT Sync & Share Modal ────────────────────────── */
+    .mqtt-sync-status-bar {
+      background: #0d121c;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .sync-status-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+    .sync-status-item strong {
+      color: var(--text);
+    }
+    .peer-card {
+      background: #101623;
+      border: 1px solid #253247;
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    .peer-card:hover {
+      border-color: #3b506e;
+    }
+    .peer-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 8px;
+    }
+    .peer-discovered-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      background: #0c1018;
+      border: 1px solid #1c2637;
+      border-radius: 8px;
+    }
+    .peer-discovered-item:hover {
+      border-color: #2f405c;
+      background: #0f1420;
+    }
+    .sync-radar-scanner {
+      padding: 24px;
+      text-align: center;
+      background: #0b0f17;
+      border: 1px dashed rgba(59, 130, 246, 0.4);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .sync-radar-icon {
+      font-size: 32px;
+      color: var(--accent);
+      animation: pulseRadar 1.5s infinite;
+    }
+    @keyframes pulseRadar {
+      0% { transform: scale(0.95); opacity: 0.6; }
+      50% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 10px rgba(59,130,246,0.8)); }
+      100% { transform: scale(0.95); opacity: 0.6; }
+    }
+    .sync-log-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      color: var(--text);
+    }
+    .sync-log-table th {
+      text-align: left;
+      padding: 6px 8px;
+      background: #0a0d14;
+      color: var(--muted);
+      font-weight: 700;
+      border-bottom: 1px solid #1e283b;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+    .sync-log-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #171f2e;
+    }
+    .sync-log-table tr:hover td {
+      background: #111724;
+    }
+
+    /* ── Sender Ready Mode & Client Selection Cards ── */
+    .sender-client-card {
+      background: #0f1522;
+      border: 1px solid #1e283b;
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .sender-client-card:hover {
+      background: #141c2c;
+      border-color: #3b506e;
+    }
+    .sender-client-card.selected {
+      background: rgba(59, 130, 246, 0.14);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+    }
+    .sender-client-card .client-radio {
+      accent-color: var(--accent);
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+    }
+    @keyframes pulseGlowGreen {
+      0% { box-shadow: 0 0 4px #10b981; }
+      50% { box-shadow: 0 0 14px #10b981, 0 0 20px rgba(16, 185, 129, 0.4); }
+      100% { box-shadow: 0 0 4px #10b981; }
+    }
+    .status-dot-pulse-green {
+      animation: pulseGlowGreen 1.4s infinite;
+    }
+
+    /* ── Mobile Modal & Sync Cards Optimization ──── */
+    @media (max-width: 640px) {
+      .modal-box {
+        width: calc(100% - 16px);
+        max-height: 94vh;
+        border-radius: 12px;
+        margin: 8px auto;
+      }
+      .modal-head {
+        padding: 10px 12px;
+      }
+      .modal-head-title {
+        font-size: 13px;
+      }
+      .modal-body-scroll {
+        padding: 10px;
+      }
+      .modal-foot {
+        padding: 10px 12px;
+      }
+      .io-tabs {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 4px !important;
+      }
+      .io-tab-btn {
+        padding: 6px 4px !important;
+        font-size: 10.5px !important;
+        gap: 3px !important;
+      }
+      .mqtt-sync-status-bar {
+        padding: 8px 10px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .sync-status-item {
+        width: 100%;
+        font-size: 11px;
+      }
+      .sender-client-card {
+        padding: 8px 10px;
+        gap: 8px;
+      }
+      .sync-radar-scanner {
+        padding: 16px 12px;
+      }
+      .sync-radar-icon {
+        font-size: 26px;
+      }
+      .custom-section-header {
+        gap: 5px;
+      }
+      .sync-top-txt {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1430,17 +2207,17 @@
 <!-- ── Login ──────────────────────────────────────────────────────────────── -->
 <div id="login-overlay">
   <div class="login-box">
-    <div class="login-logo"><i class="bi bi-cpu-fill"></i><span>IoT Dashboard</span></div>
-    <div class="login-title">MQTT Broker Connection</div>
+    <div class="login-logo"><i class="bi bi-cpu-fill"></i><span data-i18n="iotdashboard">IoT Dashboard</span></div>
+    <div class="login-title" data-i18n="mqttbrokerconnection">MQTT Broker Connection</div>
     <div class="field-row">
-      <div class="field"><label>Host</label><input id="f-host" type="text" placeholder="mqtt.example.com" value="mqtt.teleson.in"></div>
-      <div class="field"><label>Port (WS)</label><input id="f-port" type="number" placeholder="8083" value="8084"></div>
+      <div class="field"><label data-i18n="host">Host</label><input id="f-host" type="text" placeholder="mqtt.example.com" value="mqtt.teleson.in"></div>
+      <div class="field"><label data-i18n="port">Port (WS)</label><input id="f-port" type="number" placeholder="8083" value="8084"></div>
     </div>
-    <div class="field"><label>Username / Topic Prefix</label><input id="f-user" type="text" placeholder="username" value="sangmeshwar"></div>
-    <div class="field"><label>Password</label><input id="f-pass" type="password" placeholder="password" value=""></div>
+    <div class="field"><label data-i18n="username">Username / Topic Prefix</label><input id="f-user" type="text" placeholder="username" value="sangmeshwar"></div>
+    <div class="field"><label data-i18n="password">Password</label><input id="f-pass" type="password" placeholder="password" value=""></div>
     <div class="login-err" id="login-err"></div>
-    <button class="btn-login" onclick="doLogin()"><i class="bi bi-plug-fill"></i> Connect &amp; Save</button>
-    <div class="login-hint">Credentials saved in localStorage.</div>
+    <button class="btn-login" onclick="doLogin()"><i class="bi bi-plug-fill"></i> <span data-i18n="connect">Connect &amp; Save</span></button>
+    <div class="login-hint" data-i18n="credentialshint">Credentials saved in localStorage.</div>
   </div>
 </div>
 
@@ -1462,7 +2239,7 @@
     </div>
     <div class="topbar-right">
       <button class="btn-right-sidebar-toggle" id="btn-right-sidebar-toggle" onclick="toggleRightSidebar()" title="Custom Actions Drawer">
-        <i class="bi bi-lightning-charge-fill"></i> <span id="topbar-actions-badge">Actions</span>
+        <i class="bi bi-lightning-charge-fill"></i> <span id="topbar-actions-badge" data-i18n="actions">Actions</span>
       </button>
       <div class="broker-status"><span id="status-text">—</span><div class="dot" id="status-dot"></div></div>
       <button class="btn-logout" onclick="doLogout()"><i class="bi bi-box-arrow-right"></i> <span class="logout-txt" data-i18n="disconnect">Logout</span></button>
@@ -1512,7 +2289,7 @@
       <!-- ── Device Tabs Bar (above content, below topbar) ── -->
       <div class="device-tabs-bar" id="device-tabs-bar">
         <button class="tab-all-btn active" id="tab-all-btn" onclick="showAllDevices()">
-          <i class="bi bi-grid-fill"></i> All
+          <i class="bi bi-grid-fill"></i> <span data-i18n="all">All</span>
         </button>
         <div class="tab-divider" id="tab-divider" style="display:none"></div>
         <!-- device tabs injected here by JS -->
@@ -1527,25 +2304,25 @@
             <div class="dash-col-left">
               <!-- All devices view -->
               <div class="view active" id="view-all">
-                <div class="section-label"><i class="bi bi-router"></i> Live Devices</div>
+                <div class="section-label"><i class="bi bi-router"></i> <span data-i18n="livedevices">Live Devices</span></div>
                 <div id="devices-container">
                   <div class="empty-state">
                     <i class="bi bi-broadcast"></i>
-                    <p>Waiting for device messages…</p>
+                    <p data-i18n="waitingfordevicemessages">Waiting for device messages…</p>
                   </div>
                 </div>
               </div>
 
               <!-- Space view -->
               <div class="view" id="view-space">
-                <div class="section-label"><i class="bi bi-house-fill"></i> <span id="view-space-name">Space</span></div>
+                <div class="section-label"><i class="bi bi-house-fill"></i> <span id="view-space-name" data-i18n="space">Space</span></div>
                 <div id="space-devices-container"></div>
               </div>
 
               <!-- Single device view — full area, centred card -->
               <div class="view" id="view-single">
                 <div class="single-back-btn" onclick="goBack()">
-                  <i class="bi bi-arrow-left"></i> <span id="back-label">Back</span>
+                  <i class="bi bi-arrow-left"></i> <span id="back-label" data-i18n="back">Back</span>
                 </div>
                 <div id="single-device-container"></div>
               </div>
@@ -1556,11 +2333,55 @@
               <div class="custom-buttons-section mode-locked" id="custom-buttons-section">
                 <!-- Section Header -->
                 <div class="custom-section-header">
-                  <div class="custom-section-title">
-                    <i class="bi bi-lightning-charge-fill"></i> Actions
-                    <span class="custom-count-badge" id="custom-buttons-count">0</span>
+                  <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                    <!-- Action Profile Switcher Icon Button -->
+                    <div class="action-profile-switcher-wrap" id="action-profile-switcher-wrap">
+                      <button class="btn-action-profile-56 btn-action-profile" id="btn-action-profile-toggle" onclick="toggleActionProfileDropdown(event)" title="Action Profiles &amp; Sets">
+                        <i class="bi bi-layers-half"></i>
+                        <span class="action-profile-indicator-dot" id="action-profile-indicator-dot"></span>
+                      </button>
+                      
+                      <!-- Action Profiles Dropdown Menu -->
+                      <div class="action-profiles-dropdown" id="action-profiles-dropdown">
+                        <div class="ap-dropdown-head">
+                          <div class="ap-dropdown-title">
+                            <i class="bi bi-layers-half" style="color:var(--accent)"></i>
+                            <span data-i18n="actionprofiles">Action Sets</span>
+                            <span class="custom-count-badge" id="ap-profiles-count">1</span>
+                          </div>
+                          <button class="ap-btn-new-head" onclick="promptCreateActionProfile(event)" title="Create New Profile">
+                            <i class="bi bi-plus-lg"></i> <span data-i18n="new">New</span>
+                          </button>
+                        </div>
+                        <div class="ap-profiles-list" id="ap-profiles-list">
+                          <!-- Populated dynamically -->
+                        </div>
+                        <div class="ap-dropdown-foot">
+                          <button class="ap-foot-btn" onclick="openMqttShareModal(); closeActionProfileDropdown();">
+                            <i class="bi bi-broadcast-pin" style="color:var(--accent)"></i> <span data-i18n="mqttsync">MQTT Sync</span>
+                          </button>
+                          <button class="ap-foot-btn" onclick="openImportExportModal(); closeActionProfileDropdown();">
+                            <i class="bi bi-filetype-json" style="color:#a78bfa"></i> <span data-i18n="jsonbackup">JSON Backup</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="custom-section-title-wrap" style="min-width:0">
+                      <div class="custom-section-title" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                        <i class="bi bi-lightning-charge-fill"></i> <span data-i18n="actions">Actions</span>
+                        <span class="custom-count-badge" id="custom-buttons-count">0</span>
+                      </div>
+                      <div class="custom-profile-active-name" id="current-profile-active-name" title="Current Action Set">
+                        Default Actions
+                      </div>
+                    </div>
                   </div>
-                  <div style="display:flex;align-items:center;gap:6px">
+
+                  <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+                    <button class="btn-top-sync" onclick="openMqttShareModal()" title="Share &amp; Sync Actions &amp; Languages over MQTT">
+                      <i class="bi bi-broadcast-pin"></i> <span class="sync-top-txt" data-i18n="mqttsync">Sync</span>
+                    </button>
                     <button class="btn-lock-toggle locked" id="btn-lock-toggle" onclick="toggleEditLock()" title="Click to unlock Edit Mode">
                       <i class="bi bi-lock-fill" id="lock-icon"></i> <span id="lock-label">Locked</span>
                     </button>
@@ -1574,6 +2395,9 @@
                 <div class="unlocked-actions-bar" id="unlocked-actions-bar">
                   <button class="btn-custom-action btn-add-custom" onclick="openBuilderModal()">
                     <i class="bi bi-plus-lg"></i> <span data-i18n="newbutton">New Button</span>
+                  </button>
+                  <button class="btn-custom-action" onclick="openMqttShareModal()">
+                    <i class="bi bi-broadcast-pin"></i> <span data-i18n="syncshare">MQTT Sync</span>
                   </button>
                   <button class="btn-custom-action" onclick="openImportExportModal()">
                     <i class="bi bi-arrow-left-right"></i> <span data-i18n="jsonbackup">JSON Backup</span>
@@ -1596,9 +2420,10 @@
                     <div class="style-prop-item">
                       <label>Button Height</label>
                       <select id="st-size" onchange="updateButtonStyles()">
-                        <option value="small">Small (40px)</option>
-                        <option value="medium" selected>Medium (48px)</option>
-                        <option value="large">Large (56px)</option>
+                        <option value="compact">Compact (30px)</option>
+                        <option value="small" selected>Sleek Standard (35px)</option>
+                        <option value="medium">Medium (40px)</option>
+                        <option value="large">Large (48px)</option>
                       </select>
                     </div>
                     <div class="style-prop-item">
@@ -1762,8 +2587,8 @@
 
     </div>
     <div class="modal-foot">
-      <button class="btn-modal-secondary" onclick="closeBuilderModal()">Cancel</button>
-      <button class="btn-modal-primary" onclick="saveBuilderButton()"><i class="bi bi-check2-circle"></i> Save Button</button>
+      <button class="btn-modal-secondary" onclick="closeBuilderModal()" data-i18n="cancel">Cancel</button>
+      <button class="btn-modal-primary" onclick="saveBuilderButton()"><i class="bi bi-check2-circle"></i> <span data-i18n="save">Save Button</span></button>
     </div>
   </div>
 </div>
@@ -1818,7 +2643,7 @@
 
     </div>
     <div class="modal-foot">
-      <button class="btn-modal-secondary" onclick="closeImportExportModal()">Close</button>
+      <button class="btn-modal-secondary" onclick="closeImportExportModal()" data-i18n="close">Close</button>
     </div>
   </div>
 </div>
@@ -1977,7 +2802,233 @@
 
     </div>
     <div class="modal-foot">
-      <button class="btn-modal-secondary" onclick="closeLangModal()">Close</button>
+      <button class="btn-modal-secondary" onclick="closeLangModal()" data-i18n="close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MQTT Action & Language Sync / P2P Share Modal ──────────────────────── -->
+<div id="mqtt-share-overlay" class="modal-overlay">
+  <div class="modal-box" style="max-width: 760px">
+    <div class="modal-head">
+      <div class="modal-head-title">
+        <i class="bi bi-broadcast-pin" style="color:var(--accent)"></i>
+        <span>MQTT Action &amp; Language Sync (P2P Share)</span>
+      </div>
+      <button class="btn-modal-close" onclick="closeMqttShareModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body-scroll">
+      <!-- Status & Client Configuration Bar -->
+      <div class="mqtt-sync-status-bar">
+        <div class="sync-status-item">
+          <i class="bi bi-person-circle" style="color:var(--accent)"></i>
+          <span>Account: <strong id="mqtt-sync-bar-user">user</strong></span>
+        </div>
+        <div class="sync-status-item">
+          <i class="bi bi-broadcast" style="color:var(--success)"></i>
+          <span>Coordination Topic: <code style="color:var(--accent)" id="mqtt-sync-bar-topic">username/action</code></span>
+        </div>
+        <div class="sync-status-item" style="flex:1;min-width:200px;justify-content:flex-end">
+          <label style="font-size:11px;color:var(--muted);white-space:nowrap">My Device Name:</label>
+          <input type="text" id="mqtt-sync-client-name-input" class="b-input" style="height:28px;padding:2px 8px;font-size:11px;width:150px" placeholder="Device / Browser Name" onchange="saveMqttP2PClientName()">
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="io-tabs" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px">
+        <button class="io-tab-btn active" id="tab-sync-receive-btn" onclick="switchSyncTab('receive')">
+          <i class="bi bi-box-arrow-in-down"></i> Receive from Peers
+        </button>
+        <button class="io-tab-btn" id="tab-sync-send-btn" onclick="switchSyncTab('send')">
+          <i class="bi bi-broadcast"></i> Send to Peers
+        </button>
+        <button class="io-tab-btn" id="tab-sync-log-btn" onclick="switchSyncTab('log')">
+          <i class="bi bi-clock-history"></i> Sync Activity Log
+        </button>
+      </div>
+
+      <!-- Tab 1: Receive from Peers -->
+      <div id="sync-pane-receive" style="display:flex;flex-direction:column;gap:12px">
+        <!-- Live Sender Ready Status Banner -->
+        <div id="recv-sender-status-banner" style="background:#0c111a;border:1px solid #1f2a3a;border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
+            <span id="recv-sender-dot" style="width:12px;height:12px;min-width:12px;border-radius:50%;background:#ef4444;box-shadow:0 0 8px #ef4444;display:inline-block"></span>
+            <div style="min-width:0">
+              <div style="font-size:12px;font-weight:700;color:var(--text)" id="recv-sender-status-title">
+                Sender Status: Idle (Not Ready)
+              </div>
+              <div style="font-size:11px;color:var(--muted)" id="recv-sender-status-desc">
+                The sender must click "Ready to Send" first before you can request data.
+              </div>
+            </div>
+          </div>
+          <button class="btn-modal-primary" id="btn-request-peers-action" onclick="requestMqttSync()" style="white-space:nowrap;padding:7px 14px;font-size:11.5px">
+            <i class="bi bi-radar"></i> Request from Sender (45s)
+          </button>
+        </div>
+
+        <!-- Radar Searching Banner (Dynamic 45s Countdown) -->
+        <div id="sync-radar-banner" class="sync-radar-scanner" style="display:none">
+          <i class="bi bi-broadcast sync-radar-icon"></i>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">Waiting for Sender Approval &amp; Data...</div>
+          <div style="font-size:11.5px;color:var(--muted)">
+            Published request to <code style="color:var(--accent)"><span id="sync-active-topic">username/action</span></code> &bull; Response topic: <code style="color:var(--success)"><span id="sync-active-reqid-topic">username/xxxxxx</span></code>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:#60a5fa" id="sync-countdown-text">Waiting for sender (45s remaining)...</div>
+          <button class="btn-modal-secondary" style="padding:4px 12px;font-size:11px" onclick="cancelMqttSyncRequest()">Cancel Request</button>
+        </div>
+
+        <!-- Discovered & Received Items Container -->
+        <div id="sync-discovered-results" style="display:flex;flex-direction:column;gap:12px">
+          <div class="custom-empty-state" id="sync-receive-empty">
+            <i class="bi bi-broadcast" style="font-size:28px;color:#334155;margin-bottom:8px"></i>
+            <p style="color:var(--muted);font-size:12px">When the sender is in Ready mode, click "Request from Sender (45s)" to receive custom action buttons and languages directly into localStorage.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Send / Broadcast to Peers -->
+      <div id="sync-pane-send" style="display:none;flex-direction:column;gap:12px">
+        <!-- Sender Ready Mode Card -->
+        <div style="background:#0c111a;border:1px solid #1f2a3a;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
+              <span id="sender-ready-indicator-dot" style="width:14px;height:14px;min-width:14px;border-radius:50%;background:#ef4444;box-shadow:0 0 10px #ef4444;display:inline-block"></span>
+              <div style="min-width:0">
+                <div style="font-size:13px;font-weight:700;color:var(--text)" id="sender-ready-status-title">
+                  Sender Mode: Idle (Not Ready)
+                </div>
+                <div style="font-size:11px;color:var(--muted)" id="sender-ready-status-desc">
+                  Click "Ready to Send" to open a 45-second window to accept requests from connected devices.
+                </div>
+              </div>
+            </div>
+            <button class="btn-modal-primary" id="btn-sender-ready-toggle" onclick="toggleSenderReadyMode()" style="background:#10b981;font-size:12px;padding:7px 16px;white-space:nowrap">
+              <i class="bi bi-broadcast"></i> <span id="sender-ready-btn-text">🟢 Ready to Send (45s Window)</span>
+            </button>
+          </div>
+
+          <!-- Active Ready Countdown Progress -->
+          <div id="sender-active-countdown-wrap" style="display:none;background:#080d14;border:1px solid #1a273b;border-radius:8px;padding:10px 12px;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <i class="bi bi-stopwatch" style="color:#10b981;font-size:16px"></i>
+              <span style="font-size:12px;font-weight:700;color:#34d399">Listening for client requests... (<span id="sender-countdown-sec">45</span>s remaining)</span>
+            </div>
+            <button class="btn-modal-secondary" style="padding:2px 8px;font-size:10px;color:var(--danger);border-color:var(--danger)" onclick="cancelSenderReadyMode()">
+              <i class="bi bi-stop-circle"></i> Cancel Ready Mode
+            </button>
+          </div>
+        </div>
+
+        <!-- Requesting Clients List Section -->
+        <div id="sender-clients-section" style="background:#0c111a;border:1px solid #1f2a3a;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px">
+              <i class="bi bi-people-fill" style="color:var(--accent)"></i>
+              <span>1. Requesting Clients (Click to Select)</span>
+              <span class="custom-count-badge" id="sender-requests-count">0</span>
+            </div>
+            <span style="font-size:10.5px;color:var(--muted)" id="sender-requests-meta">Waiting for requests...</span>
+          </div>
+
+          <div id="sender-clients-list" style="display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto">
+            <div class="custom-empty-state" style="padding:18px 10px" id="sender-clients-empty">
+              <i class="bi bi-inbox" style="font-size:22px;color:#334155;margin-bottom:6px"></i>
+              <p style="font-size:11px;color:var(--muted)">No client requests received yet. Click "Ready to Send" above and have the requesting client click "Request from Sender" within 45s.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Choose Data to Send & Execute Button -->
+        <div id="sender-data-selection-section" style="background:#0c111a;border:1px solid #1f2a3a;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px">
+          <div style="font-size:12px;font-weight:700;color:var(--text)">
+            <i class="bi bi-sliders" style="color:var(--accent)"></i> 2. Choose Data to Send to Selected Client
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div>
+              <label class="b-label">Action Profile to Send:</label>
+              <select id="mqtt-share-select-profile" class="b-select">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+            <div>
+              <label class="b-label">Language Pack to Send:</label>
+              <select id="mqtt-share-select-lang" class="b-select">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;flex-wrap:wrap">
+            <div style="font-size:11px;color:var(--muted)">
+              Selected Target: <strong id="sender-target-client-label" style="color:#60a5fa">None selected</strong>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn-modal-primary" id="btn-send-to-client" onclick="sendDataToSelectedClient()" style="padding:6px 14px;font-size:11.5px">
+                <i class="bi bi-send-fill"></i> Send to Selected Client
+              </button>
+              <button class="btn-modal-secondary" id="btn-send-to-all-clients" onclick="sendDataToAllClients()" style="padding:6px 12px;font-size:11px">
+                <i class="bi bi-broadcast"></i> Send to All Clients
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Activity Log -->
+      <div id="sync-pane-log" style="display:none;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--muted)">Recent MQTT P2P coordination and sync events:</span>
+          <button class="btn-card-tool" style="width:auto;padding:2px 8px;font-size:10px" onclick="clearMqttSyncLog()"><i class="bi bi-trash"></i> Clear Log</button>
+        </div>
+        <div style="max-height:260px;overflow-y:auto;background:#080b10;border:1px solid #1a2230;border-radius:8px">
+          <table class="sync-log-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Event</th>
+                <th>Topic / ID</th>
+                <th>Peer</th>
+                <th>Payload Info</th>
+              </tr>
+            </thead>
+            <tbody id="sync-log-tbody">
+              <tr>
+                <td colspan="5" style="text-align:center;color:var(--muted);padding:14px">No sync events recorded yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn-modal-secondary" onclick="closeMqttShareModal()" data-i18n="close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Custom Modern Interactive Dialog Popup (Alert / Prompt / Confirm) ──── -->
+<div id="app-modal-dialog" class="modal-overlay app-dialog-overlay" style="display:none">
+  <div class="modal-box app-dialog-box" style="max-width: 420px; width: calc(100% - 24px)">
+    <div class="modal-head" style="padding: 12px 16px">
+      <div class="modal-head-title" style="font-size: 13.5px">
+        <i id="app-dialog-icon" class="bi bi-chat-square-text-fill" style="color:var(--accent)"></i>
+        <span id="app-dialog-title" data-i18n="notice">Notice</span>
+      </div>
+      <button class="btn-modal-close" style="width:26px;height:26px;font-size:12px" onclick="closeAppDialog(null)"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body-scroll" style="padding: 16px; gap: 10px">
+      <p id="app-dialog-msg" style="font-size: 12.5px; color: var(--text); line-height: 1.5; margin: 0"></p>
+      
+      <!-- Input container (for prompt) -->
+      <div id="app-dialog-input-wrap" style="display:none; margin-top: 6px">
+        <input type="text" id="app-dialog-input" class="b-input" style="width:100%; height:36px; font-size:12.5px; padding:6px 12px" placeholder="Enter value...">
+      </div>
+    </div>
+    <div class="modal-foot" style="display:flex; justify-content:flex-end; gap:8px; padding: 10px 16px">
+      <button class="btn-modal-secondary" id="app-dialog-cancel-btn" style="padding:6px 14px; font-size:12px" onclick="closeAppDialog(null)" data-i18n="cancel">Cancel</button>
+      <button class="btn-modal-primary" id="app-dialog-confirm-btn" style="padding:6px 16px; font-size:12px" onclick="confirmAppDialog()" data-i18n="confirm">Confirm</button>
     </div>
   </div>
 </div>
@@ -1989,6 +3040,187 @@
 </button>
 
 <script>
+// ── Modern In-App Dialog Popup System (Alert, Confirm, Prompt) ─────────────────
+let _appDialogResolve = null;
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function _openAppDialog({ title, icon, message, type, defaultValue = '', placeholder = '', confirmText = 'OK', cancelText = 'Cancel', confirmClass = 'btn-modal-primary' }) {
+  return new Promise((resolve) => {
+    _appDialogResolve = resolve;
+
+    const overlay = document.getElementById('app-modal-dialog');
+    const titleEl = document.getElementById('app-dialog-title');
+    const iconEl = document.getElementById('app-dialog-icon');
+    const msgEl = document.getElementById('app-dialog-msg');
+    const inputWrap = document.getElementById('app-dialog-input-wrap');
+    const inputEl = document.getElementById('app-dialog-input');
+    const cancelBtn = document.getElementById('app-dialog-cancel-btn');
+    const confirmBtn = document.getElementById('app-dialog-confirm-btn');
+
+    if (!overlay) {
+      if (type === 'prompt') return resolve(window.prompt(message, defaultValue));
+      if (type === 'confirm' || type === 'danger') return resolve(window.confirm(message));
+      window.alert(message);
+      return resolve(true);
+    }
+
+    if (titleEl) titleEl.textContent = title || (type === 'prompt' ? 'Input Required' : (type === 'confirm' || type === 'danger') ? 'Confirm Action' : 'Notice');
+    if (iconEl) {
+      iconEl.className = icon || (type === 'prompt' ? 'bi bi-pencil-square' : (type === 'danger' ? 'bi bi-exclamation-triangle-fill' : type === 'confirm' ? 'bi bi-question-circle-fill' : 'bi bi-info-circle-fill'));
+      iconEl.style.color = type === 'danger' ? 'var(--danger, #ef4444)' : type === 'confirm' ? 'var(--warning, #f59e0b)' : 'var(--accent, #3b82f6)';
+    }
+    if (msgEl) msgEl.innerHTML = escapeHtml(message).replace(/\n/g, '<br>');
+
+    if (type === 'prompt') {
+      if (inputWrap) inputWrap.style.display = 'block';
+      if (inputEl) {
+        inputEl.value = defaultValue || '';
+        inputEl.placeholder = placeholder || 'Enter value...';
+      }
+      if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    } else if (type === 'confirm' || type === 'danger') {
+      if (inputWrap) inputWrap.style.display = 'none';
+      if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    } else { // alert
+      if (inputWrap) inputWrap.style.display = 'none';
+      if (cancelBtn) cancelBtn.style.display = 'none';
+    }
+
+    if (cancelBtn) cancelBtn.textContent = cancelText;
+    if (confirmBtn) {
+      confirmBtn.textContent = confirmText;
+      confirmBtn.className = confirmClass;
+    }
+
+    overlay.classList.add('open');
+    overlay.style.display = 'flex';
+
+    if (type === 'prompt' && inputEl) {
+      setTimeout(() => {
+        inputEl.focus();
+        inputEl.select();
+      }, 50);
+    } else if (confirmBtn) {
+      setTimeout(() => confirmBtn.focus(), 50);
+    }
+  });
+}
+
+function confirmAppDialog() {
+  const overlay = document.getElementById('app-modal-dialog');
+  const inputWrap = document.getElementById('app-dialog-input-wrap');
+  const inputEl = document.getElementById('app-dialog-input');
+
+  let val = true;
+  if (inputWrap && inputWrap.style.display !== 'none' && inputEl) {
+    val = inputEl.value;
+  }
+
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  }
+
+  if (_appDialogResolve) {
+    const cb = _appDialogResolve;
+    _appDialogResolve = null;
+    cb(val);
+  }
+}
+
+function closeAppDialog(cancelVal = null) {
+  const overlay = document.getElementById('app-modal-dialog');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  }
+  if (_appDialogResolve) {
+    const cb = _appDialogResolve;
+    _appDialogResolve = null;
+    cb(cancelVal);
+  }
+}
+
+function showAppPrompt(message, defaultValue = '', title = '', placeholder = '') {
+  const defTitle = typeof t === 'function' ? t('inputrequired', 'Input Required') : 'Input Required';
+  const saveText = typeof t === 'function' ? t('save', 'Save') : 'Save';
+  const cancelText = typeof t === 'function' ? t('cancel', 'Cancel') : 'Cancel';
+  return _openAppDialog({
+    title: title ? (typeof t === 'function' ? t(title, title) : title) : defTitle,
+    icon: 'bi bi-pencil-square',
+    message,
+    type: 'prompt',
+    defaultValue,
+    placeholder,
+    confirmText: saveText,
+    cancelText: cancelText,
+    confirmClass: 'btn-modal-primary'
+  });
+}
+
+function showAppConfirm(message, title = '', isDanger = false) {
+  const defTitle = typeof t === 'function' ? t('confirmaction', 'Confirm Action') : 'Confirm Action';
+  const confText = typeof t === 'function' ? (isDanger ? t('delete', 'Delete') : t('confirm', 'Confirm')) : (isDanger ? 'Delete' : 'Confirm');
+  const cancelText = typeof t === 'function' ? t('cancel', 'Cancel') : 'Cancel';
+  return _openAppDialog({
+    title: title ? (typeof t === 'function' ? t(title, title) : title) : defTitle,
+    icon: isDanger ? 'bi bi-exclamation-triangle-fill' : 'bi bi-question-circle-fill',
+    message,
+    type: isDanger ? 'danger' : 'confirm',
+    confirmText: confText,
+    cancelText: cancelText,
+    confirmClass: isDanger ? 'btn-modal-danger' : 'btn-modal-primary'
+  });
+}
+
+function showAppAlert(message, title = '', icon = 'bi bi-info-circle-fill') {
+  const defTitle = typeof t === 'function' ? t('notice', 'Notice') : 'Notice';
+  const okText = typeof t === 'function' ? (t('done', 'OK') || 'OK') : 'OK';
+  return _openAppDialog({
+    title: title ? (typeof t === 'function' ? t(title, title) : title) : defTitle,
+    icon: icon || 'bi bi-info-circle-fill',
+    message,
+    type: 'alert',
+    confirmText: okText,
+    confirmClass: 'btn-modal-primary'
+  });
+}
+
+function triggerButtonSaveFeedback(btn, doneText = null) {
+  if (!btn) return;
+  const originalHtml = btn.innerHTML;
+  btn.classList.add('btn-save-success');
+  const textToShow = doneText || (typeof t === 'function' ? `✓ ${t('savedone', 'Save Done!')}` : '✓ Save Done!');
+  btn.innerHTML = textToShow.startsWith('<') ? textToShow : `<i class="bi bi-check2-circle"></i> ${textToShow}`;
+  setTimeout(() => {
+    btn.classList.remove('btn-save-success');
+    btn.innerHTML = originalHtml;
+  }, 1800);
+}
+
+
+document.addEventListener('keydown', (e) => {
+  const dlg = document.getElementById('app-modal-dialog');
+  if (dlg && (dlg.classList.contains('open') || dlg.style.display === 'flex')) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      confirmAppDialog();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeAppDialog(null);
+    }
+  }
+});
+
 // ── Creds ─────────────────────────────────────────────────────────────────────
 const LS_KEY = 'mqtt_creds';
 function loadCreds()  { try { return JSON.parse(localStorage.getItem(LS_KEY)) || null; } catch { return null; } }
@@ -2029,201 +3261,405 @@ const DEFAULT_LANG_PACKS = {
     code: 'en',
     name: 'English',
     dict: {
-      iotdashboard: 'IoT Dashboard',
-      spaces: 'Spaces',
-      alldevices: 'All Devices',
-      livedevices: 'Live Devices',
+      actionprofiles: 'Action Sets',
       actions: 'Actions',
-      customactions: 'Custom Actions',
-      locked: 'Locked',
-      unlocked: 'Unlocked',
-      newbutton: 'New Button',
-      buildcustombutton: 'Build Custom Button',
-      jsonbackup: 'JSON Backup',
-      styles: 'Styles',
-      languages: 'Languages',
-      language: 'Language',
-      connected: 'Connected',
-      disconnected: 'Disconnected',
-      connecting: 'Connecting...',
-      offline: 'Offline',
-      switches: 'Switches',
-      fans: 'Fans',
-      sensors: 'Sensors',
-      on: 'ON',
-      off: 'OFF',
-      allon: 'All ON',
-      alloff: 'All OFF',
-      speed: 'Speed',
-      temperature: 'Temperature',
-      humidity: 'Humidity',
-      broker: 'Broker',
-      port: 'Port',
-      clientid: 'Client ID',
-      username: 'Username',
-      password: 'Password',
-      connect: 'Connect',
-      disconnect: 'Logout',
-      save: 'Save',
-      cancel: 'Cancel',
-      delete: 'Delete',
-      edit: 'Edit',
-      export: 'Export',
-      import: 'Import',
-      waitingfordevices: 'Waiting for devices…',
-      waitingfordevicemessages: 'Waiting for device messages.',
-      nocustombuttons: 'No custom buttons configured yet.',
-      unlockabovetoadd: 'Unlock above to add buttons',
+      active: 'Active',
+      activitylog: 'Activity Log',
       all: 'All',
+      alldevices: 'All Devices',
+      alloff: 'All OFF',
+      allon: 'All ON',
+      back: 'Back',
+      balcony: 'Balcony',
+      base: 'Base',
+      bathroom: 'Bathroom',
+      bedroom: 'Bedroom',
+      broker: 'Broker',
+      buildcustombutton: 'Build Custom Button',
+      buttonname: 'Button Name / Scene Title',
+      cancel: 'Cancel',
+      cancelreadymode: 'Cancel Ready Mode',
+      cancelrequest: 'Cancel Request',
+      clearlog: 'Clear Log',
+      clientid: 'Client ID',
+      close: 'Close',
       cmd: 'cmd',
       cmds: 'cmds',
       command: 'command',
       commands: 'commands',
-      base: 'Base',
-      buttonname: 'Button Name / Scene Title',
-      nightscene: 'Night Scene',
-      morningmode: 'Morning Mode',
-      livingroom: 'Living Room',
-      bedroom: 'Bedroom',
-      kitchen: 'Kitchen',
-      mainboard: 'Mainboard',
-      light: 'Light',
+      confirm: 'Confirm',
+      confirmaction: 'Confirm Action',
+      connect: 'Connect',
+      connected: 'Connected',
+      connecting: 'Connecting...',
+      copyjson: 'Copy JSON',
+      corridor: 'Corridor',
+      createandsavelanguage: 'Create & Save Language',
+      credentialshint: 'Credentials saved in localStorage.',
+      customactions: 'Custom Actions',
+      custombutton: 'Custom Button',
+      defaultactions: 'Default Actions',
+      delete: 'Delete',
+      device: 'Device',
+      devices: 'Devices',
+      diningroom: 'Dining Room',
+      disconnect: 'Logout',
+      disconnected: 'Disconnected',
+      done: 'done',
+      edit: 'Edit',
+      export: 'Export',
+      exportjson: 'Export JSON',
       fan: 'Fan',
-      done: 'done'
+      fans: 'Fans',
+      fetchandsave: 'Fetch & Save',
+      formatjson: 'Format JSON',
+      garage: 'Garage',
+      garden: 'Garden',
+      guestroom: 'Guest Room',
+      hall: 'Hall',
+      host: 'Host',
+      humidity: 'Humidity',
+      idle: 'Idle',
+      import: 'Import',
+      importandapply: 'Import & Apply',
+      importjson: 'Import JSON',
+      inputrequired: 'Input Required',
+      iotdashboard: 'IoT Dashboard',
+      jsonbackup: 'JSON Backup',
+      kitchen: 'Kitchen',
+      language: 'Language',
+      languagemanager: 'Language Manager (JSON i18n)',
+      languages: 'Languages',
+      light: 'Light',
+      livedevices: 'Live Devices',
+      livingroom: 'Living Room',
+      location: 'Location',
+      locked: 'Locked',
+      mainboard: 'Mainboard',
+      module: 'Module',
+      morningmode: 'Morning Mode',
+      mqttbrokerconnection: 'MQTT Broker Connection',
+      mqttsync: 'MQTT Sync',
+      new: 'New',
+      newbutton: 'New Button',
+      nightscene: 'Night Scene',
+      nocustombuttons: 'No custom buttons configured yet.',
+      nodevices: 'No devices',
+      nodevicesinthisspace: 'No devices in this space.',
+      nospace: 'No Space',
+      notice: 'Notice',
+      off: 'OFF',
+      office: 'Office',
+      offline: 'Offline',
+      on: 'ON',
+      password: 'Password',
+      porch: 'Porch',
+      port: 'Port',
+      ready: 'Ready',
+      readytosend: 'Ready to Send',
+      receive: 'Receive',
+      refresh: 'Refresh',
+      relay: 'Relay',
+      remove: 'Remove',
+      rename: 'Rename',
+      requestfromsender: 'Request from Sender',
+      resetdefault: 'Reset Default',
+      save: 'Save',
+      savedone: 'Save Done!',
+      savetolocalstorage: 'Save to localStorage',
+      send: 'Send',
+      sendtoallclients: 'Send to All Clients',
+      sendtoclient: 'Send to Selected Client',
+      sensors: 'Sensors',
+      sets: 'Sets',
+      space: 'Space',
+      spaces: 'Spaces',
+      speed: 'Speed',
+      status: 'Status',
+      storeroom: 'Store Room',
+      styles: 'Styles',
+      switch: 'Switch',
+      switches: 'Switches',
+      syncshare: 'Sync & Share',
+      temperature: 'Temperature',
+      terrace: 'Terrace',
+      unlockabovetoadd: 'Unlock above to add buttons',
+      unlocked: 'Unlocked',
+      username: 'Username',
+      viewonlythisdevice: 'View only this device',
+      waitingfordevicemessages: 'Waiting for device messages.',
+      waitingfordevices: 'Waiting for devices…',
+      washroom: 'Washroom',
     }
   },
   mr: {
     code: 'mr',
     name: 'मराठी (Marathi)',
     dict: {
-      iotdashboard: 'आयओटी डॅशबोर्ड',
-      spaces: 'खोल्या / जागा',
-      alldevices: 'सर्व उपकरणे',
-      livedevices: 'सक्रिय उपकरणे',
+      actionprofiles: 'क्रिया संच',
       actions: 'क्रिया',
-      customactions: 'सानुकूल क्रिया',
-      locked: 'कुलूपबंद',
-      unlocked: 'उघडे (संपादन)',
-      newbutton: 'नवीन बटण',
-      buildcustombutton: 'सानुकूल बटण बनवा',
-      jsonbackup: 'जेसन बॅकअप',
-      styles: 'शैली',
-      languages: 'भाषा',
-      language: 'भाषा',
-      connected: 'जोडले आहे',
-      disconnected: 'संपर्क तुटला',
-      connecting: 'जोडत आहे...',
-      offline: 'ऑफलाईन',
-      switches: 'स्विचेस',
-      fans: 'पंखे',
-      sensors: 'सेन्सर्स',
-      on: 'सुरू',
-      off: 'बंद',
-      allon: 'सर्व सुरू',
-      alloff: 'सर्व बंद',
-      speed: 'वेग',
-      temperature: 'तापमान',
-      humidity: 'आर्द्रता',
-      broker: 'ब्रोकर',
-      port: 'पोर्ट',
-      clientid: 'क्लायंट आयडी',
-      username: 'वापरकर्ता नाव',
-      password: 'पासवर्ड',
-      connect: 'जोडा',
-      disconnect: 'लॉगआउट',
-      save: 'जतन करा',
-      cancel: 'रद्द करा',
-      delete: 'हटवा',
-      edit: 'संपादित करा',
-      export: 'निर्यात',
-      import: 'आयात',
-      waitingfordevices: 'उपकरणांची प्रतीक्षा करत आहे…',
-      waitingfordevicemessages: 'उपकरणांच्या संदेशांची प्रतीक्षा करत आहे.',
-      nocustombuttons: 'अद्याप कोणतीही सानुकूल बटणे तयार केलेली नाहीत.',
-      unlockabovetoadd: 'बटणे जोडण्यासाठी वरील अनलॉक करा',
+      active: 'सक्रिय',
+      activitylog: 'क्रिया नोंद',
       all: 'सर्व',
+      alldevices: 'सर्व उपकरणे',
+      alloff: 'सर्व बंद',
+      allon: 'सर्व सुरू',
+      back: 'मागे',
+      balcony: 'गॅलरी / बाल्कनी',
+      base: 'मूळ कमांड',
+      bathroom: 'स्नानगृह',
+      bedroom: 'शयनकक्ष',
+      broker: 'ब्रोकर',
+      buildcustombutton: 'सानुकूल बटण बनवा',
+      buttonname: 'बटणाचे नाव / देखावा शीर्षक',
+      cancel: 'रद्द करा',
+      cancelreadymode: 'सज्ज मोड रद्द करा',
+      cancelrequest: 'विनंती रद्द करा',
+      clearlog: 'नोंद साफ करा',
+      clientid: 'क्लायंट आयडी',
+      close: 'बंद करा',
       cmd: 'कमांड',
       cmds: 'कमांड्स',
       command: 'कमांड',
       commands: 'कमांड्स',
-      base: 'मूळ कमांड',
-      buttonname: 'बटणाचे नाव / देखावा शीर्षक',
-      nightscene: 'रात्र दृश्य',
-      morningmode: 'सकाळ मोड',
-      livingroom: 'बैठक खोली',
-      bedroom: 'शयनकक्ष',
-      kitchen: 'स्वयंपाकघर',
-      mainboard: 'मुख्य बोर्ड',
-      light: 'दिवा',
+      confirm: 'पुष्टी करा',
+      confirmaction: 'कृतीची पुष्टी करा',
+      connect: 'जोडा',
+      connected: 'जोडले आहे',
+      connecting: 'जोडत आहे...',
+      copyjson: 'जेसन कॉपी करा',
+      corridor: 'मार्गिका',
+      createandsavelanguage: 'भाषा तयार करा आणि जतन करा',
+      credentialshint: 'माहिती स्थानिक स्टोरेजमध्ये जतन केली जाईल.',
+      customactions: 'सानुकूल क्रिया',
+      custombutton: 'सानुकूल बटण',
+      defaultactions: 'डीफॉल्ट क्रिया',
+      delete: 'हटवा',
+      device: 'उपकरण',
+      devices: 'उपकरणे',
+      diningroom: 'जेवणाची खोली',
+      disconnect: 'लॉगआउट',
+      disconnected: 'संपर्क तुटला',
+      done: 'पूर्ण',
+      edit: 'संपादित करा',
+      export: 'निर्यात',
+      exportjson: 'जेसन निर्यात करा',
       fan: 'पंखा',
-      done: 'पूर्ण'
+      fans: 'पंखे',
+      fetchandsave: 'मिळवा आणि जतन करा',
+      formatjson: 'जेसन स्वरूपित करा',
+      garage: 'गॅरेज',
+      garden: 'बाग',
+      guestroom: 'अतिथी खोली',
+      hall: 'हॉल',
+      host: 'होस्ट',
+      humidity: 'आर्द्रता',
+      idle: 'निष्क्रिय',
+      import: 'आयात',
+      importandapply: 'आयात आणि लागू करा',
+      importjson: 'जेसन आयात करा',
+      inputrequired: 'माहिती आवश्यक आहे',
+      iotdashboard: 'आयओटी डॅशबोर्ड',
+      jsonbackup: 'जेसन बॅकअप',
+      kitchen: 'स्वयंपाकघर',
+      language: 'भाषा',
+      languagemanager: 'भाषा व्यवस्थापक (JSON i18n)',
+      languages: 'भाषा',
+      light: 'दिवा',
+      livedevices: 'सक्रिय उपकरणे',
+      livingroom: 'बैठक खोली',
+      location: 'स्थान / ठिकाण',
+      locked: 'कुलूपबंद',
+      mainboard: 'मुख्य बोर्ड',
+      module: 'मॉड्यूल',
+      morningmode: 'सकाळ मोड',
+      mqttbrokerconnection: 'एमक्यूटीटी ब्रोकर कनेक्शन',
+      mqttsync: 'एमक्यूटीटी सिंक',
+      new: 'नवीन',
+      newbutton: 'नवीन बटण',
+      nightscene: 'रात्र दृश्य',
+      nocustombuttons: 'अद्याप कोणतीही सानुकूल बटणे तयार केलेली नाहीत.',
+      nodevices: 'कोणतीही उपकरणे नाहीत',
+      nodevicesinthisspace: 'या जागेत कोणतीही उपकरणे नाहीत.',
+      nospace: 'जागा नाही',
+      notice: 'सूचना',
+      off: 'बंद',
+      office: 'कार्यालय / ऑफिस',
+      offline: 'ऑफलाईन',
+      on: 'सुरू',
+      password: 'पासवर्ड',
+      porch: 'पडवी',
+      port: 'पोर्ट',
+      ready: 'सज्ज',
+      readytosend: 'पाठवण्यासाठी सज्ज',
+      receive: 'स्वीकारा',
+      refresh: 'ताजे करा',
+      relay: 'रिले',
+      remove: 'काढून टाका',
+      rename: 'नाव बदला',
+      requestfromsender: 'प्रेषकाकडून विनंती करा',
+      resetdefault: 'डीफॉल्ट रीसेट करा',
+      save: 'जतन करा',
+      savedone: 'जतन झाले!',
+      savetolocalstorage: 'लोकलस्टोरेजमध्ये जतन करा',
+      send: 'पाठवा',
+      sendtoallclients: 'सर्व क्लायंटना पाठवा',
+      sendtoclient: 'निवडलेल्या क्लायंटला पाठवा',
+      sensors: 'सेन्सर्स',
+      sets: 'संच',
+      space: 'खोली / जागा',
+      spaces: 'खोल्या / जागा',
+      speed: 'वेग',
+      status: 'स्थिती',
+      storeroom: 'कोठार',
+      styles: 'शैली',
+      switch: 'स्विच',
+      switches: 'स्विचेस',
+      syncshare: 'सिंक आणि शेअर',
+      temperature: 'तापमान',
+      terrace: 'गच्ची',
+      unlockabovetoadd: 'बटणे जोडण्यासाठी वरील अनलॉक करा',
+      unlocked: 'उघडे (संपादन)',
+      username: 'वापरकर्ता नाव',
+      viewonlythisdevice: 'फक्त हे उपकरण पहा',
+      waitingfordevicemessages: 'उपकरणांच्या संदेशांची प्रतीक्षा करत आहे.',
+      waitingfordevices: 'उपकरणांची प्रतीक्षा करत आहे…',
+      washroom: 'स्वच्छतागृह',
     }
   },
   hi: {
     code: 'hi',
     name: 'हिन्दी (Hindi)',
     dict: {
-      iotdashboard: 'आईओटी डैशबोर्ड',
-      spaces: 'स्थान / कमरे',
-      alldevices: 'सभी उपकरण',
-      livedevices: 'सक्रिय उपकरण',
+      actionprofiles: 'कार्रवाई सेट',
       actions: 'कार्रवाई',
-      customactions: 'कस्टम एक्शन',
-      locked: 'लॉक',
-      unlocked: 'अनलॉक (संपादन)',
-      newbutton: 'नया बटन',
-      buildcustombutton: 'कस्टम बटन बनाएं',
-      jsonbackup: 'जेसन बैकअप',
-      styles: 'स्टाइल',
-      languages: 'भाषाएं',
-      language: 'भाषा',
-      connected: 'कनेक्टेड',
-      disconnected: 'डिस्कनेक्टेड',
-      connecting: 'कनेक्ट हो रहा है...',
-      offline: 'ऑफ़लाइन',
-      switches: 'स्विच',
-      fans: 'पंखे',
-      sensors: 'सेंसर',
-      on: 'चालू',
-      off: 'बंद',
-      allon: 'सभी चालू',
-      alloff: 'सभी बंद',
-      speed: 'गति',
-      temperature: 'तापमान',
-      humidity: 'नमी',
-      broker: 'ब्रोकर',
-      port: 'पोर्ट',
-      clientid: 'क्लाइंट आईडी',
-      username: 'यूज़रनेम',
-      password: 'पासवर्ड',
-      connect: 'कनेक्ट करें',
-      disconnect: 'लॉगआउट',
-      save: 'सेव करें',
-      cancel: 'रद्द करें',
-      delete: 'हटाएं',
-      edit: 'एडिट करें',
-      export: 'एक्सपोर्ट',
-      import: 'इंपोर्ट',
-      waitingfordevices: 'उपकरणों की प्रतीक्षा है…',
-      waitingfordevicemessages: 'डिवाइस संदेशों की प्रतीक्षा है।',
-      nocustombuttons: 'अभी कोई कस्टम बटन नहीं बनाया गया है।',
-      unlockabovetoadd: 'बटन जोड़ने के लिए ऊपर अनलॉक करें',
+      active: 'सक्रिय',
+      activitylog: 'गतिविधि लॉग',
       all: 'सभी',
+      alldevices: 'सभी उपकरण',
+      alloff: 'सभी बंद',
+      allon: 'सभी चालू',
+      back: 'पीछे',
+      balcony: 'बालकनी',
+      base: 'मूल कमांड',
+      bathroom: 'बाथरूम',
+      bedroom: 'बेडरूम',
+      broker: 'ब्रोकर',
+      buildcustombutton: 'कस्टम बटन बनाएं',
+      buttonname: 'बटन का नाम / दृश्य शीर्षक',
+      cancel: 'रद्द करें',
+      cancelreadymode: 'तैयार मोड रद्द करें',
+      cancelrequest: 'अनुरोध रद्द करें',
+      clearlog: 'लॉग साफ़ करें',
+      clientid: 'क्लाइंट आईडी',
+      close: 'बंद करें',
       cmd: 'कमांड',
       cmds: 'कमांड्स',
       command: 'कमांड',
       commands: 'कमांड्स',
-      base: 'मूल कमांड',
-      buttonname: 'बटन का नाम / दृश्य शीर्षक',
-      nightscene: 'रात का दृश्य',
-      morningmode: 'सुबह का मोड',
-      livingroom: 'लिविंग रूम',
-      bedroom: 'बेडरूम',
-      kitchen: 'रसोई',
-      mainboard: 'मेन बोर्ड',
-      light: 'लाइट',
+      confirm: 'पुष्टि करें',
+      confirmaction: 'कार्रवाई की पुष्टि करें',
+      connect: 'कनेक्ट करें',
+      connected: 'कनेक्टेड',
+      connecting: 'कनेक्ट हो रहा है...',
+      copyjson: 'JSON कॉपी करें',
+      corridor: 'गलियारा',
+      createandsavelanguage: 'भाषा बनाएं और सेव करें',
+      credentialshint: 'क्रेडेंशियल स्थानीय स्टोरेज में सहेजे जाएंगे।',
+      customactions: 'कस्टम एक्शन',
+      custombutton: 'कस्टम बटन',
+      defaultactions: 'डिफ़ॉल्ट क्रिया',
+      delete: 'हटाएं',
+      device: 'उपकरण',
+      devices: 'उपकरण',
+      diningroom: 'भोजन कक्ष',
+      disconnect: 'लॉगआउट',
+      disconnected: 'डिस्कनेक्टेड',
+      done: 'पूर्ण',
+      edit: 'एडिट करें',
+      export: 'एक्सपोर्ट',
+      exportjson: 'JSON एक्सपोर्ट करें',
       fan: 'पंखा',
-      done: 'पूर्ण'
+      fans: 'पंखे',
+      fetchandsave: 'प्राप्त करें और सेव करें',
+      formatjson: 'JSON फॉर्मेट करें',
+      garage: 'गैरेज',
+      garden: 'बगीचा',
+      guestroom: 'अतिथि कक्ष',
+      hall: 'हॉल',
+      host: 'होस्ट',
+      humidity: 'नमी',
+      idle: 'निष्क्रिय',
+      import: 'इंपोर्ट',
+      importandapply: 'इम्पोर्ट और लागू करें',
+      importjson: 'JSON इम्पोर्ट करें',
+      inputrequired: 'इनपुट आवश्यक है',
+      iotdashboard: 'आईओटी डैशबोर्ड',
+      jsonbackup: 'जेसन बैकअप',
+      kitchen: 'रसोई',
+      language: 'भाषा',
+      languagemanager: 'भाषा प्रबंधक (JSON i18n)',
+      languages: 'भाषाएं',
+      light: 'लाइट',
+      livedevices: 'सक्रिय उपकरण',
+      livingroom: 'लिविंग रूम',
+      location: 'स्थान / जगह',
+      locked: 'लॉक',
+      mainboard: 'मेन बोर्ड',
+      module: 'मॉड्यूल',
+      morningmode: 'सुबह का मोड',
+      mqttbrokerconnection: 'एमक्यूटीटी ब्रोकर कनेक्शन',
+      mqttsync: 'एमक्यूटीटी सिंक',
+      new: 'नया',
+      newbutton: 'नया बटन',
+      nightscene: 'रात का दृश्य',
+      nocustombuttons: 'अभी कोई कस्टम बटन नहीं बनाया गया है।',
+      nodevices: 'कोई उपकरण नहीं',
+      nodevicesinthisspace: 'इस स्थान पर कोई उपकरण नहीं है।',
+      nospace: 'कोई स्थान नहीं',
+      notice: 'सूचना',
+      off: 'बंद',
+      office: 'कार्यालय',
+      offline: 'ऑफ़लाइन',
+      on: 'चालू',
+      password: 'पासवर्ड',
+      porch: 'बरामदा',
+      port: 'पोर्ट',
+      ready: 'तैयार',
+      readytosend: 'भेजने के लिए तैयार',
+      receive: 'प्राप्त करें',
+      refresh: 'रिफ्रेश करें',
+      relay: 'रिले',
+      remove: 'हटाएं',
+      rename: 'नाम बदलें',
+      requestfromsender: 'प्रेषक से अनुरोध करें',
+      resetdefault: 'डिफ़ॉल्ट रीसेट करें',
+      save: 'सेव करें',
+      savedone: 'सेव हो गया!',
+      savetolocalstorage: 'लोकलस्टोरेज में सेव करें',
+      send: 'भेजें',
+      sendtoallclients: 'सभी क्लाइंट्स को भेजें',
+      sendtoclient: 'चयनित क्लाइंट को भेजें',
+      sensors: 'सेंसर',
+      sets: 'सेट',
+      space: 'स्थान / कमरा',
+      spaces: 'स्थान / कमरे',
+      speed: 'गति',
+      status: 'स्थिति',
+      storeroom: 'स्टोर रूम',
+      styles: 'स्टाइल',
+      switch: 'स्विच',
+      switches: 'स्विच',
+      syncshare: 'सिंक और शेयर',
+      temperature: 'तापमान',
+      terrace: 'छत / टेरेस',
+      unlockabovetoadd: 'बटन जोड़ने के लिए ऊपर अनलॉक करें',
+      unlocked: 'अनलॉक (संपादन)',
+      username: 'यूज़रनेम',
+      viewonlythisdevice: 'केवल यह उपकरण देखें',
+      waitingfordevicemessages: 'डिवाइस संदेशों की प्रतीक्षा है।',
+      waitingfordevices: 'उपकरणों की प्रतीक्षा है…',
+      washroom: 'वाशरूम',
     }
   }
 };
@@ -2240,18 +3676,24 @@ function getLanguagePacks() {
       saveLanguagePacks(DEFAULT_LANG_PACKS);
       return JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS));
     }
+    let hasNewKeys = false;
     ['en', 'mr', 'hi'].forEach(code => {
       if (!parsed[code]) {
         parsed[code] = JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS[code]));
+        hasNewKeys = true;
       } else {
         if (!parsed[code].dict) parsed[code].dict = {};
         for (const [k, v] of Object.entries(DEFAULT_LANG_PACKS[code].dict)) {
           if (parsed[code].dict[k] === undefined) {
             parsed[code].dict[k] = v;
+            hasNewKeys = true;
           }
         }
       }
     });
+    if (hasNewKeys) {
+      saveLanguagePacks(parsed);
+    }
     return parsed;
   } catch (e) {
     return JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS));
@@ -2290,24 +3732,31 @@ function t(textOrKey, fallback) {
   const normKey = toI18nKey(textOrKey);
 
   // 1. Normalized key in active language
-  if (dict[normKey] !== undefined && dict[normKey] !== '') {
+  if (normKey && dict[normKey] !== undefined && dict[normKey] !== '') {
     return dict[normKey];
   }
-  // 2. Direct string key
+  // 2. Direct string key in active language
   if (dict[textOrKey] !== undefined && dict[textOrKey] !== '') {
     return dict[textOrKey];
   }
-  // 3. Fallback to English pack
+  // 3. Fallback to built-in current language default pack
+  if (normKey && DEFAULT_LANG_PACKS[currentLang]?.dict?.[normKey] !== undefined) {
+    return DEFAULT_LANG_PACKS[currentLang].dict[normKey];
+  }
+  // 4. Fallback to English pack
   if (currentLang !== 'en') {
     const enDict = packs['en']?.dict || {};
-    if (enDict[normKey] !== undefined && enDict[normKey] !== '') {
+    if (normKey && enDict[normKey] !== undefined && enDict[normKey] !== '') {
       return enDict[normKey];
     }
     if (enDict[textOrKey] !== undefined && enDict[textOrKey] !== '') {
       return enDict[textOrKey];
     }
+    if (normKey && DEFAULT_LANG_PACKS['en']?.dict?.[normKey] !== undefined) {
+      return DEFAULT_LANG_PACKS['en'].dict[normKey];
+    }
   }
-  // 4. Fallback provided or original text
+  // 5. Fallback provided or original text
   return fallback !== undefined ? fallback : textOrKey;
 }
 
@@ -2341,10 +3790,15 @@ function applyLanguage(langCode) {
 
   renderLangDropdownOptions();
 
-  // Update text nodes with data-i18n
+  // Update text nodes with data-i18n (preserving child icons if present)
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    if (key) {
+    if (!key) return;
+    const icon = el.querySelector('i');
+    if (icon) {
+      const iconHtml = icon.outerHTML;
+      el.innerHTML = iconHtml + ' ' + escapeHtml(t(key));
+    } else {
       el.textContent = t(key);
     }
   });
@@ -2357,15 +3811,42 @@ function applyLanguage(langCode) {
     }
   });
 
+  // Update attributes with data-i18n-placeholder
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (key) {
+      el.setAttribute('placeholder', t(key));
+    }
+  });
+
   // Lock button text
   const lockLbl = document.getElementById('lock-label');
   if (lockLbl) {
     lockLbl.textContent = isEditUnlocked ? t('unlocked') : t('locked');
   }
 
+  // Update space view title if active
+  if (currentView === 'space' && currentSpace) {
+    const spaceTitleEl = document.getElementById('view-space-name');
+    if (spaceTitleEl) spaceTitleEl.textContent = t(currentSpace, currentSpace);
+  }
+
+  // Update single view back button if active
+  if (currentView === 'single') {
+    const backLbl = document.getElementById('back-label');
+    if (backLbl) {
+      backLbl.textContent = prevView === 'space' ? (currentSpace ? t(currentSpace, currentSpace) : t('space', 'Space')) : t('alldevices', 'All Devices');
+    }
+  }
+
+  // Update breadcrumb navigation
+  if (typeof updateBreadcrumb === 'function') updateBreadcrumb();
+
   // Re-render views & buttons
+  if (typeof renderActionProfileSelector === 'function') renderActionProfileSelector();
   if (typeof renderCustomButtons === 'function') renderCustomButtons();
   if (typeof refreshSidebar === 'function') refreshSidebar();
+  if (typeof refreshDeviceTabs === 'function') refreshDeviceTabs();
   if (typeof allDevicesData === 'object' && typeof renderDevice === 'function') {
     Object.keys(allDevicesData).forEach(did => renderDevice(did));
   }
@@ -2495,7 +3976,7 @@ async function fetchAndSaveFromCustomUrl() {
   const urlInput = document.getElementById('fetch-lang-url-input');
   const url = urlInput?.value?.trim();
   if (!url) {
-    alert('Please enter a URL or file path (e.g. lang/mr.json or https://example.com/gu.json).');
+    showAppAlert('Please enter a URL or file path (e.g. lang/mr.json or https://example.com/gu.json).', 'URL Required');
     return;
   }
 
@@ -2513,12 +3994,12 @@ async function fetchAndSaveFromCustomUrl() {
       'toast-pub',
       'bi-check-circle-fill',
       'var(--success)',
-      `Language Saved to LocalStorage`,
-      [['Code', fetched.code.toUpperCase(), 'code'], ['Keys', `${Object.keys(fetched.dict).length}`, 'info']],
+      'Save Done!',
+      [['Status', 'Language Saved to LocalStorage', 'success'], ['Code', fetched.code.toUpperCase(), 'code'], ['Keys', `${Object.keys(fetched.dict).length}`, 'info']],
       3500
     );
   } else {
-    alert(`Could not load language JSON from: ${url}\nPlease verify the path/URL and JSON structure.`);
+    showAppAlert(`Could not load language JSON from: ${url}\nPlease verify the path/URL and JSON structure.`, 'Fetch Failed', 'bi-exclamation-triangle-fill');
   }
 }
 
@@ -2615,7 +4096,7 @@ function formatLangEditorJSON() {
     const parsed = JSON.parse(textarea.value);
     textarea.value = JSON.stringify(parsed, null, 2);
   } catch (err) {
-    alert('JSON Syntax Error: ' + err.message);
+    showAppAlert('JSON Syntax Error: ' + err.message, 'JSON Syntax Error');
   }
 }
 
@@ -2631,7 +4112,7 @@ function saveLangEditorJSON() {
       throw new Error('Root JSON must be an object of key:value translations.');
     }
   } catch (err) {
-    alert('Invalid JSON: ' + err.message);
+    showAppAlert('Invalid JSON: ' + err.message, 'JSON Syntax Error');
     return;
   }
 
@@ -2657,25 +4138,27 @@ function saveLangEditorJSON() {
     'toast-pub',
     'bi-check2-circle',
     'var(--success)',
-    `Language Saved (${code.toUpperCase()})`,
-    [['Keys Saved', `${Object.keys(cleanDict).length} entries`, 'code']],
+    'Save Done!',
+    [['Language', code.toUpperCase(), 'code'], ['Keys Saved', `${Object.keys(cleanDict).length} entries`, 'code'], ['Status', 'Saved & Applied', 'success']],
     3000
   );
 }
 
-function handleLangResetOrDelete() {
+async function handleLangResetOrDelete() {
   const code = document.getElementById('lang-modal-edit-select')?.value || getActiveLanguageCode();
   const packs = getLanguagePacks();
 
   if (['en', 'mr', 'hi'].includes(code)) {
-    if (!confirm(`Reset ${packs[code]?.name || code} to original built-in translations?`)) return;
+    const confirmed = await showAppConfirm(`Reset ${packs[code]?.name || code} to original built-in translations? Custom overrides will be discarded.`, 'Reset Language');
+    if (!confirmed) return;
     packs[code].dict = JSON.parse(JSON.stringify(DEFAULT_LANG_PACKS[code].dict));
     saveLanguagePacks(packs);
     populateLangEditor(code);
     applyLanguage(code);
     makeToast('toast-pub', 'bi-arrow-counterclockwise', 'var(--accent)', `Reset ${code.toUpperCase()} to Default`, [], 2500);
   } else {
-    if (!confirm(`Are you sure you want to delete custom language "${packs[code]?.name || code}"?`)) return;
+    const confirmed = await showAppConfirm(`Are you sure you want to delete custom language "${packs[code]?.name || code}"? This action cannot be undone.`, 'Delete Language', true);
+    if (!confirmed) return;
     delete packs[code];
     saveLanguagePacks(packs);
     const fallbackCode = 'en';
@@ -2698,17 +4181,17 @@ function createCustomLanguage() {
 
   const code = toI18nKey(rawCode);
   if (!code) {
-    alert('Please enter a valid language code (e.g. gu, ta, es).');
+    showAppAlert('Please enter a valid language code (e.g. gu, ta, es).', 'Language Code Required');
     return;
   }
   if (!name) {
-    alert('Please enter a display name for the language (e.g. Gujarati).');
+    showAppAlert('Please enter a display name for the language (e.g. Gujarati).', 'Language Name Required');
     return;
   }
 
   const packs = getLanguagePacks();
   if (packs[code]) {
-    alert(`Language code "${code}" already exists. Please choose a different code or edit the existing one.`);
+    showAppAlert(`Language code "${code}" already exists. Please choose a different code or edit the existing one.`, 'Language Exists');
     return;
   }
 
@@ -2807,8 +4290,8 @@ function saveButtonTranslationsFromTable() {
     'toast-pub',
     'bi-check2-all',
     'var(--success)',
-    'Button Translations Saved',
-    [['Buttons', `${count} processed`, 'code']],
+    'Save Done!',
+    [['Status', 'Button Translations Saved', 'success'], ['Buttons', `${count} processed`, 'code']],
     2500
   );
 }
@@ -2860,7 +4343,7 @@ function handleLangFileImport(event) {
 function executeImportLangJSON() {
   const raw = document.getElementById('import-lang-json-text')?.value?.trim();
   if (!raw) {
-    alert('Please upload a file or paste JSON code to import.');
+    showAppAlert('Please upload a file or paste JSON code to import.', 'Import Error');
     return;
   }
 
@@ -2869,7 +4352,7 @@ function executeImportLangJSON() {
     imported = JSON.parse(raw);
     if (!imported || typeof imported !== 'object') throw new Error('Root JSON must be an object.');
   } catch (err) {
-    alert('Invalid JSON format: ' + err.message);
+    showAppAlert('Invalid JSON format: ' + err.message, 'JSON Syntax Error');
     return;
   }
 
@@ -2887,7 +4370,8 @@ function executeImportLangJSON() {
     }
     saveLanguagePacks(packs);
     applyLanguage(currentCode);
-    alert('Successfully imported all language packs bundle!');
+    showAppAlert('Successfully imported all language packs bundle!', 'Import Success', 'bi-check-circle-fill');
+    makeToast('toast-pub', 'bi-check-circle-fill', 'var(--success)', 'Save Done!', [['Status', 'All Language Packs Imported', 'success']], 3000);
     switchLangTab('edit');
     return;
   }
@@ -2902,7 +4386,8 @@ function executeImportLangJSON() {
     saveLanguagePacks(packs);
     saveActiveLanguageCode(c);
     applyLanguage(c);
-    alert(`Successfully imported language pack "${imported.name || c}"!`);
+    showAppAlert(`Successfully imported language pack "${imported.name || c}"!`, 'Import Success', 'bi-check-circle-fill');
+    makeToast('toast-pub', 'bi-check-circle-fill', 'var(--success)', 'Save Done!', [['Language', imported.name || c, 'code'], ['Status', 'Pack Imported & Applied', 'success']], 3000);
     switchLangTab('edit');
     return;
   }
@@ -2921,7 +4406,8 @@ function executeImportLangJSON() {
 
   saveLanguagePacks(packs);
   applyLanguage(currentCode);
-  alert(`Imported ${Object.keys(cleanDict).length} translations into ${packs[currentCode].name || currentCode}!`);
+  showAppAlert(`Imported ${Object.keys(cleanDict).length} translations into ${packs[currentCode].name || currentCode}!`, 'Import Success', 'bi-check-circle-fill');
+  makeToast('toast-pub', 'bi-check-circle-fill', 'var(--success)', 'Save Done!', [['Translations', `${Object.keys(cleanDict).length} phrases`, 'code'], ['Status', 'Saved to LocalStorage', 'success']], 3000);
   switchLangTab('edit');
 }
 
@@ -2980,7 +4466,7 @@ function updateBreadcrumb() {
   const bc = document.getElementById('breadcrumb');
   if (currentView === 'single' && currentDevice) {
     const info = (allDevicesData[currentDevice] || {}).info || {};
-    document.getElementById('bc-space').textContent = info.s || currentSpace || 'All Devices';
+    document.getElementById('bc-space').textContent = info.s ? t(info.s, info.s) : (currentSpace ? t(currentSpace, currentSpace) : t('alldevices', 'All Devices'));
     document.getElementById('bc-device').textContent = info.a || currentDevice;
     bc.style.display = 'flex';
   } else {
@@ -3008,7 +4494,7 @@ function showAllDevices() {
 
 function showSpace(spaceName) {
   currentSpace = spaceName; currentDevice = null; prevView = 'space';
-  document.getElementById('view-space-name').textContent = spaceName;
+  document.getElementById('view-space-name').textContent = t(spaceName, spaceName);
   renderSpaceDevices(spaceName);
   showView('space');
   updateSidebarActive(spaceName, null);
@@ -3019,7 +4505,7 @@ function showSingleDevice(deviceId, fromView) {
   currentDevice = deviceId;
   renderSingleDevice(deviceId);
   const info = (allDevicesData[deviceId] || {}).info || {};
-  document.getElementById('back-label').textContent = prevView === 'space' ? (currentSpace || 'Space') : 'All Devices';
+  document.getElementById('back-label').textContent = prevView === 'space' ? (currentSpace ? t(currentSpace, currentSpace) : t('space', 'Space')) : t('alldevices', 'All Devices');
   showView('single');
   updateSidebarActive(info.s, deviceId);
 }
@@ -3034,13 +4520,21 @@ function updateSidebarActive(spaceName, deviceId) {
   document.querySelectorAll('.device-sub-item').forEach(el => el.classList.toggle('active', el.dataset.deviceId === deviceId));
 }
 
+// ── MQTT P2P & Multi-Action Sync Protocol State ──────────────────────────────
+let CURRENT_MQTT_CLIENT_ID = 'dash_' + Math.random().toString(16).substr(2, 8);
+let currentPendingSyncReqId = null;
+let syncRequestTimer = null;
+let lastDiscoveredPeerData = null;
+const activeSyncReqIds = new Set();
+const mqttSyncLogs = [];
+
 // ── MQTT ──────────────────────────────────────────────────────────────────────
 function initMQTT(creds) {
   MQTT_USER = creds.user;
   document.getElementById('status-text').textContent = 'Connecting…';
   const options = {
     username: creds.user, password: creds.pass,
-    clientId: 'dash_' + Math.random().toString(16).substr(2, 8),
+    clientId: CURRENT_MQTT_CLIENT_ID,
   };
   if (mqttClient) { try { mqttClient.end(true); } catch {} }
   mqttClient = mqtt.connect(`wss://${creds.host}:${creds.port}/mqtt`, options);
@@ -3050,16 +4544,47 @@ function initMQTT(creds) {
     document.getElementById('status-dot').classList.add('online');
     mqttClient.subscribe(`${MQTT_USER}/+/info`);
     mqttClient.subscribe(`${MQTT_USER}/+/live`);
+    // Coordination topic for Action & Language sync:
+    mqttClient.subscribe(`${MQTT_USER}/action`);
+    if (typeof updateMqttSyncModalStatusBar === 'function') updateMqttSyncModalStatusBar();
   });
-  mqttClient.on('offline', () => { document.getElementById('status-text').textContent = 'Offline'; document.getElementById('status-dot').classList.remove('online'); });
-  mqttClient.on('error',   () => { document.getElementById('status-text').textContent = 'Error';   document.getElementById('status-dot').classList.remove('online'); });
+  mqttClient.on('offline', () => {
+    document.getElementById('status-text').textContent = 'Offline';
+    document.getElementById('status-dot').classList.remove('online');
+    if (typeof updateMqttSyncModalStatusBar === 'function') updateMqttSyncModalStatusBar();
+  });
+  mqttClient.on('error',   () => {
+    document.getElementById('status-text').textContent = 'Error';
+    document.getElementById('status-dot').classList.remove('online');
+    if (typeof updateMqttSyncModalStatusBar === 'function') updateMqttSyncModalStatusBar();
+  });
 
   mqttClient.on('message', (topic, message) => {
     try {
       const parts    = topic.split('/');
+      const raw      = message.toString();
+
+      // Route 1: P2P coordination topic: <username>/action (2 parts)
+      if (parts.length === 2 && parts[1] === 'action') {
+        if (typeof handleMqttActionCoordMessage === 'function') {
+          handleMqttActionCoordMessage(raw);
+        }
+        return;
+      }
+
+      // Route 2: P2P response topic: <username>/<reqId> (2 parts, 6-char random ID)
+      if (parts.length === 2 && (activeSyncReqIds.has(parts[1]) || parts[1] === currentPendingSyncReqId)) {
+        if (typeof handleMqttSyncResponseMessage === 'function') {
+          handleMqttSyncResponseMessage(parts[1], raw);
+        }
+        return;
+      }
+
+      // If not length 3, ignore other non-device messages
+      if (parts.length !== 3) return;
+
       const deviceId = parts[1];
       const msgType  = parts[2];
-      const raw      = message.toString();
 
       if (raw === '') {
         if (allDevicesData[deviceId]) {
@@ -3125,7 +4650,7 @@ function refreshSidebar() {
   const spaces = getSpaces();
   const container = document.getElementById('sidebar-spaces');
   if (!Object.keys(spaces).length) {
-    container.innerHTML = `<div class="empty-state" style="padding:30px 14px"><i class="bi bi-broadcast" style="font-size:28px;display:block;margin-bottom:8px;color:#2a3346"></i><p style="font-size:11px;color:var(--muted)">Waiting for devices…</p></div>`;
+    container.innerHTML = `<div class="empty-state" style="padding:30px 14px"><i class="bi bi-broadcast" style="font-size:28px;display:block;margin-bottom:8px;color:#2a3346"></i><p style="font-size:11px;color:var(--muted)">${t('waitingfordevices', 'Waiting for devices…')}</p></div>`;
     return;
   }
   container.innerHTML = Object.entries(spaces).map(([spaceName, deviceIds]) => {
@@ -3135,13 +4660,17 @@ function refreshSidebar() {
       return `<div class="device-sub-item ${currentDevice===did?'active':''}" data-device-id="${did}"
         onclick="showSingleDevice('${did}','${isActiveSpace?'space':'all'}')">
         <div class="device-sub-dot"></div>
-        <div class="device-sub-name">${info.a || did}</div>
+        <div class="device-sub-name">${escapeHtml(info.a || did)}</div>
       </div>`;
     }).join('');
+    const devWord = deviceIds.length !== 1 ? t('devices', 'devices') : t('device', 'device');
     return `<div>
       <div class="space-item ${isActiveSpace?'active':''}" data-space="${spaceName}" onclick="handleSpaceClick('${spaceName}')">
         <div class="space-icon"><i class="bi ${getSpaceIcon(spaceName)}"></i></div>
-        <div class="space-info"><div class="space-name">${spaceName}</div><div class="space-count">${deviceIds.length} device${deviceIds.length!==1?'s':''}</div></div>
+        <div class="space-info">
+          <div class="space-name">${escapeHtml(t(spaceName, spaceName))}</div>
+          <div class="space-count">${deviceIds.length} ${devWord}</div>
+        </div>
         <i class="bi bi-chevron-${isActiveSpace?'down':'right'}" style="font-size:11px;color:var(--muted)"></i>
       </div>
       <div class="space-devices ${isActiveSpace?'open':''}" id="space-sub-${CSS.escape(spaceName)}">${devicesHtml}</div>
@@ -3186,7 +4715,7 @@ function refreshDeviceTabs() {
 
     tab.innerHTML = `
       <div class="tab-wave">${waveBars}</div>
-      <div class="tab-name">${name}</div>
+      <div class="tab-name">${escapeHtml(name)}</div>
     `;
     tab.onclick = () => showSingleDevice(deviceId);
     bar.appendChild(tab);
@@ -3201,12 +4730,13 @@ function renderSpaceDevices(spaceName) {
   const ids     = spaces[spaceName] || [];
   const cont    = document.getElementById('space-devices-container');
   cont.innerHTML = '';
-  if (!ids.length) { cont.innerHTML = '<div class="empty-state"><i class="bi bi-broadcast"></i><p>No devices in this space.</p></div>'; return; }
+  if (!ids.length) { cont.innerHTML = `<div class="empty-state"><i class="bi bi-broadcast"></i><p>${t('nodevicesinthisspace', 'No devices in this space.')}</p></div>`; return; }
   const grid = document.createElement('div');
-  grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px';
+  grid.className = 'space-devices-grid devices-grid';
   ids.forEach(did => grid.appendChild(buildCardEl(did, 'space')));
   cont.appendChild(grid);
 }
+
 
 function renderSingleDevice(deviceId) {
   const cont = document.getElementById('single-device-container');
@@ -3233,7 +4763,7 @@ function buildCardInner(deviceId, context) {
   const fans     = Object.entries(modules).filter(([k]) => /^fan\d+$/.test(k));
 
   const switchesHtml = switches.length ? `
-    <div>
+    <div class="card-module-switches" style="width:100%">
       <div class="module-label"><i class="bi bi-toggle-on"></i> ${t('switches')}</div>
       <div class="switches-grid">
         ${switches.map(([key, label]) => {
@@ -3243,8 +4773,12 @@ function buildCardInner(deviceId, context) {
             <div class="switch-spinner"></div>
             <div class="switch-label" title="${label}">${label}</div>
             <div class="switch-btns">
-              <button class="btn-on  ${isOn ?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',1,'${context}')">${t('on')}</button>
-              <button class="btn-off ${!isOn?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',0,'${context}')">${t('off')}</button>
+              <button class="btn-on  ${isOn ?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',1,'${context}')" title="${label}: ${t('on')}">
+                <i class="bi bi-power"></i> <span class="btn-txt">${t('on')}</span>
+              </button>
+              <button class="btn-off ${!isOn?'active':''}" onclick="sendSwitch('${deviceId}','${moduleId}','${key}',0,'${context}')" title="${label}: ${t('off')}">
+                <i class="bi bi-circle"></i> <span class="btn-txt">${t('off')}</span>
+              </button>
             </div>
           </div>`;
         }).join('')}
@@ -3252,44 +4786,49 @@ function buildCardInner(deviceId, context) {
     </div>` : '';
 
   const fansHtml = fans.length ? `
-    <div>
+    <div class="card-module-fans" style="width:100%">
       <div class="module-label"><i class="bi bi-fan"></i> ${t('fans')}</div>
-      ${fans.map(([key, label]) => {
-        const speed   = parseInt(live[key]) || 0;
-        const pct     = (speed/4)*100;
-        const pending = isPending(deviceId, key);
-        return `<div class="fan-item ${pending?'pending':''}" id="fan-${context}-${deviceId}-${key}">
-          <div class="fan-spinner"></div>
-          <div class="fan-header"><span class="fan-name">${label}</span><span class="fan-speed-badge">${speed}</span></div>
-          <input type="range" class="fan-slider" min="0" max="4" step="1" value="${speed}"
-            style="background:linear-gradient(to right,var(--accent) ${pct}%,var(--fan-track) ${pct}%)"
-            oninput="onSlider(this,'${deviceId}','${moduleId}','${key}')"
-            onchange="sendFan('${deviceId}','${moduleId}','${key}',this.value)">
-          <div class="fan-speed-btns">
-            ${[0,1,2,3,4].map(s=>`<button class="btn-speed ${speed===s?'active':''}"
-              onclick="sendFanBtn(this,'${deviceId}','${moduleId}','${key}',${s})">${s}</button>`).join('')}
-          </div>
-        </div>`;
-      }).join('')}
+      <div class="fans-list" style="display:flex;flex-direction:column;gap:8px;width:100%">
+        ${fans.map(([key, label]) => {
+          const speed   = parseInt(live[key]) || 0;
+          const pct     = (speed/4)*100;
+          const pending = isPending(deviceId, key);
+          return `<div class="fan-item ${pending?'pending':''}" id="fan-${context}-${deviceId}-${key}">
+            <div class="fan-spinner"></div>
+            <div class="fan-header"><span class="fan-name">${label}</span><span class="fan-speed-badge">${speed}</span></div>
+            <input type="range" class="fan-slider" min="0" max="4" step="1" value="${speed}"
+              style="background:linear-gradient(to right,var(--accent) ${pct}%,var(--fan-track) ${pct}%)"
+              oninput="onSlider(this,'${deviceId}','${moduleId}','${key}')"
+              onchange="sendFan('${deviceId}','${moduleId}','${key}',this.value)">
+            <div class="fan-speed-btns">
+              ${[0,1,2,3,4].map(s=>`<button class="btn-speed ${speed===s?'active':''}"
+                onclick="sendFanBtn(this,'${deviceId}','${moduleId}','${key}',${s})" title="${label}: ${s===0?t('off'):t('speed')+' '+s}">
+                <i class="${s===0?'bi bi-power':'bi bi-speedometer2'}"></i>
+                <span class="btn-txt">${s}</span>
+              </button>`).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
     </div>` : '';
 
   const extraKeys = Object.keys(live).filter(k => !modules[k] && k !== 'time');
 
   const locationHtml = (info.s||info.a) ? `
     <div class="info-row" style="border-top:1px solid var(--card-border);padding-top:12px;">
-      ${info.s?`<div class="info-chip">Space: <span>${info.s}</span></div>`:''}
-      <div class="info-chip">Module: <span>${moduleId}</span></div>
+      ${info.s?`<div class="info-chip">${t('space', 'Space')}: <span>${escapeHtml(t(info.s, info.s))}</span></div>`:''}
+      <div class="info-chip">${t('module', 'Module')}: <span>${escapeHtml(moduleId)}</span></div>
     </div>` : '';
 
   const actionBtns = `
     <div class="card-head-right">
-      <button class="card-action-btn btn-refresh" data-tip="Refresh" onclick="refreshDevice('${deviceId}')"><i class="bi bi-arrow-clockwise"></i></button>
-      <button class="card-action-btn btn-remove"  data-tip="Remove"  onclick="removeDevice('${deviceId}')"><i class="bi bi-trash3"></i></button>
+      <button class="card-action-btn btn-refresh" data-tip="${escapeHtmlAttr(t('refresh', 'Refresh'))}" onclick="refreshDevice('${deviceId}')"><i class="bi bi-arrow-clockwise"></i></button>
+      <button class="card-action-btn btn-remove"  data-tip="${escapeHtmlAttr(t('remove', 'Remove'))}"  onclick="removeDevice('${deviceId}')"><i class="bi bi-trash3"></i></button>
     </div>`;
 
   // In single context, clicking head does nothing (already single)
   const headClick = context === 'single' ? '' : `onclick="showSingleDevice('${deviceId}','${context}')"`;
-  const hint      = context === 'single' ? '' : `<div class="card-click-hint"><i class="bi bi-arrow-right-short"></i> View only this device</div>`;
+  const hint      = context === 'single' ? '' : `<div class="card-click-hint"><i class="bi bi-arrow-right-short"></i> ${escapeHtml(t('viewonlythisdevice', 'View only this device'))}</div>`;
 
   return `
     <div class="card-head">
@@ -3500,27 +5039,1325 @@ const BUILDER_AVAILABLE_ICONS = [
 ];
 
 const DEFAULT_BTN_STYLES = {
-  size: 'medium',
-  radius: '10px',
+  size: 'small',
+  radius: '8px',
   padding: 'normal',
-  gap: '8px',
+  gap: '6px',
   mobileSidebarWidth: '90%'
 };
 
-function loadCustomButtons() {
+// ── Multi-Action JSON Profiles Management ─────────────────────────────────────
+const ACTION_PROFILES_KEY        = 'mqtt_action_profiles';
+const CURRENT_ACTION_PROFILE_KEY = 'mqtt_current_action_profile';
+
+function getActionProfiles() {
   try {
-    const raw = localStorage.getItem(CUSTOM_BTNS_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : [];
+    const raw = localStorage.getItem(ACTION_PROFILES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
   } catch (e) {
-    console.error('Failed to load custom buttons:', e);
-    return [];
+    console.error('Failed to parse action profiles:', e);
+  }
+
+  // Backward compatibility migration: read legacy CUSTOM_BTNS_KEY
+  let legacyButtons = [];
+  try {
+    const legacyRaw = localStorage.getItem(CUSTOM_BTNS_KEY);
+    if (legacyRaw) {
+      const arr = JSON.parse(legacyRaw);
+      if (Array.isArray(arr)) legacyButtons = arr;
+    }
+  } catch {}
+
+  const defaultProfile = {
+    id: 'profile_default',
+    name: 'Default Actions',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    buttons: legacyButtons
+  };
+
+  const initialProfiles = [defaultProfile];
+  saveActionProfiles(initialProfiles);
+  saveCurrentActionProfileId('profile_default');
+  return initialProfiles;
+}
+
+function saveActionProfiles(profiles) {
+  try {
+    localStorage.setItem(ACTION_PROFILES_KEY, JSON.stringify(profiles, null, 2));
+  } catch (e) {
+    console.error('Failed to save action profiles:', e);
   }
 }
 
+function getCurrentActionProfileId() {
+  let curId = localStorage.getItem(CURRENT_ACTION_PROFILE_KEY);
+  const profiles = getActionProfiles();
+  if (!curId || !profiles.some(p => p.id === curId)) {
+    curId = profiles[0] ? profiles[0].id : 'profile_default';
+    saveCurrentActionProfileId(curId);
+  }
+  return curId;
+}
+
+function saveCurrentActionProfileId(id) {
+  localStorage.setItem(CURRENT_ACTION_PROFILE_KEY, id);
+}
+
+function getCurrentActionProfile() {
+  const profiles = getActionProfiles();
+  const curId = getCurrentActionProfileId();
+  return profiles.find(p => p.id === curId) || profiles[0];
+}
+
+function loadCustomButtons() {
+  const curProfile = getCurrentActionProfile();
+  return (curProfile && Array.isArray(curProfile.buttons)) ? curProfile.buttons : [];
+}
+
 function saveCustomButtons(arr) {
-  localStorage.setItem(CUSTOM_BTNS_KEY, JSON.stringify(arr, null, 2));
+  const profiles = getActionProfiles();
+  const curId = getCurrentActionProfileId();
+  let found = false;
+  for (let i = 0; i < profiles.length; i++) {
+    if (profiles[i].id === curId) {
+      profiles[i].buttons = arr;
+      profiles[i].updatedAt = Date.now();
+      found = true;
+      break;
+    }
+  }
+  if (!found && profiles.length > 0) {
+    profiles[0].buttons = arr;
+  }
+  saveActionProfiles(profiles);
+
+  // Keep legacy key synced for external compatibility
+  try {
+    localStorage.setItem(CUSTOM_BTNS_KEY, JSON.stringify(arr, null, 2));
+  } catch {}
+
+  renderActionProfileSelector();
+}
+
+function switchActionProfile(profileId) {
+  saveCurrentActionProfileId(profileId);
+  const cur = getCurrentActionProfile();
+  if (cur) {
+    try {
+      localStorage.setItem(CUSTOM_BTNS_KEY, JSON.stringify(cur.buttons || [], null, 2));
+    } catch {}
+  }
+  closeActionProfileDropdown();
+  renderActionProfileSelector();
+  renderCustomButtons();
+  makeToast(
+    'toast-pub',
+    'bi-layers-half',
+    'var(--accent)',
+    'Action Set Activated',
+    [['Profile', cur ? cur.name : profileId, 'code'], ['Buttons', `${(cur?.buttons || []).length} available`, '']],
+    2000
+  );
+}
+
+function createActionProfile(name, buttons = []) {
+  const cleanName = (name || '').trim();
+  if (!cleanName) return null;
+  const profiles = getActionProfiles();
+  const newProfile = {
+    id: 'profile_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 4),
+    name: cleanName,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    buttons: Array.isArray(buttons) ? buttons : []
+  };
+  profiles.push(newProfile);
+  saveActionProfiles(profiles);
+  switchActionProfile(newProfile.id);
+  return newProfile;
+}
+
+function renameActionProfile(profileId, newName) {
+  const cleanName = (newName || '').trim();
+  if (!cleanName) return;
+  const profiles = getActionProfiles();
+  const target = profiles.find(p => p.id === profileId);
+  if (target) {
+    target.name = cleanName;
+    target.updatedAt = Date.now();
+    saveActionProfiles(profiles);
+    renderActionProfileSelector();
+    makeToast('toast-pub', 'bi-pencil', 'var(--accent)', 'Profile Renamed', [['Name', cleanName, 'code']], 2000);
+  }
+}
+
+function deleteActionProfile(profileId) {
+  const profiles = getActionProfiles();
+  if (profiles.length <= 1) {
+    showAppAlert('At least one action profile is required.', 'Action Profiles');
+    return;
+  }
+  const target = profiles.find(p => p.id === profileId);
+  const targetName = target ? target.name : profileId;
+  const filtered = profiles.filter(p => p.id !== profileId);
+  saveActionProfiles(filtered);
+
+  if (getCurrentActionProfileId() === profileId) {
+    saveCurrentActionProfileId(filtered[0].id);
+    const cur = filtered[0];
+    try {
+      localStorage.setItem(CUSTOM_BTNS_KEY, JSON.stringify(cur.buttons || [], null, 2));
+    } catch {}
+  }
+  renderActionProfileSelector();
+  renderCustomButtons();
+  makeToast('toast-remove', 'bi-trash3', 'var(--warning)', 'Profile Deleted', [['Profile', targetName, 'warn']], 2500);
+}
+
+async function promptCreateActionProfile(e) {
+  if (e) e.stopPropagation();
+  const name = await showAppPrompt('Enter a name for the new Action Set / Profile:', 'My Custom Actions', 'New Action Set', 'e.g. Living Room, Office, Night Mode');
+  if (name && name.trim()) {
+    createActionProfile(name.trim(), []);
+  }
+}
+
+async function promptRenameActionProfile(profileId) {
+  const profiles = getActionProfiles();
+  const target = profiles.find(p => p.id === profileId);
+  if (!target) return;
+  const newName = await showAppPrompt(`Enter a new name for profile "${target.name}":`, target.name, 'Rename Action Set', 'Profile Name');
+  if (newName && newName.trim() && newName.trim() !== target.name) {
+    renameActionProfile(profileId, newName.trim());
+  }
+}
+
+async function promptDeleteActionProfile(profileId) {
+  const profiles = getActionProfiles();
+  const target = profiles.find(p => p.id === profileId);
+  if (!target) return;
+  const confirmed = await showAppConfirm(`Are you sure you want to delete profile "${target.name}"? This action cannot be undone.`, 'Delete Action Set', true);
+  if (confirmed) {
+    deleteActionProfile(profileId);
+  }
+}
+
+// ── Dropdown Toggle & Rendering ──────────────────────────────────────────────
+function toggleActionProfileDropdown(e) {
+  if (e) e.stopPropagation();
+  const dd = document.getElementById('action-profiles-dropdown');
+  const btn = document.getElementById('btn-action-profile-toggle');
+  if (!dd) return;
+  const isOpen = dd.classList.contains('open');
+  if (isOpen) {
+    closeActionProfileDropdown();
+  } else {
+    renderActionProfileSelector();
+    dd.classList.add('open');
+    if (btn) btn.classList.add('open');
+  }
+}
+
+function closeActionProfileDropdown() {
+  const dd = document.getElementById('action-profiles-dropdown');
+  const btn = document.getElementById('btn-action-profile-toggle');
+  if (dd) dd.classList.remove('open');
+  if (btn) btn.classList.remove('open');
+}
+
+// Global click outside dropdown to close
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('action-profile-switcher-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    closeActionProfileDropdown();
+  }
+});
+
+function renderActionProfileSelector() {
+  const profiles = getActionProfiles();
+  const curId = getCurrentActionProfileId();
+  const cur = profiles.find(p => p.id === curId) || profiles[0];
+
+  // Update header label and tooltip
+  const activeLabel = document.getElementById('current-profile-active-name');
+  if (activeLabel && cur) {
+    activeLabel.textContent = t(cur.name, cur.name);
+    activeLabel.title = `${t('actionprofiles', 'Action Sets')}: ${t(cur.name, cur.name)} (${(cur.buttons || []).length} ${t('commands', 'buttons')})`;
+  }
+  const apCount = document.getElementById('ap-profiles-count');
+  if (apCount) apCount.textContent = profiles.length;
+
+  const btnToggle = document.getElementById('btn-action-profile-toggle');
+  if (btnToggle && cur) {
+    btnToggle.title = `${t('actionprofiles', 'Action Sets')} (${t(cur.name, cur.name)} - ${(cur.buttons || []).length} ${t('commands', 'buttons')})`;
+  }
+
+  // Render list inside dropdown
+  const listEl = document.getElementById('ap-profiles-list');
+  if (!listEl) return;
+
+  listEl.innerHTML = profiles.map(p => {
+    const isActive = p.id === curId;
+    const btnCount = (p.buttons || []).length;
+    const btnWord = btnCount !== 1 ? t('commands', 'buttons') : t('command', 'button');
+
+    return `
+      <div class="ap-profile-item ${isActive ? 'active' : ''}" onclick="switchActionProfile('${p.id}')">
+        <div class="ap-item-left">
+          <div class="ap-item-icon">
+            <i class="bi ${isActive ? 'bi-check-circle-fill' : 'bi-layers'}"></i>
+          </div>
+          <div class="ap-item-details">
+            <div class="ap-item-name">${escapeHtmlAttr(t(p.name, p.name))}</div>
+            <div class="ap-item-meta">
+              <span>${btnCount} ${btnWord}</span>
+              ${isActive ? `&bull; <span style="color:var(--accent);font-weight:700">${t('active', 'Active')}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="ap-item-actions" onclick="event.stopPropagation()">
+          <button class="ap-action-btn" onclick="openMqttShareWithProfile('${p.id}')" title="${t('syncshare', 'Share via MQTT')}">
+            <i class="bi bi-broadcast"></i>
+          </button>
+          <button class="ap-action-btn" onclick="promptRenameActionProfile('${p.id}')" title="${t('rename', 'Rename Profile')}">
+            <i class="bi bi-pencil"></i>
+          </button>
+          ${profiles.length > 1 ? `
+            <button class="ap-action-btn danger" onclick="promptDeleteActionProfile('${p.id}')" title="${t('delete', 'Delete Profile')}">
+              <i class="bi bi-trash3"></i>
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Update sync share profile dropdown if available
+  const shareSelect = document.getElementById('mqtt-share-select-profile');
+  if (shareSelect) {
+    shareSelect.innerHTML = `
+      <option value="__all__">${t('all', 'All')} ${t('actionprofiles', 'Profiles')} (${profiles.length} ${t('sets', 'sets')})</option>
+      ${profiles.map(p => `<option value="${p.id}" ${p.id === curId ? 'selected' : ''}>${escapeHtmlAttr(t(p.name, p.name))} (${(p.buttons || []).length} ${t('commands', 'buttons')})</option>`).join('')}
+    `;
+  }
+}
+
+// ── MQTT Action & Language Sync / P2P Client Share ───────────────────────────
+function openMqttShareModal() {
+  updateMqttSyncModalStatusBar();
+  renderMqttShareModalSelectors();
+  renderMqttSyncLogTable();
+  switchSyncTab('receive');
+  document.getElementById('mqtt-share-overlay')?.classList.add('open');
+}
+
+function closeMqttShareModal() {
+  document.getElementById('mqtt-share-overlay')?.classList.remove('open');
+}
+
+function openMqttShareWithProfile(profileId) {
+  openMqttShareModal();
+  switchSyncTab('send');
+  const sel = document.getElementById('mqtt-share-select-profile');
+  if (sel) sel.value = profileId;
+}
+
+function switchSyncTab(tab) {
+  const pRecv = document.getElementById('sync-pane-receive');
+  const pSend = document.getElementById('sync-pane-send');
+  const pLog  = document.getElementById('sync-pane-log');
+  const bRecv = document.getElementById('tab-sync-receive-btn');
+  const bSend = document.getElementById('tab-sync-send-btn');
+  const bLog  = document.getElementById('tab-sync-log-btn');
+
+  if (pRecv) pRecv.style.display = tab === 'receive' ? 'flex' : 'none';
+  if (pSend) pSend.style.display = tab === 'send' ? 'flex' : 'none';
+  if (pLog)  pLog.style.display  = tab === 'log' ? 'flex' : 'none';
+
+  if (bRecv) bRecv.classList.toggle('active', tab === 'receive');
+  if (bSend) bSend.classList.toggle('active', tab === 'send');
+  if (bLog)  bLog.classList.toggle('active', tab === 'log');
+}
+
+function updateMqttSyncModalStatusBar() {
+  const user = MQTT_USER || (loadCreds()?.user) || 'user';
+  const uBar = document.getElementById('mqtt-sync-bar-user');
+  if (uBar) uBar.textContent = user;
+  const tBar = document.getElementById('mqtt-sync-bar-topic');
+  if (tBar) tBar.textContent = `${user}/action`;
+  document.querySelectorAll('.txt-mqtt-user-prefix').forEach(el => el.textContent = user);
+
+  const nameInput = document.getElementById('mqtt-sync-client-name-input');
+  if (nameInput) {
+    nameInput.value = getMqttP2PClientName();
+  }
+}
+
+function getMqttP2PClientName() {
+  const saved = localStorage.getItem('mqtt_p2p_client_name');
+  if (saved && saved.trim()) return saved.trim();
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const type = isMobile ? 'Mobile' : 'Desktop';
+  const idShort = (CURRENT_MQTT_CLIENT_ID || '').substr(-4) || 'dash';
+  return `${type}_${idShort}`;
+}
+
+function saveMqttP2PClientName() {
+  const input = document.getElementById('mqtt-sync-client-name-input');
+  if (!input) return;
+  const val = (input.value || '').trim();
+  if (val) {
+    localStorage.setItem('mqtt_p2p_client_name', val);
+    makeToast('toast-pub', 'bi-person-check', 'var(--success)', 'Device Name Saved', [['Name', val, 'code']], 2000);
+  }
+}
+
+function generateRandom6CharId() {
+  const chars = '0123456789abcdefghijklmnopqrstuvwxyz';
+  let res = '';
+  for (let i = 0; i < 6; i++) {
+    res += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return res;
+}
+
+// ── Sender Ready Mode State ──────────────────────────────────────────────────
+let isSenderReadyMode = false;
+let senderReadyTimer = null;
+let senderCountdownInterval = null;
+let pendingClientRequests = [];
+let selectedClientReqId = null;
+
+let receiverCountdownInterval = null;
+let senderNoticeTimeout = null;
+
+function toggleSenderReadyMode() {
+  if (isSenderReadyMode) {
+    cancelSenderReadyMode();
+  } else {
+    startSenderReadyMode();
+  }
+}
+
+function startSenderReadyMode() {
+  if (!mqttClient || !mqttClient.connected) {
+    makeToast('toast-offline', 'bi-wifi-off', 'var(--danger)', 'MQTT Disconnected', [['Status', 'Cannot activate ready mode', 'danger']], 3500);
+    return;
+  }
+
+  isSenderReadyMode = true;
+  pendingClientRequests = [];
+  selectedClientReqId = null;
+
+  // Publish SENDER_READY on <username>/action so connected receivers know sender is waiting!
+  const readyAnnouncement = {
+    type: 'SENDER_READY',
+    senderName: getMqttP2PClientName(),
+    senderClientId: CURRENT_MQTT_CLIENT_ID,
+    duration: 45,
+    timestamp: Date.now()
+  };
+  mqttClient.publish(`${MQTT_USER}/action`, JSON.stringify(readyAnnouncement), { qos: 0, retain: false });
+  logSyncEvent('SENDER_READY', `${MQTT_USER}/action`, 'All Clients', 'Sender announced Ready for 45s');
+
+  updateSenderReadyUI();
+
+  // Run 45s countdown (as specified by user: wait time is 45 sec)
+  clearInterval(senderCountdownInterval);
+  clearTimeout(senderReadyTimer);
+
+  let remainingSecs = 45;
+  const countEl = document.getElementById('sender-countdown-sec');
+  if (countEl) countEl.textContent = remainingSecs;
+
+  senderCountdownInterval = setInterval(() => {
+    remainingSecs--;
+    if (countEl) countEl.textContent = remainingSecs;
+    if (remainingSecs <= 0) {
+      clearInterval(senderCountdownInterval);
+    }
+  }, 1000);
+
+  senderReadyTimer = setTimeout(() => {
+    clearInterval(senderCountdownInterval);
+    if (isSenderReadyMode) {
+      isSenderReadyMode = false;
+      updateSenderReadyUI();
+      makeToast('toast-pub', 'bi-clock-history', 'var(--muted)', 'Ready Session Ended', [['Duration', '45 seconds expired', 'warn']], 3500);
+      logSyncEvent('READY_TIMEOUT', `${MQTT_USER}/action`, 'Self', 'Ready mode expired after 45s');
+    }
+  }, 45000);
+
+  makeToast('toast-pub', 'bi-broadcast', 'var(--success)', 'Sender Ready (45s)', [['Status', 'Listening for client requests', 'code']], 2500);
+}
+
+function cancelSenderReadyMode() {
+  isSenderReadyMode = false;
+  clearTimeout(senderReadyTimer);
+  clearInterval(senderCountdownInterval);
+  
+  // Broadcast cancellation
+  try {
+    mqttClient?.publish(`${MQTT_USER}/action`, JSON.stringify({
+      type: 'SENDER_CANCELLED',
+      senderClientId: CURRENT_MQTT_CLIENT_ID,
+      timestamp: Date.now()
+    }), { qos: 0, retain: false });
+  } catch {}
+
+  updateSenderReadyUI();
+  makeToast('toast-pub', 'bi-stop-circle', 'var(--warning)', 'Ready Mode Stopped', [], 1500);
+}
+
+function updateSenderReadyUI() {
+  const dot = document.getElementById('sender-ready-indicator-dot');
+  const title = document.getElementById('sender-ready-status-title');
+  const desc = document.getElementById('sender-ready-status-desc');
+  const btn = document.getElementById('btn-sender-ready-toggle');
+  const btnText = document.getElementById('sender-ready-btn-text');
+  const wrap = document.getElementById('sender-active-countdown-wrap');
+
+  if (isSenderReadyMode) {
+    if (dot) {
+      dot.style.background = '#10b981';
+      dot.style.boxShadow = '0 0 12px #10b981';
+      dot.className = 'status-dot-pulse-green';
+    }
+    if (title) title.textContent = 'Sender Mode: ACTIVE & READY (45s)';
+    if (desc) desc.textContent = 'Accepting requests from connected clients. Select client below when a request arrives.';
+    if (btn) {
+      btn.style.background = 'var(--danger)';
+    }
+    if (btnText) btnText.textContent = '⏹ Stop Ready Mode';
+    if (wrap) wrap.style.display = 'flex';
+  } else {
+    if (dot) {
+      dot.style.background = '#ef4444';
+      dot.style.boxShadow = '0 0 8px #ef4444';
+      dot.className = '';
+    }
+    if (title) title.textContent = 'Sender Mode: Idle (Not Ready)';
+    if (desc) desc.textContent = 'Click "Ready to Send" to open a 45-second window to accept requests from connected devices.';
+    if (btn) {
+      btn.style.background = '#10b981';
+    }
+    if (btnText) btnText.textContent = '🟢 Ready to Send (45s Window)';
+    if (wrap) wrap.style.display = 'none';
+  }
+
+  renderSenderClientsList();
+}
+
+function renderSenderClientsList() {
+  const listEl = document.getElementById('sender-clients-list');
+  const countBadge = document.getElementById('sender-requests-count');
+  const meta = document.getElementById('sender-requests-meta');
+  const targetLabel = document.getElementById('sender-target-client-label');
+  if (!listEl) return;
+
+  if (countBadge) countBadge.textContent = pendingClientRequests.length;
+  if (meta) {
+    meta.textContent = pendingClientRequests.length === 0 ? 'Waiting for requests...' : `${pendingClientRequests.length} client(s) requesting data`;
+  }
+
+  if (pendingClientRequests.length === 0) {
+    listEl.innerHTML = `
+      <div class="custom-empty-state" style="padding:18px 10px" id="sender-clients-empty">
+        <i class="bi bi-inbox" style="font-size:22px;color:#334155;margin-bottom:6px"></i>
+        <p style="font-size:11px;color:var(--muted)">No client requests received yet. Click "Ready to Send" above and have the other device send a request within 45s.</p>
+      </div>`;
+    if (targetLabel) targetLabel.textContent = 'None selected (Waiting for client requests)';
+    return;
+  }
+
+  // Ensure selectedClientReqId is valid
+  if (!selectedClientReqId || !pendingClientRequests.some(c => c.reqId === selectedClientReqId)) {
+    selectedClientReqId = pendingClientRequests[0].reqId;
+  }
+
+  const selectedClient = pendingClientRequests.find(c => c.reqId === selectedClientReqId);
+  if (targetLabel && selectedClient) {
+    targetLabel.textContent = `${selectedClient.clientName} (reqId: ${selectedClient.reqId})`;
+  }
+
+  listEl.innerHTML = pendingClientRequests.map(client => {
+    const isSelected = client.reqId === selectedClientReqId;
+    return `
+      <div class="sender-client-card ${isSelected ? 'selected' : ''}" onclick="selectRequestingClient('${client.reqId}')">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
+          <input type="radio" class="client-radio" name="sel-req-client" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation(); selectRequestingClient('${client.reqId}')">
+          <div style="min-width:0;flex:1">
+            <div style="font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px">
+              <i class="bi bi-display" style="color:${isSelected ? 'var(--accent)' : 'var(--muted)'}"></i>
+              <span>${escapeHtmlAttr(client.clientName)}</span>
+              ${isSelected ? '<span style="font-size:9.5px;background:var(--accent-dim);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:700">SELECTED</span>' : ''}
+            </div>
+            <div style="font-size:10.5px;color:var(--muted);margin-top:2px">
+              Topic: <code>${escapeHtmlAttr(MQTT_USER)}/${escapeHtmlAttr(client.reqId)}</code> &bull; Received at ${client.timeStr}
+            </div>
+          </div>
+        </div>
+        <button class="btn-modal-primary" style="padding:4px 10px;font-size:11px;white-space:nowrap" onclick="event.stopPropagation(); selectRequestingClient('${client.reqId}'); sendDataToSelectedClient();">
+          <i class="bi bi-send-fill"></i> Send Now
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectRequestingClient(reqId) {
+  selectedClientReqId = reqId;
+  renderSenderClientsList();
+}
+
+function sendDataToSelectedClient() {
+  if (!selectedClientReqId) {
+    showAppAlert('Please select a requesting client from the list first.', 'Select Client');
+    return;
+  }
+
+  const targetClient = pendingClientRequests.find(c => c.reqId === selectedClientReqId);
+  if (!targetClient) {
+    showAppAlert('Selected client is no longer available.', 'Client Unavailable');
+    return;
+  }
+
+  sendDataToTargetClient(targetClient);
+}
+
+function sendDataToAllClients() {
+  if (!pendingClientRequests.length) {
+    showAppAlert('No client requests received yet.', 'No Clients Waiting');
+    return;
+  }
+  pendingClientRequests.slice().forEach(c => sendDataToTargetClient(c));
+}
+
+function sendDataToTargetClient(targetClient) {
+  const selProfileId = document.getElementById('mqtt-share-select-profile')?.value;
+  const selLangCode  = document.getElementById('mqtt-share-select-lang')?.value;
+
+  // Prepare Action Profiles
+  let actionProfilesToSend = [];
+  if (selProfileId === '__all__') {
+    actionProfilesToSend = getActionProfiles();
+  } else {
+    const prof = getActionProfiles().find(p => p.id === selProfileId) || getCurrentActionProfile();
+    if (prof) actionProfilesToSend = [prof];
+  }
+
+  // Prepare Language Packs
+  let langPacksToSend = {};
+  const allPacks = getLanguagePacks();
+  if (selLangCode === '__all__') {
+    langPacksToSend = allPacks;
+  } else {
+    if (allPacks[selLangCode]) {
+      langPacksToSend[selLangCode] = allPacks[selLangCode];
+    } else {
+      const active = getActiveLanguageCode();
+      if (allPacks[active]) langPacksToSend[active] = allPacks[active];
+    }
+  }
+
+  const responseTopic = `${MQTT_USER}/${targetClient.reqId}`;
+  const payload = {
+    type: 'CATALOG_RESPONSE',
+    senderName: getMqttP2PClientName(),
+    senderClientId: CURRENT_MQTT_CLIENT_ID,
+    reqId: targetClient.reqId,
+    targetClientName: targetClient.clientName,
+    actionProfiles: actionProfilesToSend,
+    langPacks: langPacksToSend,
+    timestamp: Date.now()
+  };
+
+  mqttClient.publish(responseTopic, JSON.stringify(payload), { qos: 0, retain: false });
+
+  logSyncEvent(
+    'RESPONSE_SENT',
+    responseTopic,
+    targetClient.clientName,
+    `Sent ${actionProfilesToSend.length} action profiles, ${Object.keys(langPacksToSend).length} languages`
+  );
+
+  makeToast(
+    'toast-pub',
+    'bi-check-all',
+    'var(--success)',
+    'Data Sent to Client!',
+    [
+      ['Client', targetClient.clientName, 'code'],
+      ['Topic', responseTopic, ''],
+      ['Actions', `${actionProfilesToSend.length} profiles`, ''],
+      ['Languages', `${Object.keys(langPacksToSend).length} packs`, '']
+    ],
+    4000
+  );
+
+  // Remove from pending list
+  pendingClientRequests = pendingClientRequests.filter(c => c.reqId !== targetClient.reqId);
+  selectedClientReqId = pendingClientRequests[0]?.reqId || null;
+  renderSenderClientsList();
+}
+
+// ── Receiver Request & Coordination ──────────────────────────────────────────
+function showSyncRadar(reqId) {
+  const banner = document.getElementById('sync-radar-banner');
+  const user = MQTT_USER || 'user';
+  if (banner) banner.style.display = 'flex';
+  const aTop = document.getElementById('sync-active-topic');
+  if (aTop) aTop.textContent = `${user}/action`;
+  const rTop = document.getElementById('sync-active-reqid-topic');
+  if (rTop) rTop.textContent = `${user}/${reqId}`;
+  const btnReq = document.getElementById('btn-request-peers-action');
+  if (btnReq) btnReq.disabled = true;
+}
+
+function hideSyncRadar() {
+  const banner = document.getElementById('sync-radar-banner');
+  if (banner) banner.style.display = 'none';
+  const btnReq = document.getElementById('btn-request-peers-action');
+  if (btnReq) btnReq.disabled = false;
+}
+
+function cancelMqttSyncRequest() {
+  if (currentPendingSyncReqId) {
+    clearTimeout(syncRequestTimer);
+    clearInterval(receiverCountdownInterval);
+    try { mqttClient?.unsubscribe(`${MQTT_USER}/${currentPendingSyncReqId}`); } catch {}
+    activeSyncReqIds.delete(currentPendingSyncReqId);
+    currentPendingSyncReqId = null;
+    hideSyncRadar();
+    makeToast('toast-pub', 'bi-x-circle', 'var(--warning)', 'Request Cancelled', [], 1500);
+  }
+}
+
+function requestMqttSync(requestDataType = 'all') {
+  if (!mqttClient || !mqttClient.connected) {
+    makeToast('toast-offline', 'bi-wifi-off', 'var(--danger)', 'MQTT Disconnected', [['Status', 'Cannot send sync request', 'danger']], 3500);
+    return;
+  }
+
+  // 1. Generate 6-char random ID as requested by user
+  const reqId = generateRandom6CharId();
+  currentPendingSyncReqId = reqId;
+  activeSyncReqIds.add(reqId);
+
+  // 2. Subscribe to <username>/<reqId>
+  const responseTopic = `${MQTT_USER}/${reqId}`;
+  mqttClient.subscribe(responseTopic, (err) => {
+    if (err) console.error('Failed to subscribe to response topic:', responseTopic, err);
+  });
+
+  // 3. Publish request on <username>/action topic
+  const requestPayload = {
+    type: 'REQUEST_CATALOG',
+    clientName: getMqttP2PClientName(),
+    clientId: CURRENT_MQTT_CLIENT_ID,
+    reqId: reqId,
+    requestData: requestDataType,
+    timestamp: Date.now()
+  };
+
+  const actionTopic = `${MQTT_USER}/action`;
+  mqttClient.publish(actionTopic, JSON.stringify(requestPayload), { qos: 0, retain: false });
+  logSyncEvent('REQUEST_SENT', actionTopic, 'Sender', `ReqID: ${reqId} (${requestDataType})`);
+
+  // 4. Show Radar in UI
+  showSyncRadar(reqId);
+
+  // 5. Exactly 45-second countdown & timeout (as specified by user: wait time is 45 sec)
+  clearTimeout(syncRequestTimer);
+  clearInterval(receiverCountdownInterval);
+
+  let countdownSecs = 45;
+  const countEl = document.getElementById('sync-countdown-text');
+  if (countEl) countEl.textContent = `Waiting for sender approval & data (${countdownSecs}s remaining)...`;
+
+  receiverCountdownInterval = setInterval(() => {
+    countdownSecs--;
+    if (countEl && currentPendingSyncReqId === reqId) {
+      countEl.textContent = `Waiting for sender approval & data (${countdownSecs}s remaining)...`;
+    }
+    if (countdownSecs <= 0) {
+      clearInterval(receiverCountdownInterval);
+    }
+  }, 1000);
+
+  syncRequestTimer = setTimeout(() => {
+    clearInterval(receiverCountdownInterval);
+    if (currentPendingSyncReqId === reqId) {
+      hideSyncRadar();
+      makeToast(
+        'toast-pub',
+        'bi-clock-history',
+        'var(--warning)',
+        'Request Timed Out (45s)',
+        [['Status', 'Sender was not ready or did not send data', 'warn']],
+        4500
+      );
+      activeSyncReqIds.delete(reqId);
+      try { mqttClient?.unsubscribe(responseTopic); } catch {}
+      currentPendingSyncReqId = null;
+    }
+  }, 45000);
+}
+
+function handleMqttActionCoordMessage(raw) {
+  try {
+    const msg = JSON.parse(raw);
+    if (!msg || typeof msg !== 'object') return;
+
+    // Prevent self-echo
+    if (msg.clientId === CURRENT_MQTT_CLIENT_ID || msg.senderClientId === CURRENT_MQTT_CLIENT_ID) {
+      return;
+    }
+
+    // Case 1: Sender announced SENDER_READY
+    if (msg.type === 'SENDER_READY') {
+      logSyncEvent('SENDER_ONLINE', `${MQTT_USER}/action`, msg.senderName || msg.senderClientId, `Sender is ready for ${msg.duration || 45}s`);
+      
+      // Update receiver banner to green
+      const dot = document.getElementById('recv-sender-dot');
+      const title = document.getElementById('recv-sender-status-title');
+      const desc = document.getElementById('recv-sender-status-desc');
+      if (dot) {
+        dot.style.background = '#10b981';
+        dot.style.boxShadow = '0 0 12px #10b981';
+        dot.className = 'status-dot-pulse-green';
+      }
+      if (title) title.textContent = `Sender Ready: ${msg.senderName || 'Peer'} is Active!`;
+      if (desc) desc.textContent = `Sender is currently accepting requests (expires in 45s). Click "Request from Sender" now.`;
+
+      clearTimeout(senderNoticeTimeout);
+      senderNoticeTimeout = setTimeout(() => {
+        if (dot) {
+          dot.style.background = '#ef4444';
+          dot.style.boxShadow = '0 0 8px #ef4444';
+          dot.className = '';
+        }
+        if (title) title.textContent = 'Sender Status: Idle (Not Ready)';
+        if (desc) desc.textContent = 'The sender must click "Ready to Send" first before you can request data.';
+      }, (msg.duration || 45) * 1000);
+
+      makeToast('toast-pub', 'bi-broadcast-pin', 'var(--success)', `Sender Ready: ${msg.senderName || 'Peer'}`, [['Status', 'Accepting requests for 45s', 'code']], 3500);
+      return;
+    }
+
+    // Case 2: Sender cancelled ready mode
+    if (msg.type === 'SENDER_CANCELLED') {
+      const dot = document.getElementById('recv-sender-dot');
+      const title = document.getElementById('recv-sender-status-title');
+      const desc = document.getElementById('recv-sender-status-desc');
+      if (dot) {
+        dot.style.background = '#ef4444';
+        dot.style.boxShadow = '0 0 8px #ef4444';
+        dot.className = '';
+      }
+      if (title) title.textContent = 'Sender Status: Idle (Not Ready)';
+      if (desc) desc.textContent = 'The sender must click "Ready to Send" first before you can request data.';
+      return;
+    }
+
+    // Case 3: Client requested catalog on <username>/action
+    if (msg.type === 'REQUEST_CATALOG' && msg.reqId) {
+      logSyncEvent('REQUEST_RECV', `${MQTT_USER}/action`, msg.clientName || msg.clientId, `Client requested data (reqId: ${msg.reqId})`);
+
+      // Without sender ready, cannot receive request!
+      if (!isSenderReadyMode) {
+        logSyncEvent('REQ_IGNORED', `${MQTT_USER}/action`, msg.clientName || msg.clientId, 'Sender not in Ready mode; request ignored');
+        return;
+      }
+
+      // Add to pendingClientRequests
+      const existingIdx = pendingClientRequests.findIndex(r => r.reqId === msg.reqId);
+      const reqObj = {
+        clientName: msg.clientName || 'Client_' + msg.reqId,
+        clientId: msg.clientId,
+        reqId: msg.reqId,
+        requestData: msg.requestData || 'all',
+        timeStr: new Date().toLocaleTimeString(),
+        timestamp: Date.now()
+      };
+
+      if (existingIdx !== -1) {
+        pendingClientRequests[existingIdx] = reqObj;
+      } else {
+        pendingClientRequests.push(reqObj);
+      }
+
+      if (!selectedClientReqId) {
+        selectedClientReqId = msg.reqId;
+      }
+
+      renderSenderClientsList();
+
+      makeToast(
+        'toast-pub',
+        'bi-person-check-fill',
+        'var(--accent)',
+        `Incoming Request from ${reqObj.clientName}`,
+        [['Request ID', reqObj.reqId, 'code'], ['Action', 'Select data & click Send', '']],
+        4500
+      );
+      return;
+    }
+
+    // Direct Share push
+    if (msg.type === 'DIRECT_SHARE') {
+      logSyncEvent('DIRECT_SHARE_RECV', `${MQTT_USER}/action`, msg.senderName || msg.senderClientId, `Received direct share: ${msg.shareType}`);
+      handleIncomingDirectShare(msg);
+      return;
+    }
+  } catch (e) {
+    console.error('Error handling action coord message:', e);
+  }
+}
+
+function handleMqttSyncResponseMessage(reqId, raw) {
+  try {
+    const msg = JSON.parse(raw);
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.senderClientId === CURRENT_MQTT_CLIENT_ID) return;
+
+    if (msg.type === 'CATALOG_RESPONSE') {
+      logSyncEvent('CATALOG_RECV', `${MQTT_USER}/${reqId}`, msg.senderName || msg.senderClientId, `Received ${msg.actionProfiles?.length || 0} profiles, ${Object.keys(msg.langPacks || {}).length} languages`);
+      
+      hideSyncRadar();
+      clearTimeout(syncRequestTimer);
+      clearInterval(receiverCountdownInterval);
+      lastDiscoveredPeerData = msg;
+
+      // Automatically save to localStorage on receive as requested by user
+      autoSaveDiscoveredDataToLocalStorage(msg);
+
+      renderDiscoveredPeerCatalog(msg);
+
+      makeToast(
+        'toast-pub',
+        'bi-check2-circle',
+        'var(--success)',
+        'Data Received & Saved!',
+        [
+          ['Sender', msg.senderName || 'Peer', 'code'],
+          ['Actions', `${(msg.actionProfiles || []).length} profiles saved to localStorage`, ''],
+          ['Languages', `${Object.keys(msg.langPacks || {}).length} languages saved`, '']
+        ],
+        4000
+      );
+
+      try { mqttClient?.unsubscribe(`${MQTT_USER}/${reqId}`); } catch {}
+      activeSyncReqIds.delete(reqId);
+      currentPendingSyncReqId = null;
+    }
+  } catch (e) {
+    console.error('Error handling sync response message:', e);
+  }
+}
+
+function autoSaveDiscoveredDataToLocalStorage(msg) {
+  if (!msg) return;
+  const profiles = Array.isArray(msg.actionProfiles) ? msg.actionProfiles : [];
+  const langPacks = (msg.langPacks && typeof msg.langPacks === 'object') ? msg.langPacks : {};
+
+  // 1. Save all action profiles into localStorage (mqtt_action_profiles)
+  if (profiles.length > 0) {
+    const localProfiles = getActionProfiles();
+    profiles.forEach(p => {
+      let target = localProfiles.find(lp => lp.id === p.id || lp.name.toLowerCase() === p.name.toLowerCase());
+      if (target) {
+        target.buttons = p.buttons || [];
+        target.updatedAt = Date.now();
+      } else {
+        localProfiles.push({
+          id: p.id || ('profile_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 4)),
+          name: p.name,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          buttons: p.buttons || []
+        });
+      }
+    });
+    saveActionProfiles(localProfiles);
+    renderActionProfileSelector();
+    renderCustomButtons();
+  }
+
+  // 2. Save all language packs into localStorage (mqtt_i18n_packs)
+  if (Object.keys(langPacks).length > 0) {
+    const localPacks = getLanguagePacks();
+    Object.entries(langPacks).forEach(([code, p]) => {
+      localPacks[code] = {
+        code: code,
+        name: p.name || code,
+        dict: p.dict || {}
+      };
+    });
+    saveLanguagePacks(localPacks);
+    renderLangDropdownOptions();
+  }
+
+  if (profiles.length > 0 || Object.keys(langPacks).length > 0) {
+    makeToast(
+      'toast-pub',
+      'bi-check-all',
+      'var(--success)',
+      'Save Done!',
+      [['Status', 'Auto-saved to LocalStorage', 'success'], ['Action Sets', `${profiles.length}`, 'code'], ['Languages', `${Object.keys(langPacks).length}`, 'code']],
+      3500
+    );
+  }
+}
+
+function renderDiscoveredPeerCatalog(msg) {
+  const container = document.getElementById('sync-discovered-results');
+  if (!container) return;
+
+  const profiles = Array.isArray(msg.actionProfiles) ? msg.actionProfiles : [];
+  const langPacks = (msg.langPacks && typeof msg.langPacks === 'object') ? msg.langPacks : {};
+  const langEntries = Object.entries(langPacks);
+
+  window.__lastPeerActionProfiles = profiles;
+  window.__lastPeerLangPacks = langPacks;
+
+  container.innerHTML = `
+    <div class="peer-card">
+      <div class="peer-card-head">
+        <div>
+          <span style="font-size:12.5px;font-weight:700;color:var(--text)">
+            <i class="bi bi-person-check-fill" style="color:var(--success)"></i> ${escapeHtmlAttr(msg.senderName || 'Peer Client')}
+          </span>
+          <span style="font-size:10.5px;color:var(--muted);margin-left:6px"><code>${escapeHtmlAttr(msg.senderClientId || '')}</code></span>
+        </div>
+        <button class="btn-modal-primary" style="padding:4px 10px;font-size:11px;background:var(--success)" onclick="saveAllDiscoveredToLocalStorage(this)">
+          <i class="bi bi-cloud-arrow-down-fill"></i> Save All to LocalStorage
+        </button>
+      </div>
+
+      <!-- Action Profiles Section -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">
+          <i class="bi bi-layers-half"></i> Discovered Action Sets (${profiles.length})
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${profiles.length === 0 ? '<div style="font-size:11px;color:var(--muted)">No custom action profiles found on peer.</div>' : profiles.map((p, pIdx) => {
+            const btnCount = (p.buttons || []).length;
+            const buttonNames = (p.buttons || []).map(b => b.name).filter(Boolean).slice(0, 4).join(', ');
+            return `
+              <div class="peer-discovered-item">
+                <div style="min-width:0;flex:1">
+                  <div style="font-size:12px;font-weight:700;color:var(--text)">${escapeHtmlAttr(p.name)}</div>
+                  <div style="font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                    <strong>${btnCount} button${btnCount !== 1 ? 's' : ''}</strong> ${buttonNames ? `&bull; [${escapeHtmlAttr(buttonNames)}${btnCount > 4 ? '…' : ''}]` : ''}
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0">
+                  <button class="btn-modal-secondary" style="padding:3px 8px;font-size:10.5px" onclick="savePeerActionProfileByIdx(${pIdx}, false, this)">
+                    <i class="bi bi-save"></i> Save
+                  </button>
+                  <button class="btn-modal-primary" style="padding:3px 8px;font-size:10.5px" onclick="savePeerActionProfileByIdx(${pIdx}, true, this)">
+                    <i class="bi bi-lightning-charge"></i> Save &amp; Switch
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- Language Packs Section -->
+      <div style="margin-top:4px">
+        <div style="font-size:11px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">
+          <i class="bi bi-translate"></i> Discovered Language Packs (${langEntries.length})
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${langEntries.length === 0 ? '<div style="font-size:11px;color:var(--muted)">No language packs found on peer.</div>' : langEntries.map(([code, pack]) => {
+            const keyCount = Object.keys(pack.dict || {}).length;
+            return `
+              <div class="peer-discovered-item">
+                <div style="min-width:0;flex:1">
+                  <div style="font-size:12px;font-weight:700;color:var(--text)">
+                    ${escapeHtmlAttr(pack.name || code)} <code style="font-size:10px;color:var(--accent)">[${escapeHtmlAttr(code)}]</code>
+                  </div>
+                  <div style="font-size:10.5px;color:var(--muted)">
+                    ${keyCount} translation phrases configured
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0">
+                  <button class="btn-modal-secondary" style="padding:3px 8px;font-size:10.5px" onclick="savePeerLangPackByCode('${code}', false, this)">
+                    <i class="bi bi-save"></i> Save
+                  </button>
+                  <button class="btn-modal-primary" style="padding:3px 8px;font-size:10.5px;background:#8b5cf6" onclick="savePeerLangPackByCode('${code}', true, this)">
+                    <i class="bi bi-check2"></i> Save &amp; Apply
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function savePeerActionProfileByIdx(idx, activateNow = false, btnEl = null) {
+  const profiles = window.__lastPeerActionProfiles || [];
+  const target = profiles[idx];
+  if (target) {
+    savePeerActionProfileToLocalStorage(target, activateNow);
+    if (btnEl) {
+      triggerButtonSaveFeedback(btnEl, activateNow ? '✓ Saved & Applied!' : '✓ Save Done!');
+    }
+  }
+}
+
+function savePeerLangPackByCode(code, activateNow = false, btnEl = null) {
+  const packs = window.__lastPeerLangPacks || {};
+  const target = packs[code];
+  if (target) {
+    savePeerLangPackToLocalStorage(code, target, activateNow);
+    if (btnEl) {
+      triggerButtonSaveFeedback(btnEl, activateNow ? '✓ Applied!' : '✓ Save Done!');
+    }
+  }
+}
+
+function savePeerActionProfileToLocalStorage(profile, activateNow = false) {
+  if (!profile || !profile.name) return;
+  const profiles = getActionProfiles();
+
+  // Check if identical id or name already exists
+  let target = profiles.find(p => p.id === profile.id);
+  if (!target) {
+    target = profiles.find(p => p.name.toLowerCase() === profile.name.toLowerCase());
+  }
+
+  if (target) {
+    target.buttons = profile.buttons || [];
+    target.updatedAt = Date.now();
+  } else {
+    const newProfile = {
+      id: profile.id || ('profile_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 4)),
+      name: profile.name,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      buttons: profile.buttons || []
+    };
+    profiles.push(newProfile);
+    target = newProfile;
+  }
+
+  saveActionProfiles(profiles);
+
+  if (activateNow) {
+    switchActionProfile(target.id);
+  } else {
+    renderActionProfileSelector();
+    renderCustomButtons();
+  }
+
+  makeToast(
+    'toast-pub',
+    'bi-check-circle-fill',
+    'var(--success)',
+    'Save Done!',
+    [['Action Set', profile.name, 'code'], ['Buttons', `${(profile.buttons || []).length} buttons`, ''], ['Status', activateNow ? 'Saved & Switched' : 'Saved to LocalStorage', 'success']],
+    3000
+  );
+}
+
+function savePeerLangPackToLocalStorage(langCode, pack, activateNow = false) {
+  if (!pack || !pack.dict) return;
+  const packs = getLanguagePacks();
+  packs[langCode] = {
+    code: langCode,
+    name: pack.name || langCode,
+    dict: pack.dict
+  };
+  saveLanguagePacks(packs);
+  renderLangDropdownOptions();
+
+  if (activateNow) {
+    applyLanguage(langCode);
+  }
+
+  makeToast(
+    'toast-pub',
+    'bi-check-circle-fill',
+    'var(--success)',
+    'Save Done!',
+    [['Language', pack.name || langCode, 'code'], ['Phrases', `${Object.keys(pack.dict).length} translations`, ''], ['Status', activateNow ? 'Saved & Applied' : 'Saved to LocalStorage', 'success']],
+    3000
+  );
+}
+
+function saveAllDiscoveredToLocalStorage(btnEl = null) {
+  if (!lastDiscoveredPeerData) return;
+  const { actionProfiles, langPacks } = lastDiscoveredPeerData;
+  let actionCount = 0;
+  let langCount = 0;
+
+  if (Array.isArray(actionProfiles)) {
+    actionProfiles.forEach(p => {
+      savePeerActionProfileToLocalStorage(p, false);
+      actionCount++;
+    });
+  }
+
+  if (langPacks && typeof langPacks === 'object') {
+    Object.entries(langPacks).forEach(([code, p]) => {
+      savePeerLangPackToLocalStorage(code, p, false);
+      langCount++;
+    });
+  }
+
+  if (btnEl) {
+    triggerButtonSaveFeedback(btnEl, '✓ Save Done!');
+  }
+
+  makeToast(
+    'toast-pub',
+    'bi-cloud-check-fill',
+    'var(--success)',
+    'Save Done!',
+    [['Status', 'All Data Saved to LocalStorage', 'success'], ['Action Sets', `${actionCount} profiles saved`, 'code'], ['Languages', `${langCount} packs saved`, 'code']],
+    3500
+  );
+}
+
+function broadcastDirectShare(targetType = 'all') {
+  if (!mqttClient || !mqttClient.connected) {
+    makeToast('toast-offline', 'bi-wifi-off', 'var(--danger)', 'MQTT Disconnected', [['Status', 'Cannot broadcast', 'danger']], 3000);
+    return;
+  }
+
+  const payload = {
+    type: 'DIRECT_SHARE',
+    senderName: getMqttP2PClientName(),
+    senderClientId: CURRENT_MQTT_CLIENT_ID,
+    shareType: targetType,
+    timestamp: Date.now()
+  };
+
+  if (targetType === 'action' || targetType === 'all') {
+    const selProfileId = document.getElementById('mqtt-share-select-profile')?.value;
+    if (selProfileId === '__all__') {
+      payload.actionProfiles = getActionProfiles();
+    } else {
+      const p = getActionProfiles().find(pr => pr.id === selProfileId) || getCurrentActionProfile();
+      payload.actionProfile = p;
+    }
+  }
+
+  if (targetType === 'lang' || targetType === 'all') {
+    const selLangCode = document.getElementById('mqtt-share-select-lang')?.value;
+    const packs = getLanguagePacks();
+    if (selLangCode === '__all__') {
+      payload.langPacks = packs;
+    } else {
+      payload.langPack = packs[selLangCode] || packs[getActiveLanguageCode()];
+      payload.langCode = selLangCode;
+    }
+  }
+
+  const topic = `${MQTT_USER}/action`;
+  mqttClient.publish(topic, JSON.stringify(payload), { qos: 0, retain: false });
+  logSyncEvent('DIRECT_SHARE_SENT', topic, 'Broadcast', `Shared: ${targetType}`);
+
+  makeToast(
+    'toast-pub',
+    'bi-broadcast',
+    'var(--accent)',
+    'Broadcast Complete',
+    [['Shared', targetType, 'code'], ['Topic', `${MQTT_USER}/action`, '']],
+    3000
+  );
+}
+
+function handleIncomingDirectShare(msg) {
+  const sender = msg.senderName || 'Peer';
+  if (msg.actionProfile) {
+    savePeerActionProfileToLocalStorage(msg.actionProfile, false);
+    makeToast(
+      'toast-pub',
+      'bi-layers-half',
+      'var(--accent)',
+      `Received Action Set: ${msg.actionProfile.name}`,
+      [['From', sender, 'code'], ['Storage', 'Saved to LocalStorage', 'code']],
+      4000
+    );
+  }
+  if (Array.isArray(msg.actionProfiles)) {
+    msg.actionProfiles.forEach(p => savePeerActionProfileToLocalStorage(p, false));
+    makeToast('toast-pub', 'bi-layers-half', 'var(--accent)', `Received ${msg.actionProfiles.length} Action Sets from ${sender}`, [['Storage', 'Saved to LocalStorage', 'code']], 4000);
+  }
+  if (msg.langPack && msg.langCode) {
+    savePeerLangPackToLocalStorage(msg.langCode, msg.langPack, false);
+    makeToast('toast-pub', 'bi-translate', 'var(--success)', `Received Language: ${msg.langPack.name} from ${sender}`, [['Storage', 'Saved to LocalStorage', 'code']], 4000);
+  }
+  if (msg.langPacks) {
+    Object.entries(msg.langPacks).forEach(([c, p]) => savePeerLangPackToLocalStorage(c, p, false));
+    makeToast('toast-pub', 'bi-translate', 'var(--success)', `Received Languages from ${sender}`, [['Storage', 'Saved to LocalStorage', 'code']], 4000);
+  }
+}
+
+function renderMqttShareModalSelectors() {
+  const profiles = getActionProfiles();
+  const curId = getCurrentActionProfileId();
+  const pSelect = document.getElementById('mqtt-share-select-profile');
+  if (pSelect) {
+    pSelect.innerHTML = `
+      <option value="__all__">All Profiles (${profiles.length} sets)</option>
+      ${profiles.map(p => `<option value="${p.id}" ${p.id === curId ? 'selected' : ''}>${escapeHtmlAttr(p.name)} (${(p.buttons || []).length} buttons)</option>`).join('')}
+    `;
+  }
+
+  const packs = getLanguagePacks();
+  const activeLang = getActiveLanguageCode();
+  const lSelect = document.getElementById('mqtt-share-select-lang');
+  if (lSelect) {
+    lSelect.innerHTML = `
+      <option value="__all__">All Languages (${Object.keys(packs).length} packs)</option>
+      ${Object.entries(packs).map(([code, p]) => `<option value="${code}" ${code === activeLang ? 'selected' : ''}>${escapeHtmlAttr(p.name || code)} (${Object.keys(p.dict || {}).length} keys)</option>`).join('')}
+    `;
+  }
+}
+
+function logSyncEvent(type, topic, peer, details) {
+  const time = new Date().toLocaleTimeString();
+  mqttSyncLogs.unshift({ time, type, topic, peer, details });
+  if (mqttSyncLogs.length > 50) mqttSyncLogs.pop();
+  renderMqttSyncLogTable();
+}
+
+function clearMqttSyncLog() {
+  mqttSyncLogs.length = 0;
+  renderMqttSyncLogTable();
+}
+
+function renderMqttSyncLogTable() {
+  const tbody = document.getElementById('sync-log-tbody');
+  if (!tbody) return;
+  if (!mqttSyncLogs.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:14px">No sync events recorded yet.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = mqttSyncLogs.map(item => `
+    <tr>
+      <td style="color:var(--muted);white-space:nowrap">${item.time}</td>
+      <td><span style="font-weight:700;color:var(--accent)">${escapeHtmlAttr(item.type)}</span></td>
+      <td><code style="color:#a5b4fc;font-size:10px">${escapeHtmlAttr(item.topic)}</code></td>
+      <td style="color:var(--text);font-weight:600">${escapeHtmlAttr(item.peer)}</td>
+      <td style="color:var(--muted)">${escapeHtmlAttr(item.details)}</td>
+    </tr>
+  `).join('');
 }
 
 function loadButtonStyles() {
@@ -3538,24 +6375,35 @@ function saveButtonStyles(st) {
 function applyButtonStyles(st) {
   const flow = document.getElementById('custom-buttons-container');
   if (flow) {
-    if (st.size === 'small') {
-      flow.style.setProperty('--cb-min-height', '38px');
-      flow.style.setProperty('--cb-font-size', '11px');
-    } else if (st.size === 'large') {
-      flow.style.setProperty('--cb-min-height', '56px');
-      flow.style.setProperty('--cb-font-size', '14px');
-    } else {
-      flow.style.setProperty('--cb-min-height', '48px');
+    if (st.size === 'compact') {
+      flow.style.setProperty('--cb-min-height', '30px');
+      flow.style.setProperty('--cb-font-size', '10.5px');
+      flow.style.setProperty('--cb-icon-size', '18px');
+      flow.style.setProperty('--cb-icon-font-size', '10px');
+    } else if (st.size === 'medium') {
+      flow.style.setProperty('--cb-min-height', '40px');
       flow.style.setProperty('--cb-font-size', '12px');
+      flow.style.setProperty('--cb-icon-size', '24px');
+      flow.style.setProperty('--cb-icon-font-size', '12px');
+    } else if (st.size === 'large') {
+      flow.style.setProperty('--cb-min-height', '48px');
+      flow.style.setProperty('--cb-font-size', '13px');
+      flow.style.setProperty('--cb-icon-size', '26px');
+      flow.style.setProperty('--cb-icon-font-size', '13px');
+    } else { // 'small' or default
+      flow.style.setProperty('--cb-min-height', '35px');
+      flow.style.setProperty('--cb-font-size', '11.5px');
+      flow.style.setProperty('--cb-icon-size', '22px');
+      flow.style.setProperty('--cb-icon-font-size', '11.5px');
     }
 
-    flow.style.setProperty('--cb-radius', st.radius || '10px');
+    flow.style.setProperty('--cb-radius', st.radius || '8px');
 
-    if (st.padding === 'compact') flow.style.setProperty('--cb-padding', '6px 8px');
-    else if (st.padding === 'relaxed') flow.style.setProperty('--cb-padding', '12px 16px');
-    else flow.style.setProperty('--cb-padding', '8px 12px');
+    if (st.padding === 'compact') flow.style.setProperty('--cb-padding', '4px 6px');
+    else if (st.padding === 'relaxed') flow.style.setProperty('--cb-padding', '8px 12px');
+    else flow.style.setProperty('--cb-padding', '5px 8px');
 
-    flow.style.setProperty('--cb-gap', st.gap || '8px');
+    flow.style.setProperty('--cb-gap', st.gap || '6px');
   }
 
   // Mobile drawer width
@@ -3576,10 +6424,10 @@ function toggleStyleCustomizer() {
 
 function updateButtonStyles() {
   const st = {
-    size: document.getElementById('st-size')?.value || 'medium',
-    radius: document.getElementById('st-radius')?.value || '10px',
+    size: document.getElementById('st-size')?.value || 'small',
+    radius: document.getElementById('st-radius')?.value || '8px',
     padding: document.getElementById('st-padding')?.value || 'normal',
-    gap: document.getElementById('st-gap')?.value || '8px',
+    gap: document.getElementById('st-gap')?.value || '6px',
     mobileSidebarWidth: document.getElementById('st-mobile-w')?.value || '90%'
   };
   saveButtonStyles(st);
@@ -3587,10 +6435,10 @@ function updateButtonStyles() {
 }
 
 function syncStyleFormInputs(st) {
-  if (document.getElementById('st-size')) document.getElementById('st-size').value = st.size || 'medium';
-  if (document.getElementById('st-radius')) document.getElementById('st-radius').value = st.radius || '10px';
+  if (document.getElementById('st-size')) document.getElementById('st-size').value = st.size || 'small';
+  if (document.getElementById('st-radius')) document.getElementById('st-radius').value = st.radius || '8px';
   if (document.getElementById('st-padding')) document.getElementById('st-padding').value = st.padding || 'normal';
-  if (document.getElementById('st-gap')) document.getElementById('st-gap').value = st.gap || '8px';
+  if (document.getElementById('st-gap')) document.getElementById('st-gap').value = st.gap || '6px';
   if (document.getElementById('st-mobile-w')) {
     const val = (st.mobileSidebarWidth || '90%').replace('vw', '%');
     document.getElementById('st-mobile-w').value = val;
@@ -3766,6 +6614,7 @@ function renderCustomButtons() {
   if (fabBadge) fabBadge.textContent = buttons.length;
   const topbarBadge = document.getElementById('topbar-actions-badge');
   if (topbarBadge) topbarBadge.textContent = `${t('actions', 'Actions')} (${buttons.length})`;
+  if (typeof renderActionProfileSelector === 'function') renderActionProfileSelector();
 
   const st = loadButtonStyles();
   applyButtonStyles(st);
@@ -4268,13 +7117,13 @@ function renderBuilderActions() {
 
     candidateDevices.forEach(did => {
       const info = (allDevicesData[did] || {}).info || {};
-      const bName = info.a || did;
+      const bName = info.a ? t(info.a, info.a) : did;
       const isSel = action.deviceId === did ? 'selected' : '';
-      deviceOptionsHtml += `<option value="${did}" ${isSel}>${bName} (${did})</option>`;
+      deviceOptionsHtml += `<option value="${escapeHtmlAttr(did)}" ${isSel}>${escapeHtml(bName)} (${escapeHtml(did)})</option>`;
     });
 
-    const spaceOptionsHtml = ['<option value="">-- All / Any Space --</option>']
-      .concat(allSpaces.map(s => `<option value="${s}" ${action.space === s ? 'selected' : ''}>${s}</option>`))
+    const spaceOptionsHtml = [`<option value="">-- ${escapeHtml(t('all', 'All'))} / Any Space --</option>`]
+      .concat(allSpaces.map(s => `<option value="${escapeHtmlAttr(s)}" ${action.space === s ? 'selected' : ''}>${escapeHtml(t(s, s))}</option>`))
       .join('');
 
     let commandBuilderHtml = `
@@ -4551,14 +7400,14 @@ function saveBuilderButton() {
   const nameInput = document.getElementById('b-name');
   const name = nameInput.value.trim();
   if (!name) {
-    alert('Please enter a name for this custom button.');
+    showAppAlert('Please enter a name for this custom button.', 'Button Name Required');
     nameInput.focus();
     return;
   }
 
   const validActions = currentBuilderActions.filter(a => a.deviceId && a.rawCmd);
   if (!validActions.length) {
-    alert('Please select at least one board and valid command for this button.');
+    showAppAlert('Please select at least one board and valid command for this button.', 'Action Required');
     return;
   }
 
@@ -4612,8 +7461,8 @@ function saveBuilderButton() {
     'toast-pub',
     'bi-check-circle-fill',
     'var(--success)',
-    editId ? 'Button Updated' : 'Button Created',
-    [['Name', name, ''], ['Actions', `${validActions.length} commands`, 'code']],
+    'Save Done!',
+    [['Status', editId ? 'Button Updated' : 'Button Created', 'success'], ['Name', name, ''], ['Actions', `${validActions.length} commands`, 'code']],
     3000
   );
 }
@@ -4670,7 +7519,7 @@ function copyExportJSON() {
   navigator.clipboard.writeText(text).then(() => {
     makeToast('toast-pub', 'bi-clipboard-check', 'var(--success)', 'Copied to Clipboard', [['Items', `${loadCustomButtons().length} buttons in JSON`, 'code']], 2500);
   }).catch(() => {
-    alert('Failed to copy to clipboard. Please copy manually from the box.');
+    showAppAlert('Failed to copy to clipboard. Please copy manually from the box.', 'Clipboard');
   });
 }
 
@@ -4688,7 +7537,7 @@ function handleFileImport(event) {
 function executeImportJSON(mode = 'merge') {
   const raw = document.getElementById('import-json-text').value.trim();
   if (!raw) {
-    alert('Please paste or select a JSON file to import.');
+    showAppAlert('Please paste or select a JSON file to import.', 'Import Buttons');
     return;
   }
 
@@ -4699,13 +7548,13 @@ function executeImportJSON(mode = 'merge') {
       throw new Error('Root JSON must be an array of button objects.');
     }
   } catch (err) {
-    alert('Invalid JSON format: ' + err.message);
+    showAppAlert('Invalid JSON format: ' + err.message, 'JSON Syntax Error');
     return;
   }
 
   const sanitized = importedList.filter(item => item && typeof item === 'object' && item.name && Array.isArray(item.actions));
   if (!sanitized.length) {
-    alert('No valid button objects found in the JSON document.');
+    showAppAlert('No valid button objects found in the JSON document.', 'Invalid Format');
     return;
   }
 
@@ -4732,8 +7581,8 @@ function executeImportJSON(mode = 'merge') {
     'toast-pub',
     'bi-check2-all',
     'var(--success)',
-    mode === 'replace' ? 'Import Complete (Replaced)' : 'Import Complete (Merged)',
-    [['Total Buttons', `${finalList.length} configured`, 'code']],
+    'Save Done!',
+    [['Status', mode === 'replace' ? 'Buttons Replaced' : 'Buttons Merged', 'success'], ['Total Buttons', `${finalList.length} configured`, 'code']],
     3500
   );
 }
@@ -4866,6 +7715,8 @@ window.addEventListener('keydown', (e) => {
     closeBuilderModal();
     closeImportExportModal();
     closeLangModal();
+    closeMqttShareModal();
+    closeActionProfileDropdown();
   }
 });
 
@@ -4873,6 +7724,7 @@ window.addEventListener('keydown', (e) => {
 (function boot() {
   initI18n();
   const creds = loadCreds();
+  renderActionProfileSelector();
   renderCustomButtons();
   if (creds) { prefillForm(creds); document.getElementById('login-overlay').classList.add('hidden'); initMQTT(creds); }
 })();
