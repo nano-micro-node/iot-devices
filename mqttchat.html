@@ -1,0 +1,5616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>WhatsApp Web - MQTT Chat</title>
+  
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <!-- MQTT.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mqtt@4.3.7/dist/mqtt.min.js"></script>
+  <script>
+    if (typeof mqtt === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"><\/script>');
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-app: #111b21;
+      --bg-header: #202c33;
+      --bg-panel: #111b21;
+      --bg-panel-secondary: #182229;
+      --bg-chat: #0b141a;
+      --bg-chat-bubble-out: #005c4b;
+      --bg-chat-bubble-in: #202c33;
+      --text-primary: #e9edef;
+      --text-secondary: #8696a0;
+      --text-muted: #667781;
+      --accent-green: #00a884;
+      --accent-green-hover: #02906f;
+      --accent-blue: #53bdeb;
+      --border-color: #222d34;
+      --hover-bg: #202c33;
+      --active-bg: #2a3942;
+      --danger: #ef4444;
+      --badge-bg: #00a884;
+      --input-bg: #2a3942;
+      --search-bg: #202c33;
+      --dropdown-bg: #233138;
+      --modal-bg: #222e35;
+      --shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    [data-theme="light"] {
+      --bg-app: #f0f2f5;
+      --bg-header: #f0f2f5;
+      --bg-panel: #ffffff;
+      --bg-panel-secondary: #f0f2f5;
+      --bg-chat: #efeae2;
+      --bg-chat-bubble-out: #d9fdd3;
+      --bg-chat-bubble-in: #ffffff;
+      --text-primary: #111b21;
+      --text-secondary: #667781;
+      --text-muted: #8696a0;
+      --accent-green: #00a884;
+      --accent-green-hover: #02906f;
+      --accent-blue: #53bdeb;
+      --border-color: #e9edef;
+      --hover-bg: #f5f6f6;
+      --active-bg: #eaecef;
+      --danger: #dc2626;
+      --badge-bg: #25d366;
+      --input-bg: #ffffff;
+      --search-bg: #f0f2f5;
+      --dropdown-bg: #ffffff;
+      --modal-bg: #ffffff;
+      --shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      min-height: -webkit-fill-available;
+      overflow: hidden;
+      background-color: #0c1317;
+      color: var(--text-primary);
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Outer Wrapper */
+    .app-wrapper {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      background-color: var(--bg-app);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── LEFT SIDEBAR (CHATS) ───────────────────────── */
+    .sidebar {
+      width: 400px;
+      min-width: 300px;
+      max-width: 460px;
+      height: 100%;
+      background-color: var(--bg-panel);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 10;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Sidebar Header */
+    .sidebar-header {
+      height: 60px;
+      background-color: var(--bg-header);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00a884, #005c4b);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 16px;
+      text-transform: uppercase;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .avatar.online::after {
+      content: '';
+      position: absolute;
+      bottom: 1px;
+      right: 1px;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background-color: #22c55e;
+      border: 2px solid var(--bg-header);
+      box-shadow: 0 0 4px #22c55e;
+    }
+
+    .avatar.offline::after {
+      content: '';
+      position: absolute;
+      bottom: 1px;
+      right: 1px;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background-color: #94a3b8;
+      border: 2px solid var(--bg-header);
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.25;
+    }
+
+    .user-info .username {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .user-info .status-tag {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-tag .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      background-color: #ef4444;
+    }
+    .status-tag .dot.online {
+      background-color: #22c55e;
+      box-shadow: 0 0 6px #22c55e;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.15s, color 0.15s, transform 0.1s;
+    }
+
+    .icon-btn:hover {
+      background-color: var(--hover-bg);
+      color: var(--text-primary);
+    }
+    .icon-btn:active {
+      transform: scale(0.94);
+    }
+
+    /* Switch User Fast Bar */
+    .switch-bar {
+      padding: 8px 14px;
+      background-color: var(--bg-panel-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .switch-btn {
+      background-color: var(--accent-green);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .switch-btn:hover {
+      background-color: var(--accent-green-hover);
+    }
+    .switch-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Search & Filter Bar */
+    .sidebar-search {
+      padding: 8px 12px;
+      background-color: var(--bg-panel);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .search-box {
+      flex: 1;
+      height: 38px;
+      background-color: var(--search-bg);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 10px;
+    }
+
+    .search-box i {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .search-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    /* Contact List */
+    .chat-list {
+      flex: 1;
+      overflow-y: auto;
+      background-color: var(--bg-panel);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .chat-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-list::-webkit-scrollbar-thumb {
+      background-color: rgba(255,255,255,0.1);
+      border-radius: 3px;
+    }
+
+    .chat-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      gap: 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-color);
+      transition: background-color 0.15s;
+      position: relative;
+      user-select: none;
+    }
+
+    .chat-item:hover {
+      background-color: var(--hover-bg);
+    }
+
+    .chat-item:active {
+      background-color: var(--active-bg);
+    }
+
+    .chat-item.active {
+      background-color: var(--active-bg);
+    }
+
+    .chat-item-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .chat-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-item-name {
+      font-size: 15.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .online-indicator-pill {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #22c55e;
+      background: rgba(34, 197, 94, 0.12);
+      padding: 1px 6px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .chat-item-time {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .chat-item-msg {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chat-item-msg.typing {
+      color: var(--accent-green);
+      font-weight: 500;
+    }
+
+    .btn-delete-contact {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13.5px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      opacity: 0.35;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chat-item:hover .btn-delete-contact {
+      opacity: 0.85;
+    }
+
+    .btn-delete-contact:hover {
+      color: var(--danger) !important;
+      background: rgba(239, 68, 68, 0.15);
+      opacity: 1 !important;
+    }
+
+    .unread-badge {
+      background-color: var(--badge-bg);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      flex-shrink: 0;
+    }
+
+    /* ── RIGHT MAIN CHAT AREA ────────────────────────── */
+    .chat-main {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-chat);
+      position: relative;
+      overflow: hidden;
+      z-index: 5;
+    }
+
+    /* WhatsApp Doodle Pattern Wallpaper */
+    .chat-main::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.06;
+      pointer-events: none;
+      background-image: radial-gradient(#00a884 1px, transparent 1px), radial-gradient(#00a884 1px, var(--bg-chat) 1px);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+      z-index: 1;
+    }
+
+    /* Empty state */
+    .empty-chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 30px;
+      z-index: 2;
+    }
+
+    .empty-chat-icon {
+      font-size: 80px;
+      color: var(--accent-green);
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+
+    .empty-chat h2 {
+      font-size: 26px;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .empty-chat p {
+      font-size: 14.5px;
+      color: var(--text-secondary);
+      max-width: 460px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    /* Chat Active Header */
+    .chat-header {
+      height: 60px;
+      background-color: var(--bg-header);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      min-width: 0;
+    }
+
+    .btn-back-mobile {
+      display: none;
+      font-size: 22px;
+      color: var(--text-primary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .btn-back-mobile:active {
+      background-color: var(--hover-bg);
+    }
+
+    .chat-header-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.25;
+      min-width: 0;
+    }
+
+    .chat-header-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-header-status {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-header-status.online {
+      color: #22c55e;
+      font-weight: 500;
+    }
+
+    .chat-header-status.typing {
+      color: var(--accent-green);
+      font-style: italic;
+      font-weight: 500;
+    }
+
+    .chat-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+
+    /* Chat Messages Container */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 2;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background-color: rgba(255,255,255,0.12);
+      border-radius: 3px;
+    }
+
+    /* Date Separator Pill */
+    .date-separator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0 6px;
+      user-select: none;
+    }
+
+    .date-pill {
+      background-color: var(--bg-panel-secondary);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    /* Message Bubbles */
+    .msg-row {
+      display: flex;
+      width: 100%;
+      margin: 2px 0;
+      position: relative;
+    }
+
+    .msg-row.out {
+      justify-content: flex-end;
+    }
+
+    .msg-row.in {
+      justify-content: flex-start;
+    }
+
+    .bubble {
+      max-width: 70%;
+      min-width: 90px;
+      padding: 7px 10px 8px 12px;
+      border-radius: 10px;
+      position: relative;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      word-break: break-word;
+      font-size: 14.5px;
+      line-height: 1.4;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bubble.out {
+      background-color: var(--bg-chat-bubble-out);
+      color: var(--text-primary);
+      border-top-right-radius: 2px;
+    }
+
+    .bubble.in {
+      background-color: var(--bg-chat-bubble-in);
+      color: var(--text-primary);
+      border-top-left-radius: 2px;
+    }
+
+    .bubble-sender {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-green);
+      margin-bottom: 2px;
+    }
+
+    .bubble-text {
+      white-space: pre-wrap;
+    }
+
+    .bubble-meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-top: 3px;
+      margin-left: 12px;
+      align-self: flex-end;
+      user-select: none;
+    }
+
+    .bubble-time {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    [data-theme="light"] .bubble.out .bubble-time {
+      color: rgba(0, 0, 0, 0.5);
+    }
+    [data-theme="light"] .bubble.in .bubble-time {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    .bubble-ticks {
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+    }
+
+    .tick-sent {
+      color: rgba(255,255,255,0.6);
+    }
+    .tick-delivered {
+      color: rgba(255,255,255,0.6);
+    }
+    .tick-read {
+      color: var(--accent-blue);
+    }
+
+    [data-theme="light"] .tick-sent,
+    [data-theme="light"] .tick-delivered {
+      color: #8696a0;
+    }
+
+    .retain-tag {
+      font-size: 10px;
+      background: rgba(0,0,0,0.25);
+      border-radius: 4px;
+      padding: 1px 4px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    /* Message Actions Button */
+    .bubble-action-btn {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      background: rgba(0,0,0,0.3);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      width: 24px;
+      height: 24px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .bubble:hover .bubble-action-btn {
+      display: flex;
+    }
+
+    /* Message Deleted placeholder */
+    .msg-deleted {
+      font-style: italic;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Chat Bottom Input Area */
+    .chat-footer {
+      background-color: var(--bg-header);
+      padding: 10px 16px;
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      border-top: 1px solid var(--border-color);
+      z-index: 20;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-bottom: 2px;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      background-color: var(--input-bg);
+      border-radius: 12px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      min-height: 42px;
+      max-height: 120px;
+      border: 1px solid transparent;
+      transition: border-color 0.15s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--accent-green);
+    }
+
+    .chat-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 15px;
+      line-height: 1.4;
+      resize: none;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .send-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background-color: var(--accent-green);
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background-color 0.15s, transform 0.1s;
+    }
+
+    .send-btn:hover {
+      background-color: var(--accent-green-hover);
+    }
+    .send-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* Emoji Picker Tray */
+    .emoji-picker-popover {
+      position: absolute;
+      bottom: 70px;
+      left: 16px;
+      width: 330px;
+      background-color: var(--modal-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      display: none;
+      flex-direction: column;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .emoji-picker-popover.open {
+      display: flex;
+    }
+
+    .emoji-header {
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      padding: 10px;
+      max-height: 220px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .emoji-btn {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 8px;
+      transition: background 0.1s;
+    }
+
+    .emoji-btn:hover, .emoji-btn:active {
+      background: var(--hover-bg);
+    }
+
+    /* Dropdown Menus */
+    .dropdown-menu {
+      position: absolute;
+      top: 52px;
+      right: 12px;
+      background-color: var(--dropdown-bg);
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      min-width: 200px;
+      display: none;
+      flex-direction: column;
+      padding: 6px 0;
+      z-index: 99;
+    }
+
+    .dropdown-menu.open {
+      display: flex;
+    }
+
+    .dropdown-item {
+      padding: 11px 16px;
+      font-size: 14px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      text-align: left;
+      width: 100%;
+      transition: background-color 0.15s;
+    }
+
+    .dropdown-item:hover, .dropdown-item:active {
+      background-color: var(--hover-bg);
+    }
+
+    .dropdown-item.danger {
+      color: var(--danger);
+    }
+
+    /* Modal Overlays */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background-color: var(--modal-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .modal-body {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .form-group input {
+      background-color: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .form-group input:focus {
+      border-color: var(--accent-green);
+    }
+
+    .preset-btns {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .preset-btn {
+      flex: 1;
+      padding: 9px;
+      background-color: var(--bg-panel-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .preset-btn:hover, .preset-btn:active {
+      background-color: var(--hover-bg);
+      border-color: var(--accent-green);
+    }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .btn-secondary {
+      background: none;
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-green);
+      border: none;
+      color: #fff;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary:hover {
+      background-color: var(--accent-green-hover);
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      border: none;
+      color: #fff;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background-color: var(--dropdown-bg);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent-green);
+      color: var(--text-primary);
+      padding: 10px 16px;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      font-size: 13.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.25s ease forwards;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Top Right Connection Indicator */
+    .mqtt-top-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 16px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .mqtt-top-status:hover {
+      background: var(--hover-bg);
+      border-color: var(--accent-green);
+    }
+    .status-dot-pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+    .status-dot-pulse.online {
+      background-color: #22c55e !important;
+      box-shadow: 0 0 8px #22c55e !important;
+      animation: pulseGreen 2s infinite;
+    }
+    .status-dot-pulse.offline {
+      background-color: #ef4444 !important;
+      box-shadow: 0 0 6px #ef4444 !important;
+    }
+    .status-dot-pulse.connecting {
+      background-color: #f59e0b !important;
+      box-shadow: 0 0 6px #f59e0b !important;
+      animation: blinkDot 1s infinite;
+    }
+    @keyframes pulseGreen {
+      0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+    @keyframes blinkDot {
+      50% { opacity: 0.35; }
+    }
+
+    /* ── MOBILE OPTIMIZATIONS ───────────────────────── */
+    @media (max-width: 768px) {
+      .app-wrapper {
+        width: 100vw;
+        height: 100dvh;
+        overflow: hidden;
+      }
+
+      /* Sidebar is full screen by default */
+      .sidebar {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        transform: translateX(0);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      /* Chat main is off-screen to the right by default */
+      .chat-main {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        transform: translateX(100%);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+      }
+
+      /* When IN-CHAT state is active */
+      .app-wrapper.in-chat .sidebar {
+        transform: translateX(-100%);
+        pointer-events: none;
+      }
+
+      .app-wrapper.in-chat .chat-main {
+        transform: translateX(0);
+        pointer-events: auto;
+      }
+
+      /* Show mobile back button in chat header */
+      .btn-back-mobile {
+        display: flex !important;
+      }
+
+      .bubble {
+        max-width: 86%;
+        font-size: 15px;
+      }
+      .bubble-action-btn {
+        display: flex; /* Always accessible on mobile touch */
+      }
+
+      /* Mobile Emoji Tray (Bottom Sheet style) */
+      .emoji-picker-popover {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 18px 18px 0 0;
+        z-index: 1500;
+        max-height: 48vh;
+        box-shadow: 0 -8px 30px rgba(0,0,0,0.6);
+      }
+
+      .emoji-grid {
+        max-height: 38vh;
+      }
+
+      .chat-footer {
+        padding: 8px 12px;
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+      }
+
+      .chat-header {
+        padding: 8px 12px;
+        padding-top: max(8px, env(safe-area-inset-top));
+      }
+
+      .toast-container {
+        top: auto;
+        bottom: 75px;
+        left: 16px;
+        right: 16px;
+      }
+    }
+
+    /* ── FULL-SCREEN MQTT LOGIN GATE ──────────────────────── */
+    .login-gate-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background: #0b141a;
+      background-image: radial-gradient(#00a884 1px, transparent 1px), radial-gradient(#00a884 1px, #0b141a 1px);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 99999;
+    }
+
+    .login-gate-card {
+      background: #111b21;
+      border: 1px solid #222d34;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      animation: gateFadeIn 0.3s ease;
+    }
+
+    @keyframes gateFadeIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .gate-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+    }
+
+    .gate-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(0, 168, 132, 0.15);
+      border: 1px solid rgba(0, 168, 132, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: var(--accent-green);
+    }
+
+    .gate-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .gate-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .gate-broker-badge {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      background: #182229;
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: monospace;
+    }
+
+    .gate-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .gate-form label {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .gate-input-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .gate-input-group i.input-icon {
+      position: absolute;
+      left: 12px;
+      color: var(--text-muted);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .gate-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px 10px 38px;
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .gate-input:focus {
+      border-color: var(--accent-green);
+    }
+
+    .gate-btn-connect {
+      background: var(--accent-green);
+      color: #111b21;
+      font-weight: 600;
+      font-size: 14.5px;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 6px;
+      transition: background 0.2s;
+    }
+
+    .gate-btn-connect:hover {
+      background: var(--accent-green-hover);
+    }
+
+    .gate-btn-connect:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .gate-error-banner {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #ef4444;
+      font-size: 12.5px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Disconnect Lock Overlay */
+    .disconnect-lock-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 20, 26, 0.94);
+      backdrop-filter: blur(8px);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .disconnect-lock-box {
+      background: #111b21;
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 26px 24px;
+      max-width: 400px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    /* ── QUOTED REPLY PREVIEW BAR ───────────────────────── */
+    .reply-preview-bar {
+      background-color: var(--bg-header);
+      border-left: 4px solid var(--accent-green);
+      border-top: 1px solid var(--border-color);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 15;
+      flex-shrink: 0;
+      animation: slideUpReplyBar 0.18s ease-out;
+    }
+
+    @keyframes slideUpReplyBar {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .reply-preview-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .reply-preview-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-green);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .reply-preview-title span {
+      font-weight: 700;
+    }
+
+    .reply-preview-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 80vw;
+    }
+
+    .reply-preview-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .reply-preview-close:hover {
+      background: var(--hover-bg);
+      color: var(--text-primary);
+    }
+
+    /* ── BUBBLE QUOTE (REPLIED MESSAGE) ──────────────────── */
+    .bubble-reply-quote {
+      background: rgba(0, 0, 0, 0.18);
+      border-left: 3.5px solid var(--accent-green);
+      border-radius: 6px;
+      padding: 5px 9px 6px 9px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      user-select: none;
+      transition: background 0.15s;
+    }
+
+    [data-theme="light"] .bubble-reply-quote {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .bubble.out .bubble-reply-quote {
+      border-left-color: #53bdeb;
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    [data-theme="light"] .bubble.out .bubble-reply-quote {
+      border-left-color: #00a884;
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .bubble-reply-quote:hover {
+      background: rgba(0, 0, 0, 0.28);
+    }
+
+    .bubble-reply-sender {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-green);
+    }
+
+    .bubble.out .bubble-reply-sender {
+      color: #53bdeb;
+    }
+
+    [data-theme="light"] .bubble.out .bubble-reply-sender {
+      color: #008f6e;
+    }
+
+    .bubble-reply-text {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.35;
+    }
+
+    @keyframes highlightBubble {
+      0% { outline: 3px solid var(--accent-green); transform: scale(1.02); }
+      50% { outline: 3px solid var(--accent-green); transform: scale(1.02); }
+      100% { outline: 3px solid transparent; transform: scale(1); }
+    }
+
+    .bubble.bubble-highlight {
+      animation: highlightBubble 1.4s ease-out;
+      z-index: 5;
+    }
+
+    /* ── SWIPE INDICATORS FOR MOBILE ─────────────────────── */
+    .msg-row {
+      position: relative;
+      touch-action: pan-y;
+    }
+
+    .swipe-reply-indicator {
+      position: absolute;
+      top: 50%;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--accent-green);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      opacity: 0;
+      transform: translateY(-50%) scale(0.4);
+      pointer-events: none;
+      z-index: 2;
+      transition: opacity 0.1s ease-out, transform 0.1s ease-out;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .swipe-reply-indicator.swipe-left {
+      left: 10px;
+    }
+
+    .swipe-reply-indicator.swipe-right {
+      right: 10px;
+    }
+
+    /* ── DESKTOP RIGHT-CLICK CONTEXT MENU ────────────────── */
+    .msg-context-menu {
+      position: fixed;
+      display: none;
+      flex-direction: column;
+      background-color: var(--dropdown-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      min-width: 195px;
+      padding: 6px;
+      z-index: 9999;
+      user-select: none;
+      animation: fadeInCtx 0.12s ease-out;
+    }
+
+    @keyframes fadeInCtx {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .msg-context-menu.open {
+      display: flex;
+    }
+
+    .ctx-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      font-size: 13.5px;
+      color: var(--text-primary);
+      background: none;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      transition: background-color 0.12s;
+    }
+
+    .ctx-item i {
+      font-size: 15px;
+      width: 18px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .ctx-item:hover, .ctx-item:active {
+      background-color: var(--hover-bg);
+    }
+
+    .ctx-item.danger {
+      color: var(--danger);
+    }
+
+    .ctx-item.danger i {
+      color: var(--danger);
+    }
+
+    .ctx-divider {
+      height: 1px;
+      background-color: var(--border-color);
+      margin: 4px 6px;
+    }
+
+    /* ── MOBILE ACTION SHEET (LONG-PRESS) ────────────────── */
+    .action-sheet-box {
+      background-color: var(--modal-bg);
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid var(--border-color);
+      width: 100%;
+      max-width: 520px;
+      padding: 16px;
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: slideUpSheet 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      position: fixed;
+      bottom: 0;
+    }
+
+    @media (min-width: 769px) {
+      .action-sheet-box {
+        position: relative;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow);
+        animation: fadeInCtx 0.15s ease-out;
+      }
+    }
+
+    @keyframes slideUpSheet {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .action-sheet-handle {
+      width: 40px;
+      height: 4px;
+      border-radius: 2px;
+      background-color: var(--text-muted);
+      opacity: 0.5;
+      margin: 0 auto 2px auto;
+    }
+
+    .action-sheet-msg-preview {
+      background: var(--bg-panel-secondary);
+      border-left: 3.5px solid var(--accent-green);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .sheet-preview-sender {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--accent-green);
+    }
+
+    .sheet-preview-text {
+      font-size: 13.5px;
+      color: var(--text-primary);
+      max-height: 48px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .sheet-preview-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      align-self: flex-end;
+    }
+
+    .action-sheet-menu {
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-panel-secondary);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .sheet-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      transition: background-color 0.12s;
+    }
+
+    .sheet-btn:last-child {
+      border-bottom: none;
+    }
+
+    .sheet-btn i {
+      font-size: 18px;
+      width: 22px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .sheet-btn:active {
+      background-color: var(--hover-bg);
+    }
+
+    .sheet-btn.danger {
+      color: var(--danger);
+    }
+    .sheet-btn.danger i {
+      color: var(--danger);
+    }
+
+    .sheet-btn.cancel-btn {
+      justify-content: center;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-panel-secondary);
+      font-weight: 600;
+      padding: 12px;
+    }
+
+    /* ── VIEW ONCE (1-TIME SEEN) MESSAGES ────────────────── */
+    .view-once-bubble {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 4px;
+      user-select: none;
+    }
+
+    .view-once-bubble.unopened {
+      cursor: pointer;
+    }
+
+    .view-once-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(0, 168, 132, 0.15);
+      border: 1.5px solid var(--accent-green);
+      color: var(--accent-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      transition: transform 0.15s, background 0.15s;
+    }
+
+    .view-once-bubble.unopened:hover .view-once-icon-box {
+      transform: scale(1.08);
+      background: rgba(0, 168, 132, 0.25);
+    }
+
+    .view-once-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+    }
+
+    .view-once-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .view-once-subtitle {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+    }
+
+    .view-once-arrow {
+      color: var(--text-muted);
+      font-size: 16px;
+      margin-left: 6px;
+    }
+
+    .view-once-bubble.opened {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .view-once-bubble.opened .view-once-icon-box {
+      background: rgba(148, 163, 184, 0.1);
+      border-color: var(--text-muted);
+      color: var(--text-muted);
+    }
+
+    .view-once-bubble.opened .view-once-title {
+      color: var(--text-muted);
+    }
+
+    /* ── AUTO-DELETE COUNTDOWN BADGES ────────────────────── */
+    .auto-delete-countdown {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #f59e0b;
+      background: rgba(245, 158, 11, 0.14);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 6px;
+      padding: 1px 6px;
+      margin-right: 4px;
+      letter-spacing: 0.2px;
+    }
+
+    .auto-delete-countdown i {
+      font-size: 10px;
+    }
+
+    .auto-delete-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      padding: 1px 5px;
+      margin-right: 4px;
+    }
+
+    /* ── HEADER TIMER PILL ───────────────────────────────── */
+    .header-timer-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(0, 168, 132, 0.15);
+      border: 1px solid rgba(0, 168, 132, 0.35);
+      color: var(--accent-green);
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 6px;
+      transition: background 0.15s;
+    }
+
+    .header-timer-pill:hover {
+      background: rgba(0, 168, 132, 0.25);
+    }
+
+    /* ── FOOTER BUTTONS & TIMER POPOVER ──────────────────── */
+    .footer-actions .icon-btn.active {
+      color: var(--accent-green) !important;
+      background-color: rgba(0, 168, 132, 0.18) !important;
+      border-radius: 50%;
+    }
+
+    .timer-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background: var(--accent-green);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 1px 4px;
+      line-height: 1;
+    }
+
+    .timer-picker-popover {
+      position: absolute;
+      bottom: 70px;
+      left: 45px;
+      width: 280px;
+      background-color: var(--modal-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      display: none;
+      flex-direction: column;
+      z-index: 120;
+      padding: 12px;
+      gap: 8px;
+      animation: fadeInCtx 0.12s ease-out;
+    }
+
+    .timer-picker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .timer-picker-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.35;
+    }
+
+    .timer-options {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .timer-opt {
+      padding: 8px 10px;
+      background: var(--bg-panel-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 12.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+      transition: background 0.12s, border-color 0.12s;
+    }
+
+    .timer-opt:hover {
+      background: var(--hover-bg);
+      border-color: var(--accent-green);
+    }
+
+    .timer-opt.active {
+      background: rgba(0, 168, 132, 0.15);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+
+    /* ── DISAPPEARING MESSAGES MODAL ─────────────────────── */
+    .disappearing-options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .timer-radio-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-panel-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+    }
+
+    .timer-radio-item:hover {
+      border-color: var(--accent-green);
+      background: var(--hover-bg);
+    }
+
+    .timer-radio-item input[type="radio"] {
+      accent-color: var(--accent-green);
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+    }
+
+    .timer-radio-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+    }
+
+    .timer-label-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .timer-label-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ── VIEW ONCE VIEWER MODAL ──────────────────────────── */
+    .view-once-box {
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .view-once-modal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .view-once-badge-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0, 168, 132, 0.18);
+      color: var(--accent-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .view-once-modal-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .view-once-modal-sub {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+    }
+
+    .view-once-secret-card {
+      background: var(--bg-panel-secondary);
+      border: 1px dashed var(--accent-green);
+      border-radius: 12px;
+      padding: 18px 16px;
+      margin: 8px 0;
+      min-height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .view-once-secret-text {
+      font-size: 16px;
+      color: var(--text-primary);
+      word-break: break-word;
+      line-height: 1.5;
+    }
+
+    .view-once-warning {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--danger);
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 8px;
+      padding: 8px 12px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+<!-- ── FULL-SCREEN MQTT LOGIN GATE (CHATS LOCKED UNTIL CONNECTED) ──────────────────────── -->
+<div class="login-gate-screen" id="loginGateScreen">
+  <div class="login-gate-card">
+    <div class="gate-header">
+      <div class="gate-icon">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+      <div class="gate-title">MQTT Authentication Required</div>
+      <div class="gate-subtitle">
+        Enter your MQTT credentials to connect to the broker. All messages and chats remain strictly hidden until connected.
+      </div>
+      <div class="gate-broker-badge">
+        <i class="bi bi-hdd-network"></i>
+        <span>mqtt.teleson.in:8084 (WSS) / 8083 (WS)</span>
+      </div>
+    </div>
+
+    <!-- Error message banner -->
+    <div class="gate-error-banner" id="gateErrorBanner">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span id="gateErrorText">Invalid username or password.</span>
+    </div>
+
+    <form class="gate-form" onsubmit="handleGateLogin(event)">
+      <div>
+        <label>MQTT Username</label>
+        <div class="gate-input-group">
+          <i class="bi bi-person-fill input-icon"></i>
+          <input type="text" id="gateUserInput" class="gate-input" placeholder="e.g. UserName" autocomplete="username" required>
+        </div>
+      </div>
+
+      <div>
+        <label>MQTT Password</label>
+        <div class="gate-input-group">
+          <i class="bi bi-key-fill input-icon"></i>
+          <input type="password" id="gatePassInput" class="gate-input" placeholder="Enter MQTT password" autocomplete="current-password" required>
+        </div>
+      </div>
+
+      <button type="submit" class="gate-btn-connect" id="btnGateConnect">
+        <i class="bi bi-box-arrow-in-right" id="btnGateIcon"></i>
+        <span id="btnGateConnectText">Connect &amp; Unlock Chats</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="app-wrapper" id="appWrapper" style="display:none;">
+
+  <!-- Disconnect Security Lock Overlay -->
+  <div class="disconnect-lock-overlay" id="disconnectOverlay">
+    <div class="disconnect-lock-box">
+      <i class="bi bi-shield-slash-fill" style="color:#ef4444;font-size:42px;"></i>
+      <h3 style="color:#e9edef;font-size:18px;">MQTT Disconnected</h3>
+      <p style="color:#8696a0;font-size:13px;line-height:1.5;">
+        Connection to MQTT broker lost. Chats and messages are locked and hidden for security until your connection is re-established.
+      </p>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button class="btn-primary" onclick="reconnectMQTT()">
+          <i class="bi bi-arrow-clockwise"></i> Reconnect
+        </button>
+        <button class="btn-secondary" onclick="logoutAndLock()">
+          <i class="bi bi-box-arrow-left"></i> Switch User
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LEFT SIDEBAR ─────────────────────────────────── -->
+  <aside class="sidebar" id="sidebarView">
+    <!-- Header -->
+    <div class="sidebar-header">
+      <div class="user-profile" onclick="openLoginModal()" title="View/Change Account">
+        <div class="avatar online" id="currentUserAvatar">S</div>
+        <div class="user-info">
+          <div class="username" id="currentUserName"></div>
+          <div class="status-tag">
+            <span class="dot" id="connDot"></span>
+            <span id="connStatusText">Connecting…</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <!-- Top Right MQTT Connection Status (Sidebar View) -->
+        <div class="mqtt-top-status" onclick="openLoginModal()" title="MQTT Connection Status (Click to connect)">
+          <span class="top-mqtt-dot status-dot-pulse offline" id="topRightSidebarDot"></span>
+          <span class="top-mqtt-label" id="topRightSidebarLabel" style="font-size:11.5px; font-weight:500; color:var(--text-secondary);">Offline</span>
+        </div>
+        <button class="icon-btn" onclick="toggleTheme()" title="Toggle Dark/Light theme">
+          <i class="bi bi-moon-stars" id="themeIcon"></i>
+        </button>
+        <button class="icon-btn" onclick="toggleSound()" title="Sound Notifications">
+          <i class="bi bi-volume-up" id="soundIcon"></i>
+        </button>
+        <button class="icon-btn" onclick="openAddContactModal()" title="New Chat / Add Contact">
+          <i class="bi bi-chat-plus-fill"></i>
+        </button>
+        <button class="icon-btn" onclick="openLoginModal()" title="MQTT Connection Settings">
+          <i class="bi bi-gear-fill"></i>
+        </button>
+        <button class="icon-btn" onclick="logoutAndLock()" title="Disconnect MQTT &amp; Lock Chats">
+          <i class="bi bi-lock-fill" style="color:var(--danger)"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Account Banner -->
+    <div class="switch-bar">
+      <span>Account: <b id="lblCurrentAcct"></b></span>
+      <button class="switch-btn" onclick="openLoginModal()" title="Switch User / Login">
+        <i class="bi bi-box-arrow-in-right"></i> <span>Switch User</span>
+      </button>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="sidebar-search">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" id="contactSearchInput" placeholder="Search or start new chat" oninput="filterContacts(this.value)" onkeydown="if(event.key==='Enter'&&this.value.trim()){startChatWithUser(this.value.trim());}">
+      </div>
+    </div>
+
+    <!-- Contact List -->
+    <div class="chat-list" id="contactList">
+      <!-- Contacts rendered dynamically -->
+    </div>
+  </aside>
+
+  <!-- ── RIGHT MAIN CHAT ──────────────────────────────── -->
+  <main class="chat-main" id="chatMain">
+
+    <!-- Empty State (When no contact selected) -->
+    <div class="empty-chat" id="emptyChatView">
+      <div class="empty-chat-icon"><i class="bi bi-whatsapp"></i></div>
+      <h2>WhatsApp Web for MQTT</h2>
+      <p>Send and receive messages with guaranteed offline storage using MQTT <b>Retain: true</b> and instant client-side IndexedDB JSON storage.</p>
+      <div style="display:flex; gap: 12px; flex-wrap:wrap; justify-content:center;">
+        <button class="btn-primary" onclick="openAddContactModal()">
+          <i class="bi bi-person-plus-fill"></i> New Chat
+        </button>
+        <button class="btn-secondary" onclick="openLoginModal()">
+          <i class="bi bi-sliders"></i> Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Chat View -->
+    <div id="activeChatView" style="display:none; height:100%; flex-direction:column; z-index:2;">
+      <!-- Active Chat Header -->
+      <div class="chat-header">
+        <div class="chat-header-left" onclick="viewContactInfo()">
+          <button class="btn-back-mobile" onclick="event.stopPropagation(); closeChatMobile();" title="Back to chats">
+            <i class="bi bi-arrow-left"></i>
+          </button>
+          <div class="avatar" id="activePeerAvatar">R</div>
+          <div class="chat-header-info">
+            <div style="display:flex; align-items:center;">
+              <span class="chat-header-name" id="activePeerName">ruhi</span>
+              <span class="header-timer-pill" id="headerDisappearingPill" style="display:none;" onclick="event.stopPropagation(); openDisappearingMessagesModal();" title="Disappearing messages active. Click to configure.">
+                <i class="bi bi-clock-history"></i> <span id="headerTimerPillText">5m</span>
+              </span>
+            </div>
+            <div class="chat-header-status" id="activePeerStatus">offline</div>
+          </div>
+        </div>
+        <div class="chat-header-actions">
+          <!-- Top Right MQTT Connection Status (Chat View) -->
+          <div class="mqtt-top-status" onclick="openLoginModal()" title="MQTT Connection Status (Click for connection details)">
+            <span class="top-mqtt-dot status-dot-pulse offline" id="topRightChatDot"></span>
+            <span class="top-mqtt-label" id="topRightChatLabel" style="font-size:11.5px; font-weight:500; color:var(--text-secondary);">Offline</span>
+          </div>
+          <button class="icon-btn" onclick="promptSearchInChat()" title="Search in chat">
+            <i class="bi bi-search"></i>
+          </button>
+          <button class="icon-btn" onclick="toggleDropdown('headerDropdown')" title="More Options">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div class="dropdown-menu" id="headerDropdown">
+            <button class="dropdown-item" onclick="openDisappearingMessagesModal()">
+              <i class="bi bi-clock-history" style="color:var(--accent-green);"></i> Disappearing Messages
+            </button>
+            <button class="dropdown-item" onclick="openAddContactModal()">
+              <i class="bi bi-person-plus-fill" style="color:var(--accent-green);"></i> Add User for Chat
+            </button>
+            <button class="dropdown-item danger" onclick="deleteChatUser()">
+              <i class="bi bi-person-x-fill"></i> Delete Chat User
+            </button>
+            <button class="dropdown-item" onclick="confirmDeleteAllMessages(false)">
+              <i class="bi bi-trash3"></i> Clear Chat (For Me)
+            </button>
+            <button class="dropdown-item danger" onclick="confirmDeleteAllMessages(true)">
+              <i class="bi bi-trash-fill"></i> Delete All for Everyone
+            </button>
+            <button class="dropdown-item" onclick="exportChatJSON()">
+              <i class="bi bi-filetype-json"></i> Export Chat (JSON)
+            </button>
+            <button class="dropdown-item" onclick="exportChatText()">
+              <i class="bi bi-file-earmark-text"></i> Export Chat (TXT)
+            </button>
+            <button class="dropdown-item" onclick="openLoginModal()">
+              <i class="bi bi-info-circle"></i> Connection Info
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages Area -->
+      <div class="chat-messages" id="chatMessages">
+        <!-- Message bubbles populated here -->
+      </div>
+
+      <!-- Quoted Reply Preview Bar -->
+      <div class="reply-preview-bar" id="replyPreviewBar" style="display:none;">
+        <div class="reply-preview-main">
+          <div class="reply-preview-title">
+            <i class="bi bi-reply-fill"></i> Replying to <span id="replyPreviewSender">Contact</span>
+          </div>
+          <div class="reply-preview-text" id="replyPreviewText">Message snippet...</div>
+        </div>
+        <button class="reply-preview-close" onclick="cancelReply()" title="Cancel Reply">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Bottom Chat Footer -->
+      <div class="chat-footer">
+        <div class="footer-actions">
+          <button class="icon-btn" onclick="toggleEmojiPicker()" title="Emoji Picker">
+            <i class="bi bi-emoji-smile"></i>
+          </button>
+          <!-- Disappearing Timer Quick Selector Button -->
+          <button class="icon-btn" id="btnDisappearingTimer" onclick="toggleTimerPicker()" title="Auto-delete message after seen">
+            <i class="bi bi-clock-history"></i>
+            <span class="timer-badge" id="footerTimerBadge" style="display:none;">5m</span>
+          </button>
+          <!-- View Once Toggle Button -->
+          <button class="icon-btn" id="btnViewOnce" onclick="toggleViewOnce()" title="View Once: Recipient can only open message once">
+            <i class="bi bi-1-circle"></i>
+          </button>
+        </div>
+
+        <div class="input-wrapper">
+          <textarea id="msgInput" class="chat-input" rows="1" placeholder="Type a message" onkeydown="handleInputKey(event)" oninput="handleInputTyping()"></textarea>
+        </div>
+
+        <button class="send-btn" onclick="sendMessage()" title="Send Message">
+          <i class="bi bi-send-fill"></i>
+        </button>
+
+        <!-- Disappearing Messages Timer Popover -->
+        <div class="timer-picker-popover" id="timerPickerPopover" style="display:none;">
+          <div class="timer-picker-header">
+            <span><i class="bi bi-clock-history" style="color:var(--accent-green);"></i> Auto-Delete After Seen</span>
+            <button class="icon-btn close-btn" style="width:26px;height:26px;font-size:15px;" onclick="toggleTimerPicker()"><i class="bi bi-x"></i></button>
+          </div>
+          <div class="timer-picker-desc">Messages will automatically delete after the recipient views them:</div>
+          <div class="timer-options">
+            <button class="timer-opt active" id="popTimer_0" onclick="selectQuickTimer(0)"><i class="bi bi-slash-circle"></i> Off (Keep indefinitely)</button>
+            <button class="timer-opt" id="popTimer_60000" onclick="selectQuickTimer(60000)"><i class="bi bi-stopwatch"></i> 1 Minute after seen</button>
+            <button class="timer-opt" id="popTimer_300000" onclick="selectQuickTimer(300000)"><i class="bi bi-stopwatch"></i> 5 Minutes after seen</button>
+            <button class="timer-opt" id="popTimer_600000" onclick="selectQuickTimer(600000)"><i class="bi bi-stopwatch"></i> 10 Minutes after seen</button>
+            <button class="timer-opt" id="popTimer_1800000" onclick="selectQuickTimer(1800000)"><i class="bi bi-stopwatch"></i> 30 Minutes after seen</button>
+          </div>
+        </div>
+
+        <!-- Emoji Picker Popover -->
+        <div class="emoji-picker-popover" id="emojiPicker">
+          <div class="emoji-header">
+            <span>Frequently Used Emojis</span>
+            <button class="icon-btn" style="width:28px;height:28px;font-size:16px;" onclick="toggleEmojiPicker()"><i class="bi bi-x"></i></button>
+          </div>
+          <div class="emoji-grid" id="emojiGrid"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── MODAL: MQTT Login / Settings ────────────────────── -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="bi bi-person-lock" style="color:var(--accent-green)"></i>
+      Account Login
+    </div>
+    <div class="modal-body">
+      <!-- Fixed Server Info Banner -->
+      <div style="font-size:12.5px; color:var(--text-secondary); background:rgba(0,168,132,0.1); border:1px solid rgba(0,168,132,0.25); border-radius:10px; padding:10px 14px; display:flex; align-items:center; gap:10px;">
+        <i class="bi bi-shield-check" style="color:var(--accent-green); font-size:22px;"></i>
+        <div>
+          <div style="font-weight:600; color:var(--text-primary);">Broker: mqtt.teleson.in</div>
+          <div style="font-size:11.5px; color:var(--text-muted);">Port: 8084 (WSS) &bull; Path: /mqtt</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="cfgUser" placeholder="Enter username" value="">
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="cfgPass" placeholder="Enter password" value="" autocomplete="current-password">
+        <span style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
+          <i class="bi bi-shield-lock" style="color:var(--accent-green);"></i> Passwords are never saved in browser storage (held in memory only).
+        </span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('loginModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveAndConnectMQTT()">Login &amp; Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Add New Contact ──────────────────────────── -->
+<div class="modal-overlay" id="addContactModal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="bi bi-person-plus-fill" style="color:var(--accent-green)"></i>
+      Start New Chat
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Contact Username / MQTT ID</label>
+        <input type="text" id="newContactUsername" placeholder="e.g. ruhi, , alex">
+      </div>
+      <div class="form-group">
+        <label>Display Name (Optional)</label>
+        <input type="text" id="newContactName" placeholder="e.g. Ruhi Sharma">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('addContactModal')">Cancel</button>
+      <button class="btn-primary" onclick="confirmAddContact()">Add Contact</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Delete Single Message ────────────────────── -->
+<div class="modal-overlay" id="deleteMsgModal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="bi bi-trash3-fill" style="color:var(--danger)"></i>
+      Delete Message?
+    </div>
+    <div class="modal-body">
+      <p id="deleteMsgPrompt">Choose how you want to delete this message:</p>
+    </div>
+    <div class="modal-footer" id="deleteMsgFooter">
+      <button class="btn-secondary" onclick="closeModal('deleteMsgModal')">Cancel</button>
+      <button class="btn-secondary" onclick="execDeleteSingle(false)">Delete for Me</button>
+      <button class="btn-danger" id="btnDeleteEveryone" onclick="execDeleteSingle(true)">Delete for Everyone</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Delete All Messages ──────────────────────── -->
+<div class="modal-overlay" id="deleteAllModal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="bi bi-exclamation-triangle-fill" style="color:var(--danger)"></i>
+      Clear This Chat?
+    </div>
+    <div class="modal-body">
+      <p id="deleteAllPromptText">Are you sure you want to delete all messages in this conversation?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('deleteAllModal')">Cancel</button>
+      <button class="btn-danger" id="btnConfirmDeleteAll" onclick="execDeleteAll()">Clear Chat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DESKTOP MESSAGE CONTEXT MENU (RIGHT-CLICK) ───────── -->
+<div class="msg-context-menu" id="msgContextMenu">
+  <button class="ctx-item" onclick="onCtxReply()">
+    <i class="bi bi-reply-fill" style="color:var(--accent-green);"></i>
+    <span>Reply</span>
+  </button>
+  <button class="ctx-item" onclick="onCtxCopy()">
+    <i class="bi bi-clipboard"></i>
+    <span>Copy Text</span>
+  </button>
+  <div class="ctx-divider"></div>
+  <button class="ctx-item" onclick="onCtxDeleteForMe()">
+    <i class="bi bi-trash3"></i>
+    <span>Delete for Me</span>
+  </button>
+  <button class="ctx-item danger" id="ctxBtnDeleteEveryone" onclick="onCtxDeleteEveryone()">
+    <i class="bi bi-trash-fill"></i>
+    <span>Delete for Everyone</span>
+  </button>
+  <div class="ctx-divider"></div>
+  <button class="ctx-item" onclick="onCtxInfo()">
+    <i class="bi bi-info-circle"></i>
+    <span>Message Info</span>
+  </button>
+</div>
+
+<!-- ── MOBILE ACTION SHEET (LONG-PRESS ON MESSAGE) ─────── -->
+<div class="modal-overlay" id="mobileActionSheet" onclick="closeMobileActionSheet(event)">
+  <div class="action-sheet-box" id="actionSheetBox" onclick="event.stopPropagation()">
+    <div class="action-sheet-handle"></div>
+    
+    <div class="action-sheet-msg-preview">
+      <div class="sheet-preview-sender" id="sheetMsgSender">Contact</div>
+      <div class="sheet-preview-text" id="sheetMsgText">Message snippet</div>
+      <div class="sheet-preview-time" id="sheetMsgTime">10:00 AM</div>
+    </div>
+
+    <div class="action-sheet-menu">
+      <button class="sheet-btn" onclick="onActionSheetReply()">
+        <i class="bi bi-reply-fill" style="color:var(--accent-green);"></i>
+        <span>Reply</span>
+      </button>
+      <button class="sheet-btn" onclick="onActionSheetCopy()">
+        <i class="bi bi-clipboard"></i>
+        <span>Copy Text</span>
+      </button>
+      <button class="sheet-btn" onclick="onActionSheetDeleteForMe()">
+        <i class="bi bi-trash3"></i>
+        <span>Delete for Me</span>
+      </button>
+      <button class="sheet-btn danger" id="sheetBtnDeleteEveryone" onclick="onActionSheetDeleteEveryone()">
+        <i class="bi bi-trash-fill"></i>
+        <span>Delete for Everyone</span>
+      </button>
+      <button class="sheet-btn" onclick="onActionSheetInfo()">
+        <i class="bi bi-info-circle"></i>
+        <span>Message Info</span>
+      </button>
+    </div>
+
+    <button class="sheet-btn cancel-btn" onclick="closeModal('mobileActionSheet')">
+      Cancel
+    </button>
+  </div>
+</div>
+
+<!-- ── MODAL: Message Info ──────────────────────────────── -->
+<div class="modal-overlay" id="msgInfoModal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="bi bi-info-circle-fill" style="color:var(--accent-blue);"></i>
+      Message Details
+    </div>
+    <div class="modal-body" id="msgInfoBody">
+      <!-- Populated dynamically -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="closeModal('msgInfoModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Disappearing Messages Settings ───────────── -->
+<div class="modal-overlay" id="disappearingModal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="bi bi-clock-history" style="color:var(--accent-green)"></i>
+      Disappearing Messages
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-secondary); font-size:13.5px; line-height:1.4;">
+        For greater privacy, new messages sent to this chat will automatically delete for everyone after being seen by the recipient.
+      </p>
+      
+      <div class="disappearing-options-list">
+        <label class="timer-radio-item" onclick="selectDisappearingModalOption(0)">
+          <input type="radio" name="disappearingOption" value="0" id="opt_disappearing_0">
+          <div class="timer-radio-label">
+            <span class="timer-label-title"><i class="bi bi-slash-circle"></i> Off</span>
+            <span class="timer-label-sub">Messages stay in chat history until deleted manually</span>
+          </div>
+        </label>
+
+        <label class="timer-radio-item" onclick="selectDisappearingModalOption(60000)">
+          <input type="radio" name="disappearingOption" value="60000" id="opt_disappearing_60000">
+          <div class="timer-radio-label">
+            <span class="timer-label-title"><i class="bi bi-stopwatch" style="color:var(--accent-green);"></i> 1 Minute after seen</span>
+            <span class="timer-label-sub">Auto-deletes 1 minute after recipient opens the message</span>
+          </div>
+        </label>
+
+        <label class="timer-radio-item" onclick="selectDisappearingModalOption(300000)">
+          <input type="radio" name="disappearingOption" value="300000" id="opt_disappearing_300000">
+          <div class="timer-radio-label">
+            <span class="timer-label-title"><i class="bi bi-stopwatch" style="color:var(--accent-green);"></i> 5 Minutes after seen</span>
+            <span class="timer-label-sub">Auto-deletes 5 minutes after recipient opens the message</span>
+          </div>
+        </label>
+
+        <label class="timer-radio-item" onclick="selectDisappearingModalOption(600000)">
+          <input type="radio" name="disappearingOption" value="600000" id="opt_disappearing_600000">
+          <div class="timer-radio-label">
+            <span class="timer-label-title"><i class="bi bi-stopwatch" style="color:var(--accent-green);"></i> 10 Minutes after seen</span>
+            <span class="timer-label-sub">Auto-deletes 10 minutes after recipient opens the message</span>
+          </div>
+        </label>
+
+        <label class="timer-radio-item" onclick="selectDisappearingModalOption(1800000)">
+          <input type="radio" name="disappearingOption" value="1800000" id="opt_disappearing_1800000">
+          <div class="timer-radio-label">
+            <span class="timer-label-title"><i class="bi bi-stopwatch" style="color:var(--accent-green);"></i> 30 Minutes after seen</span>
+            <span class="timer-label-sub">Auto-deletes 30 minutes after recipient opens the message</span>
+          </div>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('disappearingModal')">Cancel</button>
+      <button class="btn-primary" onclick="confirmSaveDisappearingSettings()">Save &amp; Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: View Once Message Viewer ────────────────── -->
+<div class="modal-overlay" id="viewOnceModal">
+  <div class="modal-box view-once-box">
+    <div class="view-once-modal-header">
+      <div class="view-once-badge-icon"><i class="bi bi-1-circle-fill"></i></div>
+      <div>
+        <div class="view-once-modal-title">View Once Message</div>
+        <div class="view-once-modal-sub" id="viewOnceSenderInfo">From @ruhi</div>
+      </div>
+    </div>
+
+    <div class="view-once-secret-card">
+      <div class="view-once-secret-text" id="viewOnceSecretContent">Secret message content</div>
+    </div>
+
+    <div class="view-once-warning">
+      <i class="bi bi-shield-lock-fill"></i>
+      <span>This message will disappear and be permanently deleted once closed.</span>
+    </div>
+
+    <div class="modal-footer" style="justify-content:center; margin-top:12px;">
+      <button class="btn-danger" style="width:100%; border-radius:10px; padding:12px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="closeAndDestroyViewOnceMessage()">
+        <i class="bi bi-eye-slash-fill"></i> Close &amp; Delete Message
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ── JAVASCRIPT APPLICATION ───────────────────────────── -->
+<script>
+// =============================================================================
+// 1. CONFIGURATION & STATE
+// =============================================================================
+const urlParams = new URLSearchParams(window.location.search);
+const queryUser = urlParams.get('user');
+const queryPass = urlParams.get('pass');
+
+const DEFAULT_CREDS = {
+  host: 'mqtt.teleson.in',
+  port: 8084,
+  path: '/mqtt',
+  user: (queryUser || getLastLoginUsername()).toLowerCase().trim(),
+  pass: queryPass || ''
+};
+
+let currentCreds = loadCreds();
+let activePeer = null; // Currently open contact username
+let mqttClient = null;
+let soundEnabled = true;
+let audioCtx = null;
+let typingTimeout = null;
+let pendingDeleteMsgId = null;
+let isDeleteAllForEveryone = false;
+let isAppUnlocked = false;
+
+// Reply & Context Menu State
+let currentReplyMsg = null;
+let activeTargetMsg = null;
+const msgCache = {};
+
+// Disappearing Messages & View Once State
+let isViewOnceActive = false;
+let activeViewingOnceMsgId = null;
+let pendingDisappearingTimerOption = 0;
+
+// Presence & Last Seen Store (Persisted in localStorage)
+const peerPresenceMap = loadPresenceCache(); // username -> { status: 'online'|'offline', lastSeen: number, timestamp: number }
+const peerTypingMap = {};                    // username -> boolean
+
+// Emojis
+const POPULAR_EMOJIS = [
+  '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😍','🥰','😘',
+  '😋','😛','😜','🤪','😎','🥳','😏','😒','😞','😔','😟','😕','🙁','😣','😖','😫',
+  '😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥',
+  '🤔','🤫','🤭','🤗','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','😴',
+  '🤤','😪','😵','🤐','🥴','🤒','😷','🤕','🤑','🤠','😈','👿','👹','👺','🤡','💩',
+  '👻','💀','☠️','👽','🤖','🎃','😺','😸','👍','👎','👌','✌️','🤞','🤟','🤘','🤙',
+  '👈','👉','👆','🖕','👇','☝️','👋','🤚','🖐️','✋','🖖','👏','🙌','👐','🤲','🤝',
+  '🙏','✍️','💅','🤳','💪','🦾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔',
+  '❣️','💕','💞','💓','💗','💖','💘','💝','💟','🔥','✨','🌟','💫','💥','💯','💢',
+  '🎉','🎊','🚀','💡','☕','🍕','🍔','🍟','🍻','🥂','🍾','🎯','🎮','🏆','🥇','⭐'
+];
+
+// =============================================================================
+// 2. INDEXEDDB PERSISTENCE LAYER (MqttChatDB)
+// =============================================================================
+const DB_VERSION = 1;
+let db = null;
+
+function getDbName() {
+  const u = (currentCreds && currentCreds.user) ? currentCreds.user.toLowerCase().trim() : 'default';
+  return 'MqttChatDB_' + u;
+}
+
+function initIndexedDB() {
+  return new Promise((resolve, reject) => {
+    if (db) {
+      try { db.close(); } catch {}
+      db = null;
+    }
+    const dbName = getDbName();
+    const request = indexedDB.open(dbName, DB_VERSION);
+
+    request.onupgradeneeded = (e) => {
+      const dbInstance = e.target.result;
+
+      // Messages Store
+      if (!dbInstance.objectStoreNames.contains('messages')) {
+        const msgStore = dbInstance.createObjectStore('messages', { keyPath: 'id' });
+        msgStore.createIndex('peer', 'peer', { unique: false });
+        msgStore.createIndex('timestamp', 'timestamp', { unique: false });
+        msgStore.createIndex('status', 'status', { unique: false });
+        msgStore.createIndex('from', 'from', { unique: false });
+        msgStore.createIndex('to', 'to', { unique: false });
+      }
+
+      // Contacts Store
+      if (!dbInstance.objectStoreNames.contains('contacts')) {
+        const contactStore = dbInstance.createObjectStore('contacts', { keyPath: 'username' });
+        contactStore.createIndex('lastTimestamp', 'lastTimestamp', { unique: false });
+      }
+    };
+
+    request.onsuccess = (e) => {
+      db = e.target.result;
+      resolve(db);
+    };
+
+    request.onerror = (e) => {
+      console.error('IndexedDB Error:', e.target.error);
+      reject(e.target.error);
+    };
+  });
+}
+
+function loadDeletedForMeSet() {
+  try {
+    const u = (currentCreds && currentCreds.user) ? currentCreds.user : '';
+    const raw = localStorage.getItem('whatsapp_deleted_for_me_' + u);
+    if (raw) return new Set(JSON.parse(raw));
+  } catch {}
+  return new Set();
+}
+
+function saveDeletedForMe(msgId) {
+  try {
+    const u = (currentCreds && currentCreds.user) ? currentCreds.user : '';
+    const s = loadDeletedForMeSet();
+    s.add(msgId);
+    localStorage.setItem('whatsapp_deleted_for_me_' + u, JSON.stringify(Array.from(s)));
+  } catch {}
+}
+
+function loadPeerClearedTimestamps() {
+  try {
+    const u = (currentCreds && currentCreds.user) ? currentCreds.user : '';
+    const raw = localStorage.getItem('whatsapp_peer_cleared_' + u);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return {};
+}
+
+function savePeerClearedTimestamp(peer, ts) {
+  try {
+    const u = (currentCreds && currentCreds.user) ? currentCreds.user : '';
+    const map = loadPeerClearedTimestamps();
+    map[(peer || '').toLowerCase().trim()] = ts;
+    localStorage.setItem('whatsapp_peer_cleared_' + u, JSON.stringify(map));
+  } catch {}
+}
+
+function dbSaveMessage(msg) {
+  return new Promise((resolve, reject) => {
+    if (!db) return resolve();
+    const myUser = (currentCreds.user || '').toLowerCase().trim();
+    const isFromMe = (msg.from || '').toLowerCase().trim() === myUser;
+    const peer = (isFromMe ? msg.to : msg.from).toLowerCase().trim();
+    const item = { ...msg, peer };
+
+    const tx = db.transaction(['messages', 'contacts'], 'readwrite');
+    const msgStore = tx.objectStore('messages');
+    const contactStore = tx.objectStore('contacts');
+
+    msgStore.put(item);
+
+    // Update Contact Metadata
+    const req = contactStore.get(peer);
+    req.onsuccess = () => {
+      let contact = req.result || { username: peer, name: peer.charAt(0).toUpperCase() + peer.slice(1), unreadCount: 0 };
+      contact.lastMessage = msg.deleted ? '🚫 This message was deleted' : msg.text;
+      contact.lastTimestamp = msg.timestamp;
+      const currentActive = (activePeer || '').toLowerCase().trim();
+      if (!isFromMe && currentActive !== peer && msg.status !== 'read') {
+        contact.unreadCount = (contact.unreadCount || 0) + 1;
+      }
+      contactStore.put(contact);
+    };
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+
+function dbGetMessagesForPeer(peer) {
+  return new Promise((resolve, reject) => {
+    if (!db) return resolve([]);
+    const normPeer = (peer || '').toLowerCase().trim();
+    const tx = db.transaction('messages', 'readonly');
+    const store = tx.objectStore('messages');
+    const index = store.index('peer');
+    const request = index.getAll(IDBKeyRange.only(normPeer));
+
+    request.onsuccess = () => {
+      let msgs = request.result || [];
+      const deletedForMe = loadDeletedForMeSet();
+      const clearedTimestamps = loadPeerClearedTimestamps();
+      const clearedTs = clearedTimestamps[normPeer] || 0;
+
+      msgs = msgs.filter(m => !deletedForMe.has(m.id) && (!clearedTs || m.timestamp > clearedTs));
+      msgs.sort((a, b) => a.timestamp - b.timestamp);
+      resolve(msgs);
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function dbDeleteSingleMessage(msgId) {
+  return new Promise((resolve, reject) => {
+    if (!db) return resolve();
+    const tx = db.transaction(['messages', 'contacts'], 'readwrite');
+    const msgStore = tx.objectStore('messages');
+    msgStore.delete(msgId);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+
+function dbMarkMessageDeleted(msgId) {
+  return new Promise((resolve, reject) => {
+    if (!db) return resolve();
+    const tx = db.transaction('messages', 'readwrite');
+    const store = tx.objectStore('messages');
+    const req = store.get(msgId);
+    req.onsuccess = () => {
+      if (req.result) {
+        const item = req.result;
+        item.deleted = true;
+        item.text = '🚫 This message was deleted';
+        store.put(item);
+      }
+      resolve();
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbDeleteAllMessagesForPeer(peer) {
+  return new Promise((resolve, reject) => {
+    if (!db) return resolve();
+    const normPeer = (peer || '').toLowerCase().trim();
+    const tx = db.transaction(['messages', 'contacts'], 'readwrite');
+    const msgStore = tx.objectStore('messages');
+    const contactStore = tx.objectStore('contacts');
+    const index = msgStore.index('peer');
+    const request = index.openCursor(IDBKeyRange.only(normPeer));
+
+    request.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (cursor) {
+        cursor.delete();
+        cursor.continue();
+      }
+    };
+
+    // Reset contact preview
+    const cReq = contactStore.get(normPeer);
+    cReq.onsuccess = () => {
+      if (cReq.result) {
+        const c = cReq.result;
+        c.lastMessage = '';
+        c.unreadCount = 0;
+        contactStore.put(c);
+      }
+    };
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+function dbDeleteContact(peer) {
+  return new Promise((resolve, reject) => {
+    if (!db) return resolve();
+    const normPeer = (peer || '').toLowerCase().trim();
+    const tx = db.transaction(['contacts'], 'readwrite');
+    const store = tx.objectStore('contacts');
+    store.delete(normPeer);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+
+
+function dbUpdateMessageStatus(msgId, status) {
+  return new Promise((resolve, reject) => {
+    if (!db) return resolve();
+    const tx = db.transaction('messages', 'readwrite');
+    const store = tx.objectStore('messages');
+    const req = store.get(msgId);
+    req.onsuccess = () => {
+      if (req.result) {
+        const item = req.result;
+        item.status = status;
+        store.put(item);
+      }
+      resolve();
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbGetContacts() {
+  return new Promise((resolve, reject) => {
+    if (!db) return resolve([]);
+    const tx = db.transaction('contacts', 'readonly');
+    const store = tx.objectStore('contacts');
+    const req = store.getAll();
+    req.onsuccess = () => {
+      let list = req.result || [];
+      list.sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
+      resolve(list);
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbSaveContact(contact) {
+  return new Promise((resolve, reject) => {
+    if (!db) return resolve();
+    const tx = db.transaction('contacts', 'readwrite');
+    const store = tx.objectStore('contacts');
+    store.put(contact);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+
+function dbClearPeerUnread(peer) {
+  return new Promise((resolve) => {
+    if (!db) return resolve();
+    const normPeer = (peer || '').toLowerCase().trim();
+    const tx = db.transaction('contacts', 'readwrite');
+    const store = tx.objectStore('contacts');
+    const req = store.get(normPeer);
+    req.onsuccess = () => {
+      if (req.result) {
+        const c = req.result;
+        c.unreadCount = 0;
+        store.put(c);
+      }
+      resolve();
+    };
+    req.onerror = () => resolve();
+  });
+}
+
+// =============================================================================
+// 3. AUDIO SOUND EFFECTS (Web Audio API Synthesizer)
+// =============================================================================
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) audioCtx = new AudioContext();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function playSendSound() {
+  if (!soundEnabled) return;
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.08);
+  } catch (e) {
+    console.warn('Audio error:', e);
+  }
+}
+
+function playReceiveSound() {
+  if (!soundEnabled) return;
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc1 = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(784, now); // G5
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1046.5, now + 0.08); // C6
+
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc1.start(now);
+    osc1.stop(now + 0.08);
+    osc2.start(now + 0.08);
+    osc2.stop(now + 0.25);
+  } catch (e) {
+    console.warn('Audio error:', e);
+  }
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const icon = document.getElementById('soundIcon');
+  if (soundEnabled) {
+    icon.className = 'bi bi-volume-up';
+    showToast('Sound enabled');
+    playSendSound();
+  } else {
+    icon.className = 'bi bi-volume-mute';
+    showToast('Sound muted');
+  }
+}
+
+// =============================================================================
+// =============================================================================
+// 4. CONVERSATION SYNC TOPIC HELPERS (user1_user2 retain: true)
+// =============================================================================
+function getConversationPair(userA, userB) {
+  if (!userA || !userB) return '';
+  const sorted = [userA.toLowerCase().trim(), userB.toLowerCase().trim()].sort();
+  return `${sorted[0]}_${sorted[1]}`;
+}
+
+function getSyncTopic(userA, userB) {
+  return `chat/sync/${getConversationPair(userA, userB)}`;
+}
+
+// Presence & Last Seen Store
+function loadPresenceCache() {
+  try {
+    const raw = localStorage.getItem('whatsapp_presence_cache');
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return {
+    '': { status: 'offline', lastSeen: Date.now() - 3600000 },
+    'ruhi':  { status: 'offline', lastSeen: Date.now() - 1800000 }
+  };
+}
+
+function savePresenceCache(map) {
+  try {
+    localStorage.setItem('whatsapp_presence_cache', JSON.stringify(map));
+  } catch {}
+}
+
+function formatLastSeen(pres) {
+  if (!pres) return 'offline';
+  if (pres.status === 'online') return 'online';
+
+  const ts = pres.lastSeen || pres.timestamp;
+  if (!ts) return 'offline';
+
+  const now = Date.now();
+  const diffSec = Math.floor((now - ts) / 1000);
+  if (diffSec < 45) return 'last seen just now';
+
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `last seen ${diffMin} min${diffMin > 1 ? 's' : ''} ago`;
+
+  const date = new Date(ts);
+  const nowDate = new Date(now);
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Today
+  if (date.toDateString() === nowDate.toDateString()) {
+    return `last seen today at ${timeStr}`;
+  }
+
+  // Yesterday
+  const yesterday = new Date(now);
+  yesterday.setDate(nowDate.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) {
+    return `last seen yesterday at ${timeStr}`;
+  }
+
+  // Earlier this year
+  if (date.getFullYear() === nowDate.getFullYear()) {
+    const dayMonth = date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+    return `last seen ${dayMonth} at ${timeStr}`;
+  }
+
+  return `last seen ${date.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}`;
+}
+
+// =============================================================================
+// 5. INDEXEDDB BATCH PERSISTENCE HELPERS
+// =============================================================================
+function dbSaveBatchMessages(peer, msgList) {
+  return new Promise((resolve, reject) => {
+    if (!db) return resolve();
+    const normPeer = (peer || '').toLowerCase().trim();
+    const tx = db.transaction(['messages', 'contacts'], 'readwrite');
+    const msgStore = tx.objectStore('messages');
+    const contactStore = tx.objectStore('contacts');
+
+    msgList.forEach(m => {
+      msgStore.put({ ...m, peer: normPeer });
+    });
+
+    const cReq = contactStore.get(normPeer);
+    cReq.onsuccess = () => {
+      let contact = cReq.result || { username: normPeer, name: normPeer.charAt(0).toUpperCase() + normPeer.slice(1), unreadCount: 0 };
+      if (msgList.length > 0) {
+        const last = msgList[msgList.length - 1];
+        contact.lastMessage = last.deleted ? '🚫 This message was deleted' : last.text;
+        contact.lastTimestamp = last.timestamp;
+      }
+      const myUser = (currentCreds.user || '').toLowerCase().trim();
+      const currentActive = (activePeer || '').toLowerCase().trim();
+      if (currentActive !== normPeer) {
+        contact.unreadCount = msgList.filter(m => m.from && m.from.toLowerCase().trim() !== myUser && m.status !== 'read').length;
+      } else {
+        contact.unreadCount = 0;
+      }
+      contactStore.put(contact);
+    };
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+
+// =============================================================================
+// 6. MQTT CLIENT & MULTI-MESSAGE RETAINED SYNC ARCHITECTURE
+// =============================================================================
+function initMQTT() {
+  if (mqttClient) {
+    try { mqttClient.end(true); } catch {}
+    mqttClient = null;
+  }
+
+  if (!currentCreds.user || !currentCreds.pass) {
+    updateConnStatus('offline', 'Enter password');
+    return;
+  }
+
+  const clientId = 'wa_' + currentCreds.user + '_' + Math.random().toString(16).substr(2, 6);
+  const host = (currentCreds.host || 'mqtt.teleson.in').replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
+  const path = currentCreds.path || '/mqtt';
+
+  // Primary attempt: WSS port 8084
+  // Fallback attempt: WS port 8083 (in case TLS certificate chain is incomplete in browser)
+  let activeUrl = `wss://${host}:8084${path}`;
+
+  updateConnStatus('connecting', 'Connecting…');
+
+  const options = {
+    username: currentCreds.user,
+    password: currentCreds.pass,
+    clientId: clientId,
+    clean: true,
+    reconnectPeriod: 4000,
+    connectTimeout: 6000,
+    will: {
+      topic: `chat/presence/${currentCreds.user}`,
+      payload: JSON.stringify({ status: 'offline', lastSeen: Date.now() }),
+      qos: 1,
+      retain: true
+    }
+  };
+
+  let connectedOnce = false;
+
+  function setupClient(url) {
+    console.log('Connecting MQTT to:', url);
+    try {
+      mqttClient = mqtt.connect(url, options);
+    } catch (e) {
+      console.warn('mqtt.connect exception:', e);
+      if (url.startsWith('wss:')) tryFallback();
+      else updateConnStatus('offline', 'Offline');
+      return;
+    }
+
+    mqttClient.on('connect', () => {
+      connectedOnce = true;
+      console.log('MQTT Connected successfully to:', url);
+      updateConnStatus('online', 'Online');
+
+      // ── STRICT GATEWAY UNLOCK: Reveal chats ONLY after valid MQTT connection
+      unlockAppAndRevealChats();
+
+      // 1. Subscribe to conversation sync topic for pairs (user1_user2)
+      mqttClient.subscribe('chat/sync/+', { qos: 1 });
+
+      // 2. Subscribe to Presence of Contacts
+      mqttClient.subscribe('chat/presence/#', { qos: 1 });
+
+      // 3. Subscribe to Typing Indicators
+      mqttClient.subscribe('chat/typing/#', { qos: 0 });
+
+      // Announce Online Presence with retain: true
+      const presencePayload = JSON.stringify({ status: 'online', timestamp: Date.now() });
+      mqttClient.publish(`chat/presence/${currentCreds.user.toLowerCase()}`, presencePayload, { qos: 1, retain: true });
+
+      if (activePeer) {
+        syncConversationWithPeer(activePeer);
+      }
+    });
+
+    // Listen for incoming MQTT messages (Chat sync, Presence, Typing)
+    mqttClient.on('message', (topic, payload) => {
+      handleIncomingMqttMessage(topic, payload);
+    });
+
+    mqttClient.on('offline', () => {
+      console.log('MQTT client offline');
+      updateConnStatus('offline', 'Offline');
+      if (isAppUnlocked) {
+        showDisconnectOverlay();
+      }
+    });
+
+    mqttClient.on('error', (err) => {
+      console.warn('MQTT error on ' + url + ':', err);
+      if (!connectedOnce && url.startsWith('wss:')) {
+        tryFallback();
+      } else {
+        updateConnStatus('offline', 'Offline');
+        if (!isAppUnlocked) {
+          setGateConnectingState(false);
+          showGateError('MQTT Authentication failed: Please verify your username & password.');
+        } else {
+          showDisconnectOverlay();
+        }
+      }
+    });
+
+    // In browser, if WebSocket fails handshake (like invalid cert), close fires without connect
+    mqttClient.on('close', () => {
+      if (!connectedOnce && url.startsWith('wss:')) {
+        tryFallback();
+      } else if (!connectedOnce) {
+        setGateConnectingState(false);
+        showGateError('Connection refused by broker. Please check your credentials.');
+      } else if (isAppUnlocked) {
+        showDisconnectOverlay();
+      }
+    });
+  }
+
+  function tryFallback() {
+    if (connectedOnce) return;
+    if (mqttClient) {
+      try { mqttClient.end(true); } catch {}
+      mqttClient = null;
+    }
+    const fallbackUrl = `ws://${host}:8083${path}`;
+    console.log('Switching to WebSocket fallback:', fallbackUrl);
+    updateConnStatus('connecting', 'Connecting…');
+    setupClient(fallbackUrl);
+  }
+
+  setupClient(activeUrl);
+}
+
+// Reconcile and merge retained JSON with IndexedDB
+async function handleIncomingMqttMessage(topic, payloadBuffer) {
+  const payloadStr = payloadBuffer.toString();
+
+  // 1. CONVERSATION SYNC TOPIC: chat/sync/{user1_user2}
+  if (topic.startsWith('chat/sync/')) {
+    const pair = topic.replace('chat/sync/', '');
+    const myUser = (currentCreds.user || '').toLowerCase().trim();
+    if (!myUser) return;
+
+    // Check if current user is part of this conversation pair safely (supports underscores)
+    let peer = '';
+    if (pair.startsWith(myUser + '_')) {
+      peer = pair.slice(myUser.length + 1);
+    } else if (pair.endsWith('_' + myUser)) {
+      peer = pair.slice(0, pair.length - myUser.length - 1);
+    } else {
+      return;
+    }
+
+    // If payload is empty or empty array, chat was cleared
+    if (!payloadStr || payloadStr.trim() === '') return;
+
+    try {
+      const data = JSON.parse(payloadStr);
+      const incomingMsgs = data.messages || [];
+
+      // Check IndexedDB local messages for this peer
+      const localMsgs = await dbGetMessagesForPeer(peer);
+
+      // If incomingMsgs is empty and cleared was set, peer cleared chat
+      if (data.cleared && incomingMsgs.length === 0) {
+        await dbDeleteAllMessagesForPeer(peer);
+        if (activePeer && activePeer.toLowerCase() === peer.toLowerCase()) {
+          renderChatMessages(peer);
+        }
+        renderContactList();
+        showToast(`${peer} cleared this chat`);
+        return;
+      }
+
+      const deletedForMe = loadDeletedForMeSet();
+      const clearedTimestamps = loadPeerClearedTimestamps();
+      const clearedTs = clearedTimestamps[peer] || 0;
+
+      // Merge incoming messages with local IndexedDB messages by ID
+      const map = new Map();
+      localMsgs.forEach(m => map.set(m.id, { ...m }));
+
+      let hasNewFromPeer = false;
+      let statusUpdated = false;
+
+      incomingMsgs.forEach(inc => {
+        // Skip messages that user deleted for me or cleared
+        if (deletedForMe.has(inc.id)) return;
+        if (clearedTs && inc.timestamp <= clearedTs) return;
+
+        if (!map.has(inc.id)) {
+          // Brand new message from sync!
+          const item = { ...inc };
+          if (item.deleted) {
+            item.text = '🚫 This message was deleted';
+          }
+          map.set(item.id, item);
+          if (item.from && item.from.toLowerCase() !== myUser) {
+            hasNewFromPeer = true;
+          }
+        } else {
+          // Existing message - merge status & deletion
+          const cur = map.get(inc.id);
+
+          // If marked deleted
+          if (inc.deleted && !cur.deleted) {
+            cur.deleted = true;
+            cur.text = '🚫 This message was deleted';
+            statusUpdated = true;
+          }
+
+          // Advance status: sent (1) -> delivered (2) -> read (3)
+          const weight = { 'sent': 1, 'delivered': 2, 'read': 3 };
+          if ((weight[inc.status] || 0) > (weight[cur.status] || 0)) {
+            cur.status = inc.status;
+            statusUpdated = true;
+          }
+
+          // Merge seenAt timestamp
+          if (inc.seenAt && (!cur.seenAt || inc.seenAt < cur.seenAt)) {
+            cur.seenAt = inc.seenAt;
+            statusUpdated = true;
+          }
+
+          // Merge View-Once opened state
+          if (inc.isViewOnce && inc.viewOnceState === 'opened' && cur.viewOnceState !== 'opened') {
+            cur.viewOnceState = 'opened';
+            cur.deleted = true;
+            cur.text = '① Opened';
+            statusUpdated = true;
+          }
+        }
+      });
+
+      // If this conversation is currently open, mark incoming messages as read
+      const isChatActive = (activePeer && activePeer.toLowerCase() === peer.toLowerCase());
+      let needToNotifyPeer = false;
+
+      if (isChatActive) {
+        map.forEach(m => {
+          if (m.from && m.from.toLowerCase() !== myUser && m.status !== 'read') {
+            m.status = 'read';
+            if (m.autoDeleteDuration && !m.seenAt) {
+              m.seenAt = Date.now();
+            }
+            needToNotifyPeer = true;
+          }
+        });
+      } else if (hasNewFromPeer) {
+        // Mark as delivered
+        map.forEach(m => {
+          if (m.from && m.from.toLowerCase() !== myUser && m.status === 'sent') {
+            m.status = 'delivered';
+            needToNotifyPeer = true;
+          }
+        });
+      }
+
+      // Check if we have local messages that the broker's bundle does not have yet (offline sent messages)
+      const incomingIdSet = new Set(incomingMsgs.map(m => m.id));
+      for (const locMsg of localMsgs) {
+        if (!locMsg.deleted && !deletedForMe.has(locMsg.id) && !incomingIdSet.has(locMsg.id)) {
+          needToNotifyPeer = true;
+          break;
+        }
+      }
+
+      // Generate the final reconciled messages sorted by timestamp
+      const finalMessages = Array.from(map.values()).sort((a, b) => a.timestamp - b.timestamp);
+
+      if (hasNewFromPeer) removeDeletedContactMarker(peer);
+
+      // Save to IndexedDB
+      await dbSaveBatchMessages(peer, finalMessages);
+
+      // Show final messages to the user in the UI if chat is active and content changed
+      const isMyEcho = (data.lastSender && data.lastSender.toLowerCase() === myUser);
+      if (isChatActive) {
+        if (!isMyEcho || hasNewFromPeer || statusUpdated || data.cleared) {
+          renderChatMessagesList(finalMessages);
+        }
+      }
+
+      if (hasNewFromPeer) {
+        playReceiveSound();
+        if (!isChatActive) {
+          const last = finalMessages[finalMessages.length - 1];
+          showToast(`New message from ${peer}: ${last ? last.text.slice(0, 30) : ''}`);
+        }
+      }
+
+      renderContactList();
+
+      // If we marked incoming messages as read/delivered or have unsynced local messages, re-publish
+      if (needToNotifyPeer) {
+        publishSyncBundle(peer, finalMessages);
+      }
+
+    } catch (err) {
+      console.error('Error handling sync message:', err);
+    }
+    return;
+  }
+
+  // 2. PRESENCE: chat/presence/{username}
+  if (topic.startsWith('chat/presence/')) {
+    const user = topic.split('/')[2];
+    const myUser = (currentCreds.user || '').toLowerCase();
+    if (!user || user.toLowerCase() === myUser) return;
+    if (!payloadStr) return;
+
+    try {
+      const pres = JSON.parse(payloadStr);
+      if (pres.status === 'offline' && !pres.lastSeen) {
+        pres.lastSeen = Date.now();
+      }
+      const normUser = user.toLowerCase();
+      peerPresenceMap[normUser] = pres;
+      savePresenceCache(peerPresenceMap);
+      updatePeerPresenceUI(normUser, pres);
+    } catch (e) {
+      console.error('Error parsing presence JSON:', e);
+    }
+    return;
+  }
+
+  // 3. TYPING: chat/typing/{username}
+  if (topic.startsWith('chat/typing/')) {
+    const user = topic.split('/')[2];
+    const myUser = (currentCreds.user || '').toLowerCase();
+    if (!user || user.toLowerCase() === myUser) return;
+    if (!payloadStr) return;
+
+    try {
+      const typ = JSON.parse(payloadStr);
+      if (typ.typingTo && typ.typingTo.toLowerCase() === myUser) {
+        const normUser = user.toLowerCase();
+        peerTypingMap[normUser] = typ.isTyping;
+        updatePeerTypingUI(normUser, typ.isTyping);
+      }
+    } catch (e) {}
+    return;
+  }
+}
+
+// Publish the multi-message JSON bundle with retain: true
+function publishSyncBundle(peer, messagesList) {
+  if (!mqttClient || !mqttClient.connected || !peer) return;
+
+  const normPeer = peer.toLowerCase().trim();
+  const pair = getConversationPair(currentCreds.user, normPeer);
+  const topic = `chat/sync/${pair}`;
+
+  // Keep latest up to 100 messages in the retained bundle for fast payload size
+  const bundleMessages = messagesList.slice(-100);
+
+  const payload = JSON.stringify({
+    pair: pair,
+    updatedAt: Date.now(),
+    lastSender: (currentCreds.user || '').toLowerCase().trim(),
+    messages: bundleMessages
+  });
+
+  mqttClient.publish(topic, payload, { qos: 1, retain: true }, (err) => {
+    if (err) console.error('Error publishing sync bundle:', err);
+  });
+}
+
+// Sync conversation with peer on opening chat
+async function syncConversationWithPeer(peer) {
+  if (!peer) return;
+  const normPeer = peer.toLowerCase().trim();
+  const localMsgs = await dbGetMessagesForPeer(normPeer);
+  if (localMsgs.length > 0 && mqttClient && mqttClient.connected) {
+    const myUser = (currentCreds.user || '').toLowerCase();
+    let statusChanged = false;
+    localMsgs.forEach(m => {
+      if (m.from && m.from.toLowerCase() !== myUser && m.status !== 'read') {
+        m.status = 'read';
+        if (m.autoDeleteDuration && !m.seenAt) {
+          m.seenAt = Date.now();
+        }
+        statusChanged = true;
+      }
+    });
+    if (statusChanged) {
+      await dbSaveBatchMessages(normPeer, localMsgs);
+    }
+    publishSyncBundle(normPeer, localMsgs);
+  }
+}
+
+// Send Typing notification
+function sendTypingEvent(isTyping) {
+  if (!mqttClient || !mqttClient.connected || !activePeer || !currentCreds.user) return;
+  const payload = JSON.stringify({
+    typingTo: activePeer.toLowerCase().trim(),
+    isTyping: isTyping
+  });
+  mqttClient.publish(`chat/typing/${currentCreds.user.toLowerCase()}`, payload, { qos: 0, retain: false });
+}
+
+// Send Message: Appends to IndexedDB & publishes retained multi-message JSON
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text || !activePeer) return;
+
+  const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+  const myUser = (currentCreds.user || '').toLowerCase().trim();
+  const targetPeer = activePeer.toLowerCase().trim();
+  const chatDisappearingTimer = getChatDisappearingTimer(targetPeer);
+
+  const newMsg = {
+    id: msgId,
+    from: myUser,
+    to: targetPeer,
+    type: 'text',
+    text: text,
+    timestamp: Date.now(),
+    status: 'sent',
+    deleted: false
+  };
+
+  if (currentReplyMsg) {
+    newMsg.replyTo = {
+      id: currentReplyMsg.id,
+      from: currentReplyMsg.from,
+      text: (currentReplyMsg.text || '').slice(0, 150)
+    };
+    cancelReply();
+  }
+
+  // Handle View-Once and Auto-Delete Disappearing Messages
+  if (isViewOnceActive) {
+    newMsg.isViewOnce = true;
+    newMsg.viewOnceState = 'unopened';
+    isViewOnceActive = false;
+    const btnVO = document.getElementById('btnViewOnce');
+    if (btnVO) btnVO.classList.remove('active');
+  } else if (chatDisappearingTimer > 0) {
+    newMsg.autoDeleteDuration = chatDisappearingTimer;
+    newMsg.seenAt = null;
+  }
+
+  input.value = '';
+  input.style.height = 'auto';
+  sendTypingEvent(false);
+
+  // 1. Fetch current local messages from IndexedDB
+  const currentMsgs = await dbGetMessagesForPeer(targetPeer);
+  currentMsgs.push(newMsg);
+
+  // 2. Save new message to local IndexedDB
+  await dbSaveMessage(newMsg);
+
+  // 3. Render directly in chat UI
+  appendMessageBubble(newMsg);
+  renderContactList();
+  playSendSound();
+
+  // 4. Store multiple messages in single JSON with timestamp in retain: true topic
+  if (mqttClient && mqttClient.connected) {
+    publishSyncBundle(targetPeer, currentMsgs);
+  } else {
+    showToast('Saved locally (MQTT offline, will sync on connect)');
+  }
+}
+
+// =============================================================================
+// 7. MESSAGE DELETION (SINGLE & ALL) WITH RETAINED TOPIC SYNC
+// =============================================================================
+function promptDeleteSingle(msgId, isFromMe) {
+  pendingDeleteMsgId = msgId;
+  const btnEveryone = document.getElementById('btnDeleteEveryone');
+  if (isFromMe) {
+    btnEveryone.style.display = 'inline-block';
+    document.getElementById('deleteMsgPrompt').textContent = 'Do you want to delete this message for yourself or for everyone?';
+  } else {
+    btnEveryone.style.display = 'none';
+    document.getElementById('deleteMsgPrompt').textContent = 'Delete this message for yourself?';
+  }
+  openModal('deleteMsgModal');
+}
+
+async function execDeleteSingle(forEveryone) {
+  if (!pendingDeleteMsgId || !activePeer) return;
+  const msgId = pendingDeleteMsgId;
+  const targetPeer = activePeer.toLowerCase().trim();
+  closeModal('deleteMsgModal');
+
+  if (forEveryone) {
+    // 1. Mark as deleted in local IndexedDB
+    await dbMarkMessageDeleted(msgId);
+    renderMessageDeletedInUI(msgId);
+    renderContactList();
+
+    // 2. Fetch updated messages and re-publish multi-message JSON to retain: true topic
+    const msgs = await dbGetMessagesForPeer(targetPeer);
+    publishSyncBundle(targetPeer, msgs);
+
+    showToast('Deleted for everyone');
+  } else {
+    // Delete for me only (record in deletedForMe set so sync doesn't resurrect it)
+    saveDeletedForMe(msgId);
+    await dbDeleteSingleMessage(msgId);
+    const el = document.getElementById(`bubble_${msgId}`);
+    if (el) el.parentElement.remove();
+    renderContactList();
+    showToast('Deleted for you');
+  }
+}
+
+function confirmDeleteAllMessages(forEveryone) {
+  if (!activePeer) return;
+  closeDropdowns();
+  isDeleteAllForEveryone = forEveryone;
+  const prompt = forEveryone 
+    ? `Delete ALL messages with ${activePeer} for EVERYONE? Both sides will be cleared.`
+    : `Clear all messages with ${activePeer} on this device?`;
+  document.getElementById('deleteAllPromptText').textContent = prompt;
+  document.getElementById('btnConfirmDeleteAll').textContent = forEveryone ? 'Delete All for Everyone' : 'Clear for Me';
+  openModal('deleteAllModal');
+}
+
+async function execDeleteAll() {
+  if (!activePeer) return;
+  closeModal('deleteAllModal');
+
+  const normPeer = activePeer.toLowerCase().trim();
+
+  // 1. Clear local IndexedDB messages
+  await dbDeleteAllMessagesForPeer(normPeer);
+  savePeerClearedTimestamp(normPeer, Date.now());
+  renderChatMessages(normPeer);
+  renderContactList();
+
+  if (isDeleteAllForEveryone) {
+    // 2. Clear retained topic on broker with empty messages array and cleared flag
+    if (mqttClient && mqttClient.connected) {
+      const pair = getConversationPair(currentCreds.user, normPeer);
+      const topic = `chat/sync/${pair}`;
+      const payload = JSON.stringify({
+        pair: pair,
+        updatedAt: Date.now(),
+        lastSender: (currentCreds.user || '').toLowerCase().trim(),
+        cleared: true,
+        messages: []
+      });
+      mqttClient.publish(topic, payload, { qos: 1, retain: true });
+    }
+    showToast('All messages deleted for everyone');
+  } else {
+    showToast('Chat cleared for you');
+  }
+}
+
+// =============================================================================
+// 8. UI RENDERING & CONTACT MANAGEMENT (MOBILE-OPTIMIZED)
+// =============================================================================
+function removeDeletedContactMarker(peer) {
+  try {
+    const u = (currentCreds && currentCreds.user) ? currentCreds.user.toLowerCase().trim() : '';
+    const raw = localStorage.getItem('whatsapp_deleted_contacts_' + u);
+    if (raw) {
+      const set = new Set(JSON.parse(raw));
+      set.delete(peer.toLowerCase().trim());
+      localStorage.setItem('whatsapp_deleted_contacts_' + u, JSON.stringify(Array.from(set)));
+    }
+  } catch {}
+}
+
+async function deleteChatUser(peer) {
+  const normPeer = (peer || activePeer || '').toLowerCase().trim();
+  if (!normPeer) {
+    showToast('No contact selected to delete');
+    return;
+  }
+
+  const displayName = normPeer.charAt(0).toUpperCase() + normPeer.slice(1);
+  const confirmed = confirm(`Delete chat with "${displayName}" (@${normPeer})?\n\nThis will remove this user from your chat list and delete all conversation messages.`);
+  if (!confirmed) return;
+
+  // 1. Delete all local messages for this peer
+  await dbDeleteAllMessagesForPeer(normPeer);
+
+  // 2. Delete contact record from IndexedDB
+  await dbDeleteContact(normPeer);
+
+  // 3. Save to deleted contacts in localStorage so default seeding does not re-add them
+  try {
+    const u = (currentCreds && currentCreds.user) ? currentCreds.user.toLowerCase().trim() : '';
+    const raw = localStorage.getItem('whatsapp_deleted_contacts_' + u);
+    const set = raw ? new Set(JSON.parse(raw)) : new Set();
+    set.add(normPeer);
+    localStorage.setItem('whatsapp_deleted_contacts_' + u, JSON.stringify(Array.from(set)));
+  } catch {}
+
+  // 4. If current activePeer was this user, close chat and show empty view
+  if (activePeer && activePeer.toLowerCase().trim() === normPeer) {
+    activePeer = null;
+    const emptyView = document.getElementById('emptyChatView');
+    const activeView = document.getElementById('activeChatView');
+    const wrapper = document.getElementById('appWrapper');
+    if (emptyView) emptyView.style.display = 'flex';
+    if (activeView) activeView.style.display = 'none';
+    if (wrapper) wrapper.classList.remove('in-chat');
+  }
+
+  // 5. Refresh contact list
+  renderContactList();
+  showToast(`Chat with @${normPeer} deleted`);
+}
+
+function renderContactList(filterText = '') {
+  const container = document.getElementById('contactList');
+  dbGetContacts().then((contacts) => {
+    const myUser = (currentCreds.user || '').toLowerCase().trim();
+    const defaultPeer = myUser === '' ? 'ruhi' : '';
+
+    // Only auto-seed default contact if not explicitly deleted
+    const u = (currentCreds && currentCreds.user) ? currentCreds.user.toLowerCase().trim() : '';
+    let deletedContacts = new Set();
+    try {
+      const raw = localStorage.getItem('whatsapp_deleted_contacts_' + u);
+      if (raw) deletedContacts = new Set(JSON.parse(raw));
+    } catch {}
+
+    if (!deletedContacts.has(defaultPeer) && !contacts.some(c => c.username.toLowerCase() === defaultPeer)) {
+      contacts.unshift({
+        username: defaultPeer,
+        name: defaultPeer.charAt(0).toUpperCase() + defaultPeer.slice(1),
+        lastMessage: 'Tap to chat',
+        lastTimestamp: Date.now(),
+        unreadCount: 0
+      });
+      dbSaveContact(contacts[0]);
+    }
+
+    const filtered = contacts.filter(c => 
+      c.username.toLowerCase().includes(filterText.toLowerCase()) || 
+      (c.name && c.name.toLowerCase().includes(filterText.toLowerCase()))
+    );
+
+    container.innerHTML = '';
+    filtered.forEach(c => {
+      const normUsername = c.username.toLowerCase().trim();
+      const isActive = (activePeer && activePeer.toLowerCase().trim() === normUsername);
+      const pres = peerPresenceMap[normUsername];
+      const isOnline = pres && pres.status === 'online';
+      const isTyping = peerTypingMap[normUsername];
+
+      const item = document.createElement('div');
+      item.className = `chat-item ${isActive ? 'active' : ''}`;
+      item.setAttribute('data-user', normUsername);
+      
+      // Explicit click & touch listener for ultra-responsive contact open
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        selectContact(normUsername);
+      });
+
+      const avatarLetter = (c.name || normUsername).charAt(0).toUpperCase();
+      const timeStr = c.lastTimestamp ? formatTimeShort(c.lastTimestamp) : '';
+      
+      // Last seen / online status subtitle
+      let statusSubtitle = '';
+      if (isTyping) {
+        statusSubtitle = '<span style="color:var(--accent-green);font-weight:500;"><i class="bi bi-pen"></i> typing…</span>';
+      } else if (isOnline) {
+        statusSubtitle = '<span class="online-indicator-pill"><i class="bi bi-circle-fill" style="font-size:7px;"></i> Online</span>';
+      } else if (pres && pres.lastSeen) {
+        statusSubtitle = `<span style="font-size:11px;color:var(--text-muted);">${formatLastSeen(pres)}</span>`;
+      }
+
+      item.innerHTML = `
+        <div class="avatar ${isOnline ? 'online' : 'offline'}">${avatarLetter}</div>
+        <div class="chat-item-content">
+          <div class="chat-item-row">
+            <span class="chat-item-name">
+              ${escapeHTML(c.name || normUsername)}
+              ${isOnline ? '<i class="bi bi-circle-fill" style="font-size:8px;color:#22c55e;" title="Online"></i>' : ''}
+            </span>
+            <span class="chat-item-time">${timeStr}</span>
+          </div>
+          <div class="chat-item-row" style="margin-top:2px;">
+            <span class="chat-item-msg ${isTyping ? 'typing' : ''}" id="preview_${normUsername}">
+              ${escapeHTML(c.lastMessage || '')}
+            </span>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+              ${c.unreadCount > 0 ? `<span class="unread-badge">${c.unreadCount}</span>` : statusSubtitle}
+              <button class="btn-delete-contact" onclick="event.stopPropagation(); deleteChatUser('${normUsername}')" title="Delete chat with ${normUsername}">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      container.appendChild(item);
+    });
+
+    // If searching for a username not yet in contacts, show quick 1-click "Start chat" item
+    const trimmedFilter = filterText.trim().toLowerCase();
+    const exactMatch = contacts.some(c => c.username.toLowerCase() === trimmedFilter);
+
+    if (trimmedFilter && !exactMatch && trimmedFilter !== myUser) {
+      const newChatCard = document.createElement('div');
+      newChatCard.className = 'chat-item';
+      newChatCard.style.background = 'rgba(0, 168, 132, 0.12)';
+      newChatCard.style.border = '1px dashed var(--accent-green)';
+      newChatCard.style.cursor = 'pointer';
+      newChatCard.style.marginTop = '4px';
+      newChatCard.innerHTML = `
+        <div class="avatar" style="background:var(--accent-green);color:#111b21;">
+          <i class="bi bi-chat-plus-fill"></i>
+        </div>
+        <div class="chat-item-content">
+          <div class="chat-item-row">
+            <span class="chat-item-name" style="color:var(--accent-green);font-weight:600;">
+              Start chat with "${escapeHTML(trimmedFilter)}"
+            </span>
+          </div>
+          <div class="chat-item-row" style="margin-top:2px;">
+            <span class="chat-item-msg" style="color:var(--text-secondary);font-size:12px;">
+              Tap or press Enter to message @${escapeHTML(trimmedFilter)}
+            </span>
+          </div>
+        </div>
+      `;
+      newChatCard.addEventListener('click', () => {
+        startChatWithUser(trimmedFilter);
+      });
+      container.appendChild(newChatCard);
+    }
+  });
+}
+
+function startChatWithUser(rawUser) {
+  const norm = (rawUser || '').trim().toLowerCase();
+  if (!norm) return;
+  const myUser = (currentCreds.user || '').toLowerCase().trim();
+  if (norm === myUser) {
+    showToast('You cannot chat with yourself!');
+    return;
+  }
+  const contact = {
+    username: norm,
+    name: norm.charAt(0).toUpperCase() + norm.slice(1),
+    lastMessage: 'Chat started',
+    lastTimestamp: Date.now(),
+    unreadCount: 0
+  };
+  removeDeletedContactMarker(norm);
+  dbSaveContact(contact).then(() => {
+    const searchInput = document.getElementById('contactSearchInput');
+    if (searchInput) searchInput.value = '';
+    renderContactList();
+    selectContact(norm);
+    showToast(`Started chat with ${norm}`);
+  });
+}
+
+function selectContact(username) {
+  if (!username) return;
+  const normUser = username.toLowerCase().trim();
+  activePeer = normUser;
+
+  cancelReply();
+  closeMessageContextMenu();
+  closeModal('mobileActionSheet');
+
+  // Visual open
+  const emptyView = document.getElementById('emptyChatView');
+  const activeView = document.getElementById('activeChatView');
+  const wrapper = document.getElementById('appWrapper');
+
+  if (emptyView) emptyView.style.display = 'none';
+  if (activeView) activeView.style.display = 'flex';
+  
+  // Transition to chat view on mobile & desktop
+  wrapper.classList.add('in-chat');
+
+  // Set active header info
+  document.getElementById('activePeerName').textContent = normUser;
+  document.getElementById('activePeerAvatar').textContent = normUser.charAt(0).toUpperCase();
+  updateChatDisappearingUI();
+
+  // Clear unread in contact store
+  dbClearPeerUnread(normUser).then(() => {
+    renderContactList();
+  });
+
+  // Query user IndexedDB messages and make show final messages to user
+  dbGetMessagesForPeer(normUser).then((msgs) => {
+    const myUser = (currentCreds.user || '').toLowerCase().trim();
+    let statusChanged = false;
+    msgs.forEach(m => {
+      if (m.from && m.from.toLowerCase().trim() === normUser && m.status !== 'read') {
+        m.status = 'read';
+        if (m.autoDeleteDuration && !m.seenAt) {
+          m.seenAt = Date.now();
+        }
+        statusChanged = true;
+      }
+    });
+
+    renderChatMessagesList(msgs);
+
+    if (statusChanged) {
+      dbSaveBatchMessages(normUser, msgs);
+      publishSyncBundle(normUser, msgs);
+    }
+  });
+
+  // Update presence status in header
+  const pres = peerPresenceMap[normUser];
+  updatePeerPresenceUI(normUser, pres);
+
+  // Focus input if on desktop
+  if (window.innerWidth > 768) {
+    setTimeout(() => {
+      const inp = document.getElementById('msgInput');
+      if (inp) inp.focus();
+    }, 120);
+  }
+}
+
+function closeChatMobile() {
+  cancelReply();
+  closeMessageContextMenu();
+  closeModal('mobileActionSheet');
+
+  const wrapper = document.getElementById('appWrapper');
+  wrapper.classList.remove('in-chat');
+  activePeer = null;
+
+  // On desktop keep empty view visible if activePeer is null
+  if (window.innerWidth > 768) {
+    document.getElementById('emptyChatView').style.display = 'flex';
+    document.getElementById('activeChatView').style.display = 'none';
+  }
+
+  renderContactList();
+  updateChatDisappearingUI();
+}
+
+// Render list of messages with day separators
+function renderChatMessagesList(msgs) {
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Purge any expired auto-delete messages upon load
+  const nowTs = Date.now();
+  let anyExpired = false;
+  msgs.forEach(m => {
+    if (m.autoDeleteDuration && m.seenAt && (m.seenAt + m.autoDeleteDuration <= nowTs) && !m.deleted) {
+      m.deleted = true;
+      m.text = '🚫 This message was deleted';
+      anyExpired = true;
+    }
+  });
+  if (anyExpired && activePeer) {
+    dbSaveBatchMessages(activePeer, msgs);
+    if (mqttClient && mqttClient.connected) {
+      publishSyncBundle(activePeer, msgs);
+    }
+  }
+
+  // If conversation has disappearing messages enabled, show top banner
+  if (activePeer) {
+    const disappearingTimer = getChatDisappearingTimer(activePeer);
+    if (disappearingTimer > 0) {
+      const banner = document.createElement('div');
+      banner.className = 'date-separator';
+      banner.innerHTML = `<span class="date-pill" style="background:rgba(0,168,132,0.15); border:1px solid rgba(0,168,132,0.3); color:var(--accent-green); cursor:pointer;" onclick="openDisappearingMessagesModal()"><i class="bi bi-clock-history"></i> Disappearing messages on (${formatDurationLabel(disappearingTimer)} after seen)</span>`;
+      container.appendChild(banner);
+    }
+  }
+
+  let lastDate = '';
+  const now = new Date();
+  const todayStr = now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const yesterdayStr = yesterday.toDateString();
+
+  msgs.forEach(m => {
+    const d = new Date(m.timestamp);
+    const dStr = d.toDateString();
+    let displayDate = '';
+
+    if (dStr === todayStr) {
+      displayDate = 'TODAY';
+    } else if (dStr === yesterdayStr) {
+      displayDate = 'YESTERDAY';
+    } else {
+      displayDate = d.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    if (displayDate !== lastDate) {
+      lastDate = displayDate;
+      const sep = document.createElement('div');
+      sep.className = 'date-separator';
+      sep.innerHTML = `<span class="date-pill">${displayDate}</span>`;
+      container.appendChild(sep);
+    }
+    appendMessageBubble(m, false);
+  });
+
+  scrollChatToBottom();
+}
+
+function renderChatMessages(peer) {
+  dbGetMessagesForPeer(peer).then((msgs) => {
+    renderChatMessagesList(msgs);
+  });
+}
+
+// =============================================================================
+// DISAPPEARING MESSAGES & VIEW ONCE HELPERS
+// =============================================================================
+
+function formatShortDuration(ms) {
+  if (ms >= 1800000) return '30m';
+  if (ms >= 600000) return '10m';
+  if (ms >= 300000) return '5m';
+  if (ms >= 60000) return '1m';
+  return '';
+}
+
+function formatDurationLabel(ms) {
+  if (ms >= 1800000) return '30 minutes';
+  if (ms >= 600000) return '10 minutes';
+  if (ms >= 300000) return '5 minutes';
+  if (ms >= 60000) return '1 minute';
+  return 'Off';
+}
+
+function formatCountdown(ms) {
+  if (ms <= 0) return '0s';
+  if (ms < 60000) {
+    return Math.ceil(ms / 1000) + 's';
+  }
+  const mins = Math.floor(ms / 60000);
+  const secs = Math.floor((ms % 60000) / 1000);
+  return `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+}
+
+function getChatDisappearingTimer(peer) {
+  if (!peer) return 0;
+  const val = localStorage.getItem('whatsapp_disappearing_' + peer.toLowerCase().trim());
+  return val ? parseInt(val, 10) : 0;
+}
+
+function setChatDisappearingTimer(peer, durationMs) {
+  if (!peer) return;
+  const normPeer = peer.toLowerCase().trim();
+  localStorage.setItem('whatsapp_disappearing_' + normPeer, durationMs.toString());
+  updateChatDisappearingUI();
+  if (durationMs > 0) {
+    showToast(`Disappearing messages set to ${formatDurationLabel(durationMs)} after seen`);
+  } else {
+    showToast('Disappearing messages turned off');
+  }
+}
+
+function updateChatDisappearingUI() {
+  const pill = document.getElementById('headerDisappearingPill');
+  const pillText = document.getElementById('headerTimerPillText');
+  const footerBadge = document.getElementById('footerTimerBadge');
+  const btnTimer = document.getElementById('btnDisappearingTimer');
+
+  if (!activePeer) {
+    if (pill) pill.style.display = 'none';
+    if (footerBadge) footerBadge.style.display = 'none';
+    if (btnTimer) btnTimer.classList.remove('active');
+    return;
+  }
+
+  const durationMs = getChatDisappearingTimer(activePeer);
+  if (durationMs > 0) {
+    const shortLabel = formatShortDuration(durationMs);
+    if (pill) pill.style.display = 'inline-flex';
+    if (pillText) pillText.textContent = shortLabel;
+    if (footerBadge) {
+      footerBadge.textContent = shortLabel;
+      footerBadge.style.display = 'inline-block';
+    }
+    if (btnTimer) btnTimer.classList.add('active');
+  } else {
+    if (pill) pill.style.display = 'none';
+    if (footerBadge) footerBadge.style.display = 'none';
+    if (btnTimer) btnTimer.classList.remove('active');
+  }
+
+  [0, 60000, 300000, 600000, 1800000].forEach(d => {
+    const el = document.getElementById(`popTimer_${d}`);
+    if (el) {
+      if (d === durationMs) el.classList.add('active');
+      else el.classList.remove('active');
+    }
+  });
+}
+
+function toggleViewOnce() {
+  isViewOnceActive = !isViewOnceActive;
+  const btnVO = document.getElementById('btnViewOnce');
+  if (isViewOnceActive) {
+    if (btnVO) btnVO.classList.add('active');
+    showToast('① View Once ON: Message can only be viewed once');
+  } else {
+    if (btnVO) btnVO.classList.remove('active');
+    showToast('View Once OFF');
+  }
+}
+
+function toggleTimerPicker() {
+  const pop = document.getElementById('timerPickerPopover');
+  if (!pop) return;
+  const isOpen = pop.style.display === 'flex';
+  pop.style.display = isOpen ? 'none' : 'flex';
+}
+
+function selectQuickTimer(durationMs) {
+  if (!activePeer) return;
+  setChatDisappearingTimer(activePeer, durationMs);
+  const pop = document.getElementById('timerPickerPopover');
+  if (pop) pop.style.display = 'none';
+  dbGetMessagesForPeer(activePeer).then(msgs => {
+    renderChatMessagesList(msgs);
+  });
+}
+
+function openDisappearingMessagesModal() {
+  closeDropdowns();
+  if (!activePeer) return;
+  const durationMs = getChatDisappearingTimer(activePeer);
+  pendingDisappearingTimerOption = durationMs;
+  const radio = document.getElementById(`opt_disappearing_${durationMs}`);
+  if (radio) radio.checked = true;
+  openModal('disappearingModal');
+}
+
+function selectDisappearingModalOption(durationMs) {
+  pendingDisappearingTimerOption = durationMs;
+  const radio = document.getElementById(`opt_disappearing_${durationMs}`);
+  if (radio) radio.checked = true;
+}
+
+function confirmSaveDisappearingSettings() {
+  if (!activePeer) {
+    closeModal('disappearingModal');
+    return;
+  }
+  setChatDisappearingTimer(activePeer, pendingDisappearingTimerOption);
+  closeModal('disappearingModal');
+  dbGetMessagesForPeer(activePeer).then(msgs => {
+    renderChatMessagesList(msgs);
+  });
+}
+
+function openViewOnceMessage(msgId) {
+  const msg = msgCache[msgId];
+  if (!msg || msg.viewOnceState === 'opened') {
+    showToast('This message has already been viewed and deleted');
+    return;
+  }
+
+  activeViewingOnceMsgId = msgId;
+  const senderEl = document.getElementById('viewOnceSenderInfo');
+  const textEl = document.getElementById('viewOnceSecretContent');
+
+  if (senderEl) senderEl.textContent = `From @${msg.from}`;
+  if (textEl) textEl.textContent = msg.text || '';
+
+  openModal('viewOnceModal');
+}
+
+async function closeAndDestroyViewOnceMessage() {
+  if (!activeViewingOnceMsgId || !activePeer) {
+    closeModal('viewOnceModal');
+    return;
+  }
+
+  const msgId = activeViewingOnceMsgId;
+  const targetPeer = activePeer.toLowerCase().trim();
+  closeModal('viewOnceModal');
+  activeViewingOnceMsgId = null;
+
+  const msgs = await dbGetMessagesForPeer(targetPeer);
+  const target = msgs.find(m => m.id === msgId);
+  if (target) {
+    target.viewOnceState = 'opened';
+    target.deleted = true;
+    target.text = '① Opened';
+    await dbSaveBatchMessages(targetPeer, msgs);
+  }
+
+  renderChatMessagesList(msgs);
+  renderContactList();
+
+  if (mqttClient && mqttClient.connected) {
+    publishSyncBundle(targetPeer, msgs);
+  }
+
+  showToast('View Once message permanently deleted');
+}
+
+async function handleAutoDeleteExpired(msgId) {
+  if (!msgId || !activePeer) return;
+  const targetPeer = activePeer.toLowerCase().trim();
+
+  await dbMarkMessageDeleted(msgId);
+  renderMessageDeletedInUI(msgId);
+  renderContactList();
+
+  const msgs = await dbGetMessagesForPeer(targetPeer);
+  if (mqttClient && mqttClient.connected) {
+    publishSyncBundle(targetPeer, msgs);
+  }
+}
+
+function runAutoDeleteTicker() {
+  const elements = document.querySelectorAll('.auto-delete-countdown[data-expires]');
+  const now = Date.now();
+  elements.forEach(el => {
+    const expiresAt = parseInt(el.getAttribute('data-expires'));
+    const remainingMs = expiresAt - now;
+    if (remainingMs <= 0) {
+      const msgId = el.getAttribute('data-id');
+      el.removeAttribute('data-expires');
+      handleAutoDeleteExpired(msgId);
+    } else {
+      const textSpan = el.querySelector('.countdown-text');
+      if (textSpan) {
+        textSpan.textContent = formatCountdown(remainingMs);
+      }
+    }
+  });
+}
+
+setInterval(runAutoDeleteTicker, 1000);
+
+function appendMessageBubble(msg, shouldScroll = true) {
+  const container = document.getElementById('chatMessages');
+  const myUser = (currentCreds.user || '').toLowerCase().trim();
+  const isFromMe = (msg.from && msg.from.toLowerCase().trim() === myUser);
+
+  // Cache message for reference
+  msgCache[msg.id] = msg;
+
+  const row = document.createElement('div');
+  row.className = `msg-row ${isFromMe ? 'out' : 'in'}`;
+  row.id = `row_${msg.id}`;
+
+  const timeStr = formatTime(msg.timestamp);
+  let ticksHTML = '';
+  if (isFromMe) {
+    if (msg.status === 'read') {
+      ticksHTML = '<i class="bi bi-check2-all tick-read" title="Read"></i>';
+    } else if (msg.status === 'delivered') {
+      ticksHTML = '<i class="bi bi-check2-all tick-delivered" title="Delivered"></i>';
+    } else {
+      ticksHTML = '<i class="bi bi-check tick-sent" title="Sent"></i>';
+    }
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = `bubble ${isFromMe ? 'out' : 'in'}`;
+  bubble.id = `bubble_${msg.id}`;
+
+  // Left and Right swipe-to-reply indicators
+  const indLeft = document.createElement('div');
+  indLeft.className = 'swipe-reply-indicator swipe-left';
+  indLeft.innerHTML = '<i class="bi bi-reply-fill"></i>';
+
+  const indRight = document.createElement('div');
+  indRight.className = 'swipe-reply-indicator swipe-right';
+  indRight.innerHTML = '<i class="bi bi-reply-fill"></i>';
+
+  // Reply Quote preview if this is replying to another message
+  let replyQuoteHTML = '';
+  if (msg.replyTo && !msg.deleted) {
+    const isReplyFromMe = (msg.replyTo.from || '').toLowerCase().trim() === myUser;
+    const replySender = isReplyFromMe ? 'You' : (msg.replyTo.from || 'Contact');
+    replyQuoteHTML = `
+      <div class="bubble-reply-quote" onclick="scrollToMessage('${escapeHTML(msg.replyTo.id)}')" title="Click to jump to quoted message">
+        <div class="bubble-reply-sender">${escapeHTML(replySender)}</div>
+        <div class="bubble-reply-text">${escapeHTML(msg.replyTo.text || '')}</div>
+      </div>
+    `;
+  }
+
+  // Disappearing Auto-Delete Countdown / Badge
+  let autoDeleteBadgeHTML = '';
+  if (msg.autoDeleteDuration && !msg.deleted) {
+    if (msg.seenAt) {
+      const expiresAt = msg.seenAt + msg.autoDeleteDuration;
+      const remainingMs = expiresAt - Date.now();
+      if (remainingMs > 0) {
+        autoDeleteBadgeHTML = `
+          <span class="auto-delete-countdown" id="timer_${msg.id}" data-id="${msg.id}" data-expires="${expiresAt}" title="Auto-deletes after seen">
+            <i class="bi bi-stopwatch"></i> <span class="countdown-text">${formatCountdown(remainingMs)}</span>
+          </span>
+        `;
+      }
+    } else {
+      autoDeleteBadgeHTML = `
+        <span class="auto-delete-badge" title="Auto-deletes ${formatDurationLabel(msg.autoDeleteDuration)} after seen">
+          <i class="bi bi-stopwatch"></i> ${formatShortDuration(msg.autoDeleteDuration)}
+        </span>
+      `;
+    }
+  }
+
+  if (msg.deleted && !msg.isViewOnce) {
+    bubble.innerHTML = `
+      <div class="msg-deleted"><i class="bi bi-slash-circle"></i> <span>This message was deleted</span></div>
+      <div class="bubble-meta">
+        <span class="bubble-time">${timeStr}</span>
+      </div>
+    `;
+  } else if (msg.isViewOnce) {
+    // ── VIEW ONCE (1-TIME VIEW) MESSAGE RENDERING ──
+    if (msg.viewOnceState === 'opened') {
+      bubble.innerHTML = `
+        <div class="view-once-bubble opened">
+          <div class="view-once-icon-box">
+            <i class="bi bi-1-circle"></i>
+          </div>
+          <div class="view-once-info">
+            <div class="view-once-title">Opened</div>
+            <div class="view-once-subtitle">View once message opened &amp; deleted</div>
+          </div>
+        </div>
+        <div class="bubble-meta">
+          <span class="bubble-time">${timeStr}</span>
+          ${isFromMe ? `<span class="bubble-ticks" id="ticks_${msg.id}">${ticksHTML}</span>` : ''}
+        </div>
+      `;
+    } else if (!isFromMe) {
+      // Recipient sees View Once card to tap and view
+      bubble.innerHTML = `
+        <span class="bubble-sender">${escapeHTML(msg.from)}</span>
+        <div class="view-once-bubble unopened" onclick="openViewOnceMessage('${msg.id}')" title="Click to view once">
+          <div class="view-once-icon-box">
+            <i class="bi bi-1-circle-fill"></i>
+          </div>
+          <div class="view-once-info">
+            <div class="view-once-title">View Once Message</div>
+            <div class="view-once-subtitle">Tap to view &bull; Disappears after viewing</div>
+          </div>
+          <i class="bi bi-chevron-right view-once-arrow"></i>
+        </div>
+        <div class="bubble-meta">
+          <span class="bubble-time">${timeStr}</span>
+        </div>
+      `;
+    } else {
+      // Sender sees View Once card waiting to be opened
+      bubble.innerHTML = `
+        <div class="view-once-bubble sent">
+          <div class="view-once-icon-box">
+            <i class="bi bi-1-circle"></i>
+          </div>
+          <div class="view-once-info">
+            <div class="view-once-title">1 Message (View Once)</div>
+            <div class="view-once-subtitle">Waiting for recipient to open</div>
+          </div>
+        </div>
+        <div class="bubble-meta">
+          <span class="bubble-time">${timeStr}</span>
+          <span class="bubble-ticks" id="ticks_${msg.id}">${ticksHTML}</span>
+        </div>
+      `;
+    }
+  } else {
+    // Normal message bubble
+    bubble.innerHTML = `
+      ${!isFromMe ? `<span class="bubble-sender">${escapeHTML(msg.from)}</span>` : ''}
+      ${replyQuoteHTML}
+      <div class="bubble-text" id="text_${msg.id}">${escapeHTML(msg.text)}</div>
+      <div class="bubble-meta">
+        ${autoDeleteBadgeHTML}
+        <span class="bubble-time">${timeStr}</span>
+        <span class="bubble-ticks" id="ticks_${msg.id}">${ticksHTML}</span>
+      </div>
+      <button class="bubble-action-btn" onclick="handleBubbleOptionsClick(event, '${msg.id}')" title="Message Options">
+        <i class="bi bi-chevron-down"></i>
+      </button>
+    `;
+  }
+
+  row.appendChild(indLeft);
+  row.appendChild(bubble);
+  row.appendChild(indRight);
+  container.appendChild(row);
+
+  // Attach Gestures: Desktop Right-Click & Mobile Swipe Left/Right & Long-Press
+  attachBubbleGestures(row, bubble, msg);
+
+  if (shouldScroll) scrollChatToBottom();
+}
+
+// =============================================================================
+// MESSAGE QUOTED REPLIES, MOBILE GESTURES & CONTEXT MENUS
+// =============================================================================
+
+function startReply(msg) {
+  if (!msg) return;
+  const myUser = (currentCreds.user || '').toLowerCase().trim();
+  const isFromMe = (msg.from && msg.from.toLowerCase().trim() === myUser);
+  const senderDisplay = isFromMe ? 'You' : msg.from;
+
+  currentReplyMsg = {
+    id: msg.id,
+    from: msg.from,
+    text: msg.deleted ? 'This message was deleted' : (msg.text || '')
+  };
+
+  const bar = document.getElementById('replyPreviewBar');
+  const senderEl = document.getElementById('replyPreviewSender');
+  const textEl = document.getElementById('replyPreviewText');
+
+  if (senderEl) senderEl.textContent = senderDisplay;
+  if (textEl) textEl.textContent = currentReplyMsg.text;
+  if (bar) bar.style.display = 'flex';
+
+  const input = document.getElementById('msgInput');
+  if (input) {
+    input.focus();
+  }
+}
+
+function cancelReply() {
+  currentReplyMsg = null;
+  const bar = document.getElementById('replyPreviewBar');
+  if (bar) bar.style.display = 'none';
+}
+
+function scrollToMessage(msgId) {
+  if (!msgId) return;
+  const targetBubble = document.getElementById(`bubble_${msgId}`);
+  if (targetBubble) {
+    targetBubble.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    targetBubble.classList.remove('bubble-highlight');
+    void targetBubble.offsetWidth; // trigger reflow for animation
+    targetBubble.classList.add('bubble-highlight');
+    setTimeout(() => {
+      targetBubble.classList.remove('bubble-highlight');
+    }, 1500);
+  } else {
+    showToast('Original message not in current view');
+  }
+}
+
+function copyTextToClipboard(text) {
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('Message copied to clipboard');
+    }).catch(() => {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Message copied to clipboard');
+  } catch (e) {
+    showToast('Could not copy text');
+  }
+}
+
+function showMessageInfoModal(msg) {
+  const body = document.getElementById('msgInfoBody');
+  if (!body) return;
+
+  const dateObj = new Date(msg.timestamp);
+  const dateStr = dateObj.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+  const timeStr = dateObj.toLocaleTimeString();
+  const myUser = (currentCreds.user || '').toLowerCase().trim();
+  const isFromMe = (msg.from && msg.from.toLowerCase().trim() === myUser);
+
+  let statusLabel = 'Sent';
+  let statusIcon = '<i class="bi bi-check tick-sent"></i>';
+  if (msg.status === 'read') {
+    statusLabel = 'Read (Blue Double Check)';
+    statusIcon = '<i class="bi bi-check2-all tick-read"></i>';
+  } else if (msg.status === 'delivered') {
+    statusLabel = 'Delivered (Double Check)';
+    statusIcon = '<i class="bi bi-check2-all tick-delivered"></i>';
+  }
+
+  body.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:12px; font-size:13.5px;">
+      <div style="background:var(--bg-panel-secondary); border-radius:8px; padding:10px 12px; border:1px solid var(--border-color);">
+        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:4px;">Message Text</div>
+        <div style="color:var(--text-primary); font-size:14px; white-space:pre-wrap;">${escapeHTML(msg.text || '')}</div>
+      </div>
+      <div style="display:grid; grid-template-columns: 110px 1fr; gap:8px 12px; align-items:center;">
+        <span style="color:var(--text-muted);">From:</span>
+        <span style="color:var(--text-primary); font-weight:600;">@${escapeHTML(msg.from)} ${isFromMe ? '(You)' : ''}</span>
+
+        <span style="color:var(--text-muted);">To:</span>
+        <span style="color:var(--text-primary); font-weight:600;">@${escapeHTML(msg.to || activePeer)}</span>
+
+        <span style="color:var(--text-muted);">Date & Time:</span>
+        <span style="color:var(--text-primary);">${escapeHTML(dateStr)} at ${escapeHTML(timeStr)}</span>
+
+        <span style="color:var(--text-muted);">Delivery Status:</span>
+        <span style="color:var(--text-primary); display:flex; align-items:center; gap:6px;">${statusIcon} ${statusLabel}</span>
+
+        <span style="color:var(--text-muted);">Message ID:</span>
+        <span style="color:var(--text-secondary); font-family:monospace; font-size:11px;">${escapeHTML(msg.id)}</span>
+      </div>
+    </div>
+  `;
+
+  openModal('msgInfoModal');
+}
+
+// ── Desktop Context Menu ──
+function openMessageContextMenu(e, msg) {
+  if (!msg) return;
+  activeTargetMsg = msg;
+  const menu = document.getElementById('msgContextMenu');
+  if (!menu) return;
+
+  const myUser = (currentCreds.user || '').toLowerCase().trim();
+  const isFromMe = (msg.from && msg.from.toLowerCase().trim() === myUser);
+  const btnDeleteEveryone = document.getElementById('ctxBtnDeleteEveryone');
+  if (btnDeleteEveryone) {
+    btnDeleteEveryone.style.display = (isFromMe && !msg.deleted) ? 'flex' : 'none';
+  }
+
+  menu.style.display = 'flex';
+  menu.classList.add('open');
+
+  const menuWidth = 200;
+  const menuHeight = 220;
+  let posX = (e && typeof e.clientX === 'number') ? e.clientX : 100;
+  let posY = (e && typeof e.clientY === 'number') ? e.clientY : 100;
+
+  if (posX + menuWidth > window.innerWidth) posX = window.innerWidth - menuWidth - 12;
+  if (posY + menuHeight > window.innerHeight) posY = window.innerHeight - menuHeight - 12;
+
+  menu.style.left = Math.max(8, posX) + 'px';
+  menu.style.top = Math.max(8, posY) + 'px';
+}
+
+function closeMessageContextMenu() {
+  const menu = document.getElementById('msgContextMenu');
+  if (menu) {
+    menu.classList.remove('open');
+    menu.style.display = 'none';
+  }
+}
+
+function onCtxReply() {
+  const msg = activeTargetMsg;
+  closeMessageContextMenu();
+  if (msg) startReply(msg);
+}
+
+function onCtxCopy() {
+  const msg = activeTargetMsg;
+  closeMessageContextMenu();
+  if (msg) copyTextToClipboard(msg.text);
+}
+
+function onCtxDeleteForMe() {
+  const msg = activeTargetMsg;
+  closeMessageContextMenu();
+  if (!msg) return;
+  pendingDeleteMsgId = msg.id;
+  execDeleteSingle(false);
+}
+
+function onCtxDeleteEveryone() {
+  const msg = activeTargetMsg;
+  closeMessageContextMenu();
+  if (!msg) return;
+  pendingDeleteMsgId = msg.id;
+  execDeleteSingle(true);
+}
+
+function onCtxInfo() {
+  const msg = activeTargetMsg;
+  closeMessageContextMenu();
+  if (msg) showMessageInfoModal(msg);
+}
+
+// ── Mobile Action Sheet ──
+function openMobileActionSheet(msg) {
+  if (!msg) return;
+  activeTargetMsg = msg;
+  const myUser = (currentCreds.user || '').toLowerCase().trim();
+  const isFromMe = (msg.from && msg.from.toLowerCase().trim() === myUser);
+
+  const senderEl = document.getElementById('sheetMsgSender');
+  const textEl = document.getElementById('sheetMsgText');
+  const timeEl = document.getElementById('sheetMsgTime');
+  const btnDeleteEveryone = document.getElementById('sheetBtnDeleteEveryone');
+
+  if (senderEl) senderEl.textContent = isFromMe ? 'You' : msg.from;
+  if (textEl) textEl.textContent = msg.deleted ? 'This message was deleted' : (msg.text || '');
+  if (timeEl) timeEl.textContent = formatTime(msg.timestamp);
+  if (btnDeleteEveryone) {
+    btnDeleteEveryone.style.display = (isFromMe && !msg.deleted) ? 'flex' : 'none';
+  }
+
+  openModal('mobileActionSheet');
+}
+
+function closeMobileActionSheet(e) {
+  if (e && e.target && e.target.id !== 'mobileActionSheet') return;
+  closeModal('mobileActionSheet');
+}
+
+function onActionSheetReply() {
+  const msg = activeTargetMsg;
+  closeModal('mobileActionSheet');
+  if (msg) startReply(msg);
+}
+
+function onActionSheetCopy() {
+  const msg = activeTargetMsg;
+  closeModal('mobileActionSheet');
+  if (msg) copyTextToClipboard(msg.text);
+}
+
+function onActionSheetDeleteForMe() {
+  const msg = activeTargetMsg;
+  closeModal('mobileActionSheet');
+  if (!msg) return;
+  pendingDeleteMsgId = msg.id;
+  execDeleteSingle(false);
+}
+
+function onActionSheetDeleteEveryone() {
+  const msg = activeTargetMsg;
+  closeModal('mobileActionSheet');
+  if (!msg) return;
+  pendingDeleteMsgId = msg.id;
+  execDeleteSingle(true);
+}
+
+function onActionSheetInfo() {
+  const msg = activeTargetMsg;
+  closeModal('mobileActionSheet');
+  if (msg) showMessageInfoModal(msg);
+}
+
+function handleBubbleOptionsClick(e, msgId) {
+  e.preventDefault();
+  e.stopPropagation();
+  const msg = msgCache[msgId];
+  if (!msg) return;
+  if (window.innerWidth <= 768) {
+    openMobileActionSheet(msg);
+  } else {
+    openMessageContextMenu(e, msg);
+  }
+}
+
+// ── Gestures Attachment: Swipe Left/Right to Reply & Long Press for Action Sheet ──
+function attachBubbleGestures(row, bubble, msg) {
+  // 1. Desktop Right-Click Context Menu
+  bubble.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openMessageContextMenu(e, msg);
+  });
+
+  // 2. Mobile Touch Gestures
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isSwiping = false;
+  let hasTriggeredVibrate = false;
+  let longPressTimer = null;
+  let isLongPressTriggered = false;
+
+  const indLeft = row.querySelector('.swipe-reply-indicator.swipe-left');
+  const indRight = row.querySelector('.swipe-reply-indicator.swipe-right');
+
+  bubble.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+    isSwiping = false;
+    hasTriggeredVibrate = false;
+    isLongPressTriggered = false;
+
+    longPressTimer = setTimeout(() => {
+      if (!isSwiping) {
+        isLongPressTriggered = true;
+        if (navigator.vibrate) try { navigator.vibrate(35); } catch {}
+        openMobileActionSheet(msg);
+      }
+    }, 450);
+  }, { passive: true });
+
+  bubble.addEventListener('touchmove', (e) => {
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const diffX = t.clientX - touchStartX;
+    const diffY = t.clientY - touchStartY;
+
+    if (Math.hypot(diffX, diffY) > 8) {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    }
+
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+      isSwiping = true;
+      if (e.cancelable) e.preventDefault();
+
+      const maxDrag = 85;
+      const moveX = Math.sign(diffX) * Math.min(Math.abs(diffX), maxDrag);
+      bubble.style.transition = 'none';
+      bubble.style.transform = `translateX(${moveX}px)`;
+
+      const threshold = 45;
+      const progress = Math.min(1, Math.abs(diffX) / threshold);
+
+      if (diffX > 0) {
+        if (indLeft) {
+          indLeft.style.opacity = progress.toString();
+          indLeft.style.transform = `translateY(-50%) scale(${0.4 + progress * 0.6})`;
+        }
+        if (indRight) indRight.style.opacity = '0';
+      } else {
+        if (indRight) {
+          indRight.style.opacity = progress.toString();
+          indRight.style.transform = `translateY(-50%) scale(${0.4 + progress * 0.6})`;
+        }
+        if (indLeft) indLeft.style.opacity = '0';
+      }
+
+      if (Math.abs(diffX) >= threshold && !hasTriggeredVibrate) {
+        hasTriggeredVibrate = true;
+        if (navigator.vibrate) try { navigator.vibrate(20); } catch {}
+      }
+    }
+  }, { passive: false });
+
+  const finishGesture = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+
+    if (isSwiping) {
+      bubble.style.transition = 'transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
+      bubble.style.transform = 'translateX(0px)';
+
+      if (indLeft) {
+        indLeft.style.opacity = '0';
+        indLeft.style.transform = 'translateY(-50%) scale(0.4)';
+      }
+      if (indRight) {
+        indRight.style.opacity = '0';
+        indRight.style.transform = 'translateY(-50%) scale(0.4)';
+      }
+
+      if (hasTriggeredVibrate && !isLongPressTriggered) {
+        startReply(msg);
+      }
+      isSwiping = false;
+    }
+  };
+
+  bubble.addEventListener('touchend', finishGesture, { passive: true });
+  bubble.addEventListener('touchcancel', finishGesture, { passive: true });
+}
+
+function updateMessageTicksInUI(msgId, status) {
+  const ticksEl = document.getElementById(`ticks_${msgId}`);
+  if (!ticksEl) return;
+  if (status === 'read') {
+    ticksEl.innerHTML = '<i class="bi bi-check2-all tick-read" title="Read"></i>';
+  } else if (status === 'delivered') {
+    ticksEl.innerHTML = '<i class="bi bi-check2-all tick-delivered" title="Delivered"></i>';
+  } else {
+    ticksEl.innerHTML = '<i class="bi bi-check tick-sent" title="Sent"></i>';
+  }
+}
+
+function renderMessageDeletedInUI(msgId) {
+  const bubble = document.getElementById(`bubble_${msgId}`);
+  if (!bubble) return;
+  bubble.innerHTML = `
+    <div class="msg-deleted"><i class="bi bi-slash-circle"></i> <span>This message was deleted</span></div>
+    <div class="bubble-meta">
+      <span class="bubble-time">Deleted</span>
+    </div>
+  `;
+}
+
+function updatePeerPresenceUI(username, pres) {
+  // Update sidebar contact item
+  renderContactList();
+
+  const normUser = (username || '').toLowerCase().trim();
+  const normActive = (activePeer || '').toLowerCase().trim();
+
+  // If currently active chat
+  if (normActive === normUser) {
+    const el = document.getElementById('activePeerStatus');
+    const avatar = document.getElementById('activePeerAvatar');
+    
+    if (pres && pres.status === 'online') {
+      el.className = 'chat-header-status online';
+      el.innerHTML = '<i class="bi bi-circle-fill" style="font-size:8px;"></i> online';
+      avatar.className = 'avatar online';
+    } else {
+      el.className = 'chat-header-status';
+      avatar.className = 'avatar offline';
+      const lastSeenText = formatLastSeen(pres);
+      el.innerHTML = `<i class="bi bi-clock-history"></i> ${escapeHTML(lastSeenText)}`;
+    }
+  }
+}
+
+function updatePeerTypingUI(username, isTyping) {
+  const normUser = (username || '').toLowerCase().trim();
+  const normActive = (activePeer || '').toLowerCase().trim();
+
+  // Update sidebar preview
+  const prevEl = document.getElementById(`preview_${normUser}`);
+  if (prevEl) {
+    if (isTyping) {
+      prevEl.className = 'chat-item-msg typing';
+      prevEl.innerHTML = '<i class="bi bi-pen"></i> typing…';
+    } else {
+      prevEl.className = 'chat-item-msg';
+    }
+  }
+
+  // Update header if active
+  if (normActive === normUser) {
+    const statusEl = document.getElementById('activePeerStatus');
+    if (isTyping) {
+      statusEl.className = 'chat-header-status typing';
+      statusEl.innerHTML = '<i class="bi bi-pen-fill"></i> typing…';
+    } else {
+      updatePeerPresenceUI(normUser, peerPresenceMap[normUser]);
+    }
+  }
+}
+
+function handleInputKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function handleInputTyping() {
+  const input = document.getElementById('msgInput');
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 100) + 'px';
+
+  sendTypingEvent(true);
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    sendTypingEvent(false);
+  }, 2000);
+}
+
+function filterContacts(val) {
+  renderContactList(val);
+}
+
+function scrollChatToBottom() {
+  const container = document.getElementById('chatMessages');
+  if (container) {
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+// =============================================================================
+// 9. USER & ACCOUNT SWITCHING
+// =============================================================================
+function getLastLoginUsername() {
+  try {
+    return localStorage.getItem('last_login_username') || '';
+  } catch {
+    return '';
+  }
+}
+
+function saveLastLoginUsername(username) {
+  try {
+    localStorage.setItem('last_login_username', username);
+    // Explicitly delete any old storage containing passwords
+    localStorage.removeItem('whatsapp_mqtt_creds');
+  } catch {}
+}
+
+async function saveAndConnectMQTT() {
+  const user = document.getElementById('cfgUser').value.trim();
+  const pass = document.getElementById('cfgPass').value.trim();
+
+  if (!user) {
+    showToast('Username is required!');
+    document.getElementById('cfgUser').focus();
+    return;
+  }
+  if (!pass) {
+    showToast('Please enter your password!');
+    document.getElementById('cfgPass').focus();
+    return;
+  }
+
+  const normUser = user.toLowerCase();
+
+  // Broker Host, Port, and Path are permanently fixed
+  currentCreds = {
+    host: 'mqtt.teleson.in',
+    port: 8084,
+    path: '/mqtt',
+    user: normUser,
+    pass: pass // In-memory session only
+  };
+
+  // ONLY save username of last login user (never save password)
+  saveLastLoginUsername(normUser);
+
+  closeModal('loginModal');
+  updateCurrentUserUI();
+
+  if (!activePeer || activePeer.toLowerCase() === normUser) {
+    activePeer = (normUser === '' ? 'ruhi' : '');
+  }
+
+  await initIndexedDB();
+  initMQTT();
+  renderContactList();
+
+  if (window.innerWidth > 768) {
+    selectContact(activePeer);
+  } else {
+    closeChatMobile();
+  }
+
+  showToast(`Connecting as ${normUser}…`);
+}
+
+function updateCurrentUserUI() {
+  const lastUser = currentCreds.user || getLastLoginUsername();
+  document.getElementById('currentUserName').textContent = lastUser;
+  document.getElementById('currentUserAvatar').textContent = lastUser.charAt(0).toUpperCase();
+  document.getElementById('lblCurrentAcct').textContent = lastUser;
+
+  // Prefill modal: ONLY show username of last login user. Password is ALWAYS empty!
+  const uInput = document.getElementById('cfgUser');
+  const pInput = document.getElementById('cfgPass');
+  if (uInput) uInput.value = lastUser;
+  if (pInput) pInput.value = ''; // Never preset or prefill password
+}
+
+function updateConnStatus(status, text) {
+  const dot = document.getElementById('connDot');
+  const txt = document.getElementById('connStatusText');
+  if (txt) txt.textContent = text;
+  if (dot) {
+    if (status === 'online') dot.className = 'dot online';
+    else dot.className = 'dot';
+  }
+
+  // Update Top Right Status Dots (Green / Red / Amber)
+  const topDots = document.querySelectorAll('.top-mqtt-dot');
+  const topLabels = document.querySelectorAll('.top-mqtt-label');
+
+  const dotClass = status === 'online' ? 'online' : (status === 'connecting' ? 'connecting' : 'offline');
+  const labelText = status === 'online' ? 'Online' : (status === 'connecting' ? 'Connecting…' : 'Offline');
+
+  topDots.forEach(d => {
+    d.className = `top-mqtt-dot status-dot-pulse ${dotClass}`;
+  });
+
+  topLabels.forEach(l => {
+    l.textContent = labelText;
+    if (status === 'online') {
+      l.style.color = '#22c55e';
+    } else if (status === 'connecting') {
+      l.style.color = '#f59e0b';
+    } else {
+      l.style.color = '#ef4444';
+    }
+  });
+}
+
+// =============================================================================
+// 10. EMOJI PICKER & UTILITIES
+// =============================================================================
+function initEmojiPicker() {
+  const grid = document.getElementById('emojiGrid');
+  grid.innerHTML = '';
+  POPULAR_EMOJIS.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-btn';
+    btn.textContent = emoji;
+    btn.onclick = () => insertEmoji(emoji);
+    grid.appendChild(btn);
+  });
+}
+
+function toggleEmojiPicker() {
+  const picker = document.getElementById('emojiPicker');
+  picker.classList.toggle('open');
+}
+
+function insertEmoji(emoji) {
+  const input = document.getElementById('msgInput');
+  input.value += emoji;
+  input.focus();
+}
+
+function toggleDropdown(id) {
+  const menu = document.getElementById(id);
+  menu.classList.toggle('open');
+}
+
+function closeDropdowns() {
+  document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('open'));
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#msgContextMenu') && !e.target.closest('.bubble-action-btn')) {
+    closeMessageContextMenu();
+  }
+  if (!e.target.closest('.chat-header-actions') && !e.target.closest('.dropdown-menu')) {
+    closeDropdowns();
+  }
+  if (!e.target.closest('#emojiPicker') && !e.target.closest('button[title="Emoji Picker"]')) {
+    const picker = document.getElementById('emojiPicker');
+    if (picker) picker.classList.remove('open');
+  }
+  if (!e.target.closest('#timerPickerPopover') && !e.target.closest('#btnDisappearingTimer')) {
+    const pop = document.getElementById('timerPickerPopover');
+    if (pop) pop.style.display = 'none';
+  }
+});
+
+document.addEventListener('contextmenu', (e) => {
+  if (!e.target.closest('.bubble')) {
+    closeMessageContextMenu();
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeMessageContextMenu();
+    closeModal('mobileActionSheet');
+    cancelReply();
+    const pop = document.getElementById('timerPickerPopover');
+    if (pop) pop.style.display = 'none';
+  }
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  const chatMsgsEl = document.getElementById('chatMessages');
+  if (chatMsgsEl) {
+    chatMsgsEl.addEventListener('scroll', () => {
+      closeMessageContextMenu();
+    }, { passive: true });
+  }
+});
+
+function toggleTheme() {
+  const body = document.body;
+  const icon = document.getElementById('themeIcon');
+  if (body.getAttribute('data-theme') === 'dark') {
+    body.setAttribute('data-theme', 'light');
+    icon.className = 'bi bi-sun-fill';
+  } else {
+    body.setAttribute('data-theme', 'dark');
+    icon.className = 'bi bi-moon-stars';
+  }
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+function openLoginModal() {
+  const u = document.getElementById('cfgUser');
+  const p = document.getElementById('cfgPass');
+  if (u && currentCreds.user) u.value = currentCreds.user;
+  if (p && currentCreds.pass) p.value = currentCreds.pass;
+  openModal('loginModal');
+}
+function openAddContactModal() {
+  openModal('addContactModal');
+}
+
+function viewContactInfo() {
+  if (!activePeer) return;
+  const pres = peerPresenceMap[activePeer];
+  const lastSeenStr = formatLastSeen(pres);
+  const pair = getConversationPair(currentCreds.user, activePeer);
+  alert(`Contact Details:\nUsername: ${activePeer}\nStatus: ${lastSeenStr}\nRetained Sync Topic: chat/sync/${pair}`);
+}
+
+function confirmAddContact() {
+  const username = document.getElementById('newContactUsername').value.trim().toLowerCase();
+  const name = document.getElementById('newContactName').value.trim() || username;
+
+  if (!username) {
+    showToast('Username is required');
+    return;
+  }
+
+  const contact = {
+    username,
+    name,
+    lastMessage: 'Chat started',
+    lastTimestamp: Date.now(),
+    unreadCount: 0
+  };
+
+  removeDeletedContactMarker(username);
+  dbSaveContact(contact).then(() => {
+    closeModal('addContactModal');
+    document.getElementById('newContactUsername').value = '';
+    document.getElementById('newContactName').value = '';
+    renderContactList();
+    selectContact(username);
+    showToast(`Added contact ${username}`);
+  });
+}
+
+function promptSearchInChat() {
+  const query = prompt('Enter text to search in this chat:');
+  if (!query) return;
+
+  const bubbles = document.querySelectorAll('.bubble-text');
+  let matchCount = 0;
+  bubbles.forEach(b => {
+    if (b.textContent.toLowerCase().includes(query.toLowerCase())) {
+      b.style.backgroundColor = 'rgba(250, 204, 21, 0.4)';
+      matchCount++;
+      b.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      b.style.backgroundColor = '';
+    }
+  });
+
+  if (matchCount > 0) {
+    showToast(`Found ${matchCount} matches`);
+  } else {
+    showToast('No matching messages found');
+  }
+}
+
+function exportChatJSON() {
+  if (!activePeer) return;
+  dbGetMessagesForPeer(activePeer).then(msgs => {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(msgs, null, 2));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute('href', dataStr);
+    dlAnchor.setAttribute('download', `mqtt_chat_${currentCreds.user}_${activePeer}_${Date.now()}.json`);
+    dlAnchor.click();
+    showToast('Exported chat JSON');
+  });
+}
+
+function exportChatText() {
+  if (!activePeer) return;
+  dbGetMessagesForPeer(activePeer).then(msgs => {
+    let text = `WhatsApp MQTT Chat Log: ${currentCreds.user} and ${activePeer}\n`;
+    text += `Exported at: ${new Date().toLocaleString()}\n`;
+    text += `====================================================\n\n`;
+
+    msgs.forEach(m => {
+      const time = new Date(m.timestamp).toLocaleString();
+      text += `[${time}] ${m.from}: ${m.text}\n`;
+    });
+
+    const dataStr = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute('href', dataStr);
+    dlAnchor.setAttribute('download', `mqtt_chat_${currentCreds.user}_${activePeer}_${Date.now()}.txt`);
+    dlAnchor.click();
+    showToast('Exported chat TXT');
+  });
+}
+
+function showToast(msg) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<i class="bi bi-info-circle-fill" style="color:var(--accent-green)"></i> <span>${escapeHTML(msg)}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+function escapeHTML(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatTimeShort(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) {
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+function loadCreds() {
+  const user = (queryUser || getLastLoginUsername()).toLowerCase().trim();
+  return {
+    host: 'mqtt.teleson.in',
+    port: 8084,
+    path: '/mqtt',
+    user: user,
+    pass: queryPass || ''
+  };
+}
+
+function saveCreds(c) {
+  if (c && c.user) {
+    saveLastLoginUsername(c.user);
+  }
+}
+
+// =============================================================================
+// 10. SECURITY GATEKEEPER & ACCESS CONTROL
+// =============================================================================
+function showLoginGate() {
+  const gate = document.getElementById('loginGateScreen');
+  if (gate) gate.style.display = 'flex';
+  const app = document.getElementById('appWrapper');
+  if (app) app.style.display = 'none';
+  hideDisconnectOverlay();
+}
+
+function hideLoginGate() {
+  const gate = document.getElementById('loginGateScreen');
+  if (gate) gate.style.display = 'none';
+}
+
+function showDisconnectOverlay() {
+  if (!isAppUnlocked) return;
+  const overlay = document.getElementById('disconnectOverlay');
+  if (overlay) overlay.style.display = 'flex';
+}
+
+function hideDisconnectOverlay() {
+  const overlay = document.getElementById('disconnectOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function showGateError(msg) {
+  const b = document.getElementById('gateErrorBanner');
+  const t = document.getElementById('gateErrorText');
+  if (b && t) {
+    t.textContent = msg;
+    b.style.display = 'flex';
+  }
+}
+
+function hideGateError() {
+  const b = document.getElementById('gateErrorBanner');
+  if (b) b.style.display = 'none';
+}
+
+function setGateConnectingState(connecting, statusMsg) {
+  const btn = document.getElementById('btnGateConnect');
+  const txt = document.getElementById('btnGateConnectText');
+  const icon = document.getElementById('btnGateIcon');
+  if (btn && txt && icon) {
+    if (connecting) {
+      btn.disabled = true;
+      icon.className = 'bi bi-arrow-repeat';
+      icon.style.animation = 'spin 1s linear infinite';
+      txt.textContent = statusMsg || 'Connecting to MQTT broker…';
+    } else {
+      btn.disabled = false;
+      icon.className = 'bi bi-box-arrow-in-right';
+      icon.style.animation = 'none';
+      txt.textContent = 'Connect & Unlock Chats';
+    }
+  }
+}
+
+function lockAppAndHideChats() {
+  isAppUnlocked = false;
+  // Disconnect MQTT if any
+  if (mqttClient) {
+    try { mqttClient.end(true); } catch {}
+    mqttClient = null;
+  }
+  // Clear all chats and messages from DOM
+  const msgContainer = document.getElementById('chatMessages');
+  if (msgContainer) msgContainer.innerHTML = '';
+  const contactList = document.getElementById('contactList');
+  if (contactList) contactList.innerHTML = '';
+
+  // Return to empty view
+  activePeer = null;
+  const emptyView = document.getElementById('emptyChatView');
+  const activeView = document.getElementById('activeChatView');
+  if (emptyView) emptyView.style.display = 'flex';
+  if (activeView) activeView.style.display = 'none';
+
+  updateConnStatus('offline', 'Offline');
+  showLoginGate();
+}
+
+async function unlockAppAndRevealChats() {
+  isAppUnlocked = true;
+  hideLoginGate();
+  hideDisconnectOverlay();
+
+  // Show app wrapper
+  const app = document.getElementById('appWrapper');
+  if (app) app.style.display = 'flex';
+
+  // Initialize DB and load contacts & chats
+  await initIndexedDB();
+  updateCurrentUserUI();
+  renderContactList();
+
+  const myUser = (currentCreds.user || '').toLowerCase().trim();
+  const defaultPeer = myUser === '' ? 'ruhi' : '';
+  if (window.innerWidth > 768) {
+    if (!activePeer) {
+      selectContact(defaultPeer);
+    } else {
+      selectContact(activePeer);
+    }
+  } else if (!activePeer) {
+    closeChatMobile();
+  }
+
+  showToast(`Unlocked: Connected as @${currentCreds.user}`);
+}
+
+function logoutAndLock() {
+  currentCreds.pass = '';
+  lockAppAndHideChats();
+  const passInput = document.getElementById('gatePassInput');
+  if (passInput) passInput.value = '';
+  showToast('Logged out: chats locked');
+}
+
+function reconnectMQTT() {
+  hideDisconnectOverlay();
+  if (currentCreds.user && currentCreds.pass) {
+    initMQTT();
+  } else {
+    lockAppAndHideChats();
+  }
+}
+
+function handleGateLogin(e) {
+  if (e) e.preventDefault();
+  const user = document.getElementById('gateUserInput').value.trim();
+  const pass = document.getElementById('gatePassInput').value.trim();
+
+  if (!user || !pass) {
+    showGateError('Please enter both MQTT username and password.');
+    return;
+  }
+
+  hideGateError();
+  setGateConnectingState(true, 'Connecting to mqtt.teleson.in…');
+
+  const normUser = user.toLowerCase();
+  currentCreds = {
+    host: 'mqtt.teleson.in',
+    port: 8084,
+    path: '/mqtt',
+    user: normUser,
+    pass: pass
+  };
+
+  saveLastLoginUsername(normUser);
+  initMQTT();
+}
+
+// Periodically update last-seen labels every 30s
+setInterval(() => {
+  if (isAppUnlocked && activePeer && peerPresenceMap[activePeer]) {
+    updatePeerPresenceUI(activePeer, peerPresenceMap[activePeer]);
+  }
+}, 30000);
+
+// =============================================================================
+// 11. APPLICATION BOOTSTRAP (STRICT ACCESS CONTROL)
+// =============================================================================
+(async function boot() {
+  console.log('Booting WhatsApp MQTT Chat...');
+  initEmojiPicker();
+
+  const gateUser = document.getElementById('gateUserInput');
+  if (gateUser && currentCreds.user) gateUser.value = currentCreds.user;
+  const gatePass = document.getElementById('gatePassInput');
+  if (gatePass && currentCreds.pass) gatePass.value = currentCreds.pass;
+
+  // STRICT SECURITY CHECK:
+  // If user and password exist in current session (e.g. testing URL param), auto-connect.
+  // Otherwise, DO NOT load chats, DO NOT query IndexedDB, LOCK EVERYTHING!
+  if (currentCreds.user && currentCreds.pass) {
+    setGateConnectingState(true, 'Verifying MQTT connection…');
+    initMQTT();
+  } else {
+    lockAppAndHideChats();
+  }
+})();
+
+window.addEventListener('beforeunload', () => {
+  if (mqttClient && mqttClient.connected && currentCreds.user) {
+    const offlinePayload = JSON.stringify({ status: 'offline', lastSeen: Date.now() });
+    try {
+      mqttClient.publish(`chat/presence/${currentCreds.user.toLowerCase()}`, offlinePayload, { qos: 1, retain: true });
+    } catch {}
+  }
+});
+</script>
+</body>
+</html>
