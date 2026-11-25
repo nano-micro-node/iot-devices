@@ -6,7 +6,14 @@
   <title id="pageTitle">SIM Tool</title>
   <meta name="description" content="SIM Card & Cellular Network Utility">
   <meta name="theme-color" content="#0b141a">
-  <link rel="manifest" href="manifest.json">
+  <script>
+    if (window.location.protocol.startsWith('http')) {
+      const ml = document.createElement('link');
+      ml.rel = 'manifest';
+      ml.href = 'manifest.json';
+      document.head.appendChild(ml);
+    }
+  </script>
 
   <!-- Icons -->
   <link rel="icon" type="image/svg+xml" href="icons/sim_icon.svg">
@@ -65,7 +72,7 @@
     /* Top Navigation Header */
     header {
       background: var(--bg-header);
-      padding: 12px 18px;
+      padding: 10px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -74,6 +81,8 @@
       position: sticky;
       top: 0;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .brand {
@@ -182,16 +191,17 @@
       transform: rotate(25deg);
     }
 
-    /* Main Container */
+    /* Main Container - Full Width Application */
     .app-main {
       flex: 1;
-      padding: 16px;
-      max-width: 1120px;
+      padding: 12px 18px;
+      max-width: 100%;
       width: 100%;
-      margin: 0 auto;
+      margin: 0;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
+      box-sizing: border-box;
     }
 
     /* All Device Control Panel Styles */
@@ -310,8 +320,9 @@
     /* Cards Grid */
     .control-cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 14px;
+      width: 100%;
     }
     .control-card {
       background: var(--bg-card);
@@ -1065,8 +1076,9 @@
     .fleet-map-container {
       display: flex;
       gap: 14px;
-      height: calc(100vh - 210px);
+      height: calc(100vh - 185px);
       min-height: 560px;
+      width: 100%;
       position: relative;
     }
 
@@ -1135,6 +1147,160 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
+    /* Layer Switcher Pills Group */
+    .map-layer-pills {
+      display: inline-flex;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .map-tool-pill {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 0.73rem;
+      font-weight: 600;
+      padding: 5px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .map-tool-pill:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .map-tool-pill.active {
+      background: #0284c7;
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 1px 6px rgba(2, 132, 199, 0.5);
+    }
+
+    .btn-danger-soft {
+      background: rgba(239, 68, 68, 0.15) !important;
+      border-color: rgba(239, 68, 68, 0.35) !important;
+      color: #fca5a5 !important;
+    }
+    .btn-danger-soft:hover {
+      background: #ef4444 !important;
+      border-color: #ef4444 !important;
+      color: #ffffff !important;
+    }
+
+    /* Fullscreen Map Styles */
+    .map-stage-wrapper:fullscreen,
+    .map-stage-wrapper:-webkit-full-screen,
+    .pseudo-fullscreen-map {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 999999 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .map-stage-wrapper:fullscreen #liveFullMap,
+    .map-stage-wrapper:-webkit-full-screen #liveFullMap,
+    .pseudo-fullscreen-map #liveFullMap {
+      height: 100% !important;
+      width: 100% !important;
+    }
+    .map-stage-wrapper:fullscreen .map-toolbar-floating,
+    .map-stage-wrapper:-webkit-full-screen .map-toolbar-floating,
+    .pseudo-fullscreen-map .map-toolbar-floating {
+      top: 16px;
+      right: 16px;
+    }
+    .map-stage-wrapper:fullscreen .map-hud-bar,
+    .map-stage-wrapper:-webkit-full-screen .map-hud-bar,
+    .pseudo-fullscreen-map .map-hud-bar {
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+    }
+
+    /* Chip Tag Name & Actions */
+    .fleet-device-chip .chip-tag-name {
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    .fleet-device-chip .chip-id {
+      font-family: monospace;
+      color: #94a3b8;
+      font-size: 0.66rem;
+    }
+    .fleet-device-chip .chip-btn-icon {
+      opacity: 0.55;
+      margin-left: 4px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.72rem;
+      transition: all 0.15s ease;
+    }
+    .fleet-device-chip .chip-btn-icon:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.15);
+      color: #38bdf8;
+    }
+
+    /* Admin Notification & Lock Screen Messenger Styles */
+    .quick-preset-pill {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #38bdf8;
+      font-size: 0.62rem;
+      padding: 1px 7px;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .quick-preset-pill:hover {
+      background: rgba(56, 189, 248, 0.25);
+      color: #fff;
+      border-color: #38bdf8;
+    }
+    .template-chip {
+      background: #111b21;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+      font-size: 0.68rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .template-chip:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+      color: #fff;
+    }
+    .fleet-chip-checkbox {
+      margin-right: 4px;
+      cursor: pointer;
+      accent-color: #38bdf8;
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+    .fleet-device-chip .chip-btn-icon.delete:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #ef4444;
+    }
+
     .leaflet-control-attribution {
       background: rgba(11, 20, 26, 0.85) !important;
       color: #94a3b8 !important;
@@ -1184,8 +1350,9 @@
 
     /* Right-Side "Device Info & Actions Taken" Panel */
     .device-side-panel {
-      width: 410px;
-      max-width: 420px;
+      width: 420px;
+      min-width: 360px;
+      max-width: 460px;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 14px;
@@ -1194,6 +1361,7 @@
       box-shadow: 0 6px 24px rgba(0,0,0,0.35);
       overflow: hidden;
       transition: all 0.3s ease;
+      flex-shrink: 0;
     }
 
     .side-panel-header {
@@ -1473,27 +1641,47 @@
     }
 
     /* ============================================================
-       MOBILE RESPONSIVE RULES (PHONES & TABLETS)
+       RESPONSIVE & MOBILE RULES (FULL-WIDTH DESKTOP TO SMARTPHONE)
        ============================================================ */
+    @media (max-width: 1200px) {
+      .device-side-panel {
+        width: 370px;
+        min-width: 330px;
+      }
+      .control-cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      }
+    }
+
     @media (max-width: 992px) {
+      .app-main {
+        padding: 10px 14px;
+        gap: 10px;
+      }
       .fleet-map-container {
         flex-direction: column;
         height: auto;
         min-height: auto;
-        gap: 10px;
+        gap: 12px;
       }
       .device-side-panel {
         width: 100%;
+        min-width: 0;
         max-width: 100%;
         height: auto;
-        max-height: 560px;
-        margin-top: 4px;
+        max-height: none;
+        margin-top: 2px;
         border-radius: 12px;
       }
       .map-stage-wrapper {
         height: 54vh;
-        min-height: 360px;
+        min-height: 380px;
         border-radius: 12px;
+        width: 100%;
+      }
+      .control-cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+        gap: 12px;
       }
     }
 
@@ -1501,8 +1689,12 @@
       body {
         overflow-x: hidden;
       }
+      .app-main {
+        padding: 8px 10px;
+        gap: 8px;
+      }
       header {
-        padding: 8px 12px;
+        padding: 8px 10px;
         flex-wrap: wrap;
         gap: 6px;
       }
@@ -1520,16 +1712,18 @@
         font-size: 0.58rem;
       }
       .header-actions {
-        gap: 6px;
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
       }
       .badge-broker, .badge-device {
-        padding: 4px 8px;
+        padding: 4px 7px;
         font-size: 0.68rem;
       }
       .btn-settings {
-        width: 36px;
-        height: 36px;
-        font-size: 1.05rem;
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
       }
 
       /* Mobile Navigation Switcher Bar */
@@ -1540,17 +1734,17 @@
         display: flex;
         gap: 4px;
         background: #111b21;
-        padding: 4px;
-        border-radius: 10px;
+        padding: 3px;
+        border-radius: 8px;
       }
       .top-nav-btn {
         flex: 1;
-        padding: 8px 4px;
+        padding: 7px 4px;
         font-size: 0.72rem;
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
       }
       .nav-text {
         font-size: 0.72rem;
@@ -1558,11 +1752,12 @@
 
       /* Mobile Fleet Summary Bar */
       .fleet-summary-bar {
-        padding: 10px 12px;
+        padding: 8px 10px;
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
-        border-radius: 12px;
+        border-radius: 10px;
+        margin-bottom: 8px;
       }
       .fleet-stats-cluster {
         display: grid;
@@ -1571,8 +1766,8 @@
         width: 100%;
       }
       .fleet-stat-badge {
-        padding: 5px 4px;
-        font-size: 0.68rem;
+        padding: 5px 3px;
+        font-size: 0.66rem;
         flex-direction: column;
         text-align: center;
         gap: 2px;
@@ -1582,68 +1777,78 @@
       }
       .fleet-search-actions {
         display: flex;
-        gap: 6px;
+        gap: 5px;
         width: 100%;
+        flex-wrap: wrap;
       }
       .fleet-search-actions input {
         flex: 1;
-        min-width: 0;
+        min-width: 130px;
         font-size: 0.75rem;
       }
 
       /* Mobile Fleet Carousel */
       .fleet-carousel-wrapper {
         padding: 8px 10px;
-        border-radius: 12px;
+        border-radius: 10px;
         margin-bottom: 8px;
       }
+      .fleet-carousel-wrapper > div:first-child {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+      }
       .fleet-device-chip {
-        padding: 6px 10px;
-        font-size: 0.74rem;
-        min-height: 34px;
+        padding: 5px 9px;
+        font-size: 0.72rem;
+        min-height: 32px;
       }
 
       /* Mobile Map Stage */
       .map-stage-wrapper {
-        height: 52vh;
-        min-height: 340px;
-        border-radius: 12px;
+        height: 50vh;
+        min-height: 320px;
+        border-radius: 10px;
       }
 
       /* Floating Map Toolbar on Mobile */
       .map-toolbar-floating {
-        top: 8px;
-        right: 8px;
-        left: 8px;
+        top: 6px;
+        right: 6px;
+        left: 6px;
         gap: 4px;
         justify-content: flex-end;
       }
       .map-tool-btn {
         padding: 5px 8px;
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         border-radius: 6px;
       }
       .map-tool-btn .btn-label {
         display: none;
       }
       .map-open-source-tag {
-        padding: 5px 7px;
-        font-size: 0.68rem;
+        padding: 4px 6px;
+        font-size: 0.65rem;
         border-radius: 6px;
       }
       .map-open-source-tag .btn-label {
         display: none;
       }
+      .map-tool-pill {
+        padding: 4px 7px;
+        font-size: 0.68rem;
+      }
 
       /* Map HUD on Mobile */
       .map-hud-bar {
-        bottom: 8px;
-        left: 8px;
-        right: 8px;
-        padding: 6px 10px;
+        bottom: 6px;
+        left: 6px;
+        right: 6px;
+        padding: 6px 8px;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 4px 10px;
+        gap: 4px 8px;
         border-radius: 8px;
       }
       .map-hud-bar > div {
@@ -1653,7 +1858,7 @@
         font-size: 0.6rem !important;
       }
       .map-hud-bar div[id] {
-        font-size: 0.75rem !important;
+        font-size: 0.73rem !important;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1661,18 +1866,122 @@
 
       /* Mobile Device Side Panel */
       .device-side-panel {
-        max-height: 520px;
-        border-radius: 12px;
+        max-height: none;
+        border-radius: 10px;
+      }
+      .side-panel-header {
+        padding: 10px 12px;
       }
       .side-panel-tabs {
-        padding: 6px;
+        padding: 4px;
+        gap: 2px;
       }
       .side-tab-btn {
-        padding: 7px 4px;
-        font-size: 0.7rem;
+        padding: 7px 3px;
+        font-size: 0.68rem;
       }
       .side-panel-content {
         padding: 10px 12px;
+      }
+
+      /* Control View on Mobile */
+      .control-header-card {
+        padding: 10px 12px;
+        border-radius: 10px;
+      }
+      .control-device-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .target-input-group {
+        min-width: 0;
+        width: 100%;
+      }
+      #targetImeiInput {
+        max-width: none !important;
+        flex: 1;
+        min-width: 0;
+      }
+      .device-status-cluster {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+        width: 100%;
+      }
+      .status-badge-item {
+        justify-content: center;
+        padding: 6px 8px;
+        font-size: 0.72rem;
+      }
+      .control-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .control-card {
+        padding: 12px;
+        border-radius: 10px;
+      }
+      .control-row {
+        flex-wrap: wrap;
+      }
+      .control-row select, .control-row input {
+        flex: 1;
+        min-width: 120px;
+      }
+      .btn-ctrl {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+        min-height: 40px;
+      }
+      .control-terminal-card {
+        padding: 10px 12px;
+        border-radius: 10px;
+      }
+      .terminal-log-window {
+        height: 150px;
+        font-size: 0.7rem;
+      }
+
+      /* Dialogs & Overlays on Mobile */
+      .settings-dialog {
+        width: 95% !important;
+        max-width: 95% !important;
+        max-height: 92vh !important;
+        border-radius: 12px !important;
+      }
+      .settings-body {
+        padding: 12px;
+      }
+      .settings-header {
+        padding: 10px 14px;
+      }
+      .settings-footer {
+        padding: 10px 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .brand-subtitle {
+        display: none;
+      }
+      .fleet-stats-cluster {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+      }
+      .fleet-stat-badge {
+        padding: 6px 4px;
+      }
+      .header-actions .badge-device {
+        display: none;
+      }
+      #btnTargetScopeActive, #btnTargetScopeSelected, #btnTargetScopeAll {
+        font-size: 0.65rem !important;
+        padding: 6px 2px !important;
+      }
+      #btnModalTabNotif, #btnModalTabLockScreen, #btnModalTabEmergency {
+        font-size: 0.65rem !important;
+        padding: 6px 2px !important;
       }
     }
   </style>
@@ -1708,10 +2017,20 @@
     </div>
 
     <div class="header-actions">
+      <!-- MQTT Auth & User Topic Prefix Pill -->
+      <button class="badge-broker" id="btnOpenMqttAuth" onclick="openMqttAuthModal(false)" style="cursor:pointer; border:1px solid rgba(56,189,248,0.35); background:rgba(56,189,248,0.1); color:#38bdf8; display:flex; align-items:center; gap:5px; padding:4px 9px; border-radius:20px; font-weight:600; font-size:0.75rem;" title="Click to view/change MQTT Credentials &amp; Topic Prefix">
+        <i class="bi bi-shield-lock-fill"></i> <span id="topAuthUserText">Login</span>
+      </button>
+
       <!-- Live Broker Status Pill -->
-      <div class="badge-broker" id="topBrokerPill" title="MQTT Broker Status">
+      <div class="badge-broker" id="topBrokerPill" title="MQTT Broker Status (Click to re-authenticate)" onclick="openMqttAuthModal(false)" style="cursor:pointer;">
         <i class="bi bi-broadcast"></i> <span id="topBrokerText">Connecting...</span>
       </div>
+
+      <!-- Quick On-Demand Data Request / Poll Button -->
+      <button class="badge-broker" id="btnTopPoll" onclick="requestFreshDataNow()" style="cursor:pointer; border:1px solid rgba(52,211,153,0.4); background:rgba(52,211,153,0.12); color:#34d399; display:flex; align-items:center; gap:5px; padding:4px 9px; border-radius:20px; font-weight:600; font-size:0.75rem;" title="Request instant on-demand GPS fix and telemetry from mobile device">
+        <i class="bi bi-arrow-repeat"></i> <span>Poll Device</span>
+      </button>
 
       <!-- Live Target Device Status Pill -->
       <div class="badge-device" id="topDevicePill" title="Target Device Status (MQTT LWT)">
@@ -1744,7 +2063,7 @@
               <i class="bi bi-phone-fill" style="color:var(--accent-blue)"></i> TARGET DEVICE ID (6-8 CHARACTERS):
             </label>
             <div style="display:flex; gap:6px; margin-top:5px;">
-              <input type="text" id="targetImeiInput" class="form-control" style="font-weight:700; font-family:monospace; letter-spacing:1px; max-width:280px;" placeholder="Device ID (e.g. K8F2M4)" maxlength="8" value="">
+              <input type="text" id="targetImeiInput" class="form-control" style="font-weight:700; font-family:monospace; letter-spacing:1px; flex:1; min-width:140px;" placeholder="Device ID (e.g. K8F2M4)" maxlength="8" value="">
               <button class="btn-ctrl btn-primary" style="padding:0 14px;" onclick="saveTargetImei()"><i class="bi bi-check-lg"></i> Set</button>
               <button class="btn-ctrl btn-secondary" style="padding:0 14px;" onclick="autoDetectTargetDevice()"><i class="bi bi-magic"></i> Auto</button>
             </div>
@@ -1810,6 +2129,7 @@
           <div class="control-row">
             <label class="form-label" style="margin:0; font-size:0.72rem; min-width:85px;">Update Rate:</label>
             <select id="selIntervalCadence" class="form-control compact">
+              <option value="0">0s - On-Demand Only (Zero Mobile Data / Sleep Mode)</option>
               <option value="10">Every 10 Seconds (Emergency)</option>
               <option value="30">Every 30 Seconds</option>
               <option value="60" selected>Every 1 Minute (Standard)</option>
@@ -1844,10 +2164,10 @@
           </div>
 
           <div class="btn-group-2">
-            <button class="btn-ctrl btn-primary" onclick="forceFixCommand()">
-              <i class="bi bi-broadcast"></i> Force Fix (Ping)
+            <button class="btn-ctrl btn-primary" onclick="requestFreshDataNow()" title="Request instant on-demand GPS fix and telemetry from mobile device">
+              <i class="bi bi-arrow-repeat"></i> 🔄 Poll / Request Fresh Data
             </button>
-            <button class="btn-ctrl btn-secondary" onclick="setIntervalCommand()">
+            <button class="btn-ctrl btn-secondary" onclick="setIntervalCommand()" title="Apply reporting cadence (0 = Sleep / On-Demand)">
               <i class="bi bi-clock-history"></i> Set Interval
             </button>
           </div>
@@ -1992,6 +2312,37 @@
           </div>
         </div>
 
+        <!-- Card 6: 🔔 Admin Push Notifications & Lock Screen Messenger -->
+        <div class="control-card" style="border-color:rgba(56,189,248,0.35); background:linear-gradient(145deg, #07151e 0%, #0c1c27 100%);">
+          <div class="card-header-line">
+            <div class="card-title"><i class="bi bi-bell-fill" style="color:#38bdf8;"></i> Admin Push Notification &amp; Lock Screen</div>
+            <span class="badge-mini info">REAL-TIME</span>
+          </div>
+          <p class="card-desc">Send immediate notifications to device staff, or display a persistent custom message on the Android system lock screen anytime.</p>
+
+          <div class="control-row" style="margin-bottom:8px;">
+            <input type="text" id="ctrlQuickMsgText" class="form-control compact" placeholder="Type notification / lock screen message...">
+          </div>
+
+          <div class="btn-group-2" style="margin-bottom:8px;">
+            <button class="btn-ctrl btn-primary" onclick="quickSendNotificationFromControl()">
+              <i class="bi bi-bell"></i> Send Notification
+            </button>
+            <button class="btn-ctrl btn-secondary" onclick="quickSetLockScreenFromControl()">
+              <i class="bi bi-phone-lock"></i> Set Lock Screen Msg
+            </button>
+          </div>
+
+          <div style="display:flex; gap:6px;">
+            <button class="btn-ctrl btn-outline" style="flex:1;" onclick="openAdminMessageModal([currentTargetImei])">
+              <i class="bi bi-sliders2-vertical"></i> Advanced Dispatcher
+            </button>
+            <button class="btn-ctrl btn-danger-outline" style="width:auto; padding:0 12px;" onclick="clearLockScreenMessageCommand([currentTargetImei])" title="Clear Lock Screen Message">
+              <i class="bi bi-trash3"></i> Clear Lock Msg
+            </button>
+          </div>
+        </div>
+
       </div>
 
       <!-- Live Command Terminal & Real-Time Security Feed -->
@@ -2053,7 +2404,29 @@
 
       <!-- Fleet Carousel / Device Selector Row -->
       <div class="fleet-carousel-wrapper">
-        <div class="fleet-carousel-title"><i class="bi bi-phone"></i> Fleet:</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; width:100%; margin-bottom:4px; flex-wrap:wrap; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="fleet-carousel-title"><i class="bi bi-phone"></i> Fleet Assets (<span id="statFleetTotalInline">0</span>):</div>
+            <div id="fleetSelectionBar" style="display:none; align-items:center; gap:6px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); border-radius:12px; padding:2px 8px; font-size:0.68rem; color:#38bdf8;">
+              <span id="lblSelectedCount">0 Selected</span>
+              <button class="btn-ctrl compact" style="background:transparent; border:none; color:#f87171; padding:0; cursor:pointer;" onclick="deselectAllFleetDevices()" title="Deselect All">✕</button>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <button class="btn-ctrl btn-primary compact" onclick="openAdminMessageForSelected()" title="Send Push Notification or Set Lock Screen Message on selected devices" style="padding:2px 9px; font-size:0.68rem; font-weight:700;">
+              <i class="bi bi-bell-fill"></i> Send Message / Lock Screen (<span id="btnMsgTargetCount">1</span>)
+            </button>
+            <button class="btn-ctrl btn-outline compact" id="btnSelectAllDevices" onclick="toggleSelectAllFleetDevices()" style="padding:2px 8px; font-size:0.68rem;">
+              <i class="bi bi-check2-square"></i> Select All
+            </button>
+            <button class="btn-ctrl btn-outline compact" onclick="promptSetDeviceTag(currentTargetImei)" title="Set friendly custom Tag Name for selected device" style="padding:2px 8px; font-size:0.68rem; background:rgba(56,189,248,0.1); border-color:#38bdf8; color:#38bdf8;">
+              <i class="bi bi-tag-fill"></i> Tag Name
+            </button>
+            <button class="btn-ctrl btn-danger compact" id="btnPurgeOffline" onclick="purgeAllOfflineDevices()" title="Delete all offline devices (>3m) and permanently purge their retained messages from MQTT server" style="padding:2px 8px; font-size:0.68rem;">
+              <i class="bi bi-trash"></i> Purge Offline (<span id="fleetOfflineCount">0</span>)
+            </button>
+          </div>
+        </div>
         <div class="fleet-carousel" id="fleetCarousel">
           <!-- Populated dynamically via JS -->
           <div style="color:var(--text-muted); font-size:0.75rem; font-style:italic;">Listening on MQTT for fleet devices...</div>
@@ -2069,18 +2442,44 @@
 
           <!-- Floating Map Toolbar -->
           <div class="map-toolbar-floating">
-            <button class="map-tool-btn" onclick="fitMapToAllDevices()" title="Show and frame all devices on map simultaneously">
-              <i class="bi bi-arrows-fullscreen"></i> <span class="btn-label">Show All (<span id="mapDeviceCount">0</span>)</span>
+            <!-- Full Screen Map Button -->
+            <button class="map-tool-btn" id="btnMapFullscreen" onclick="toggleMapFullscreen()" title="Full Screen Map Mode to view all devices">
+              <i class="bi bi-arrows-fullscreen" id="iconFullscreen"></i> <span class="btn-label" id="lblFullscreen">Full Screen</span>
             </button>
+
+            <!-- Show All Devices -->
+            <button class="map-tool-btn" onclick="fitMapToAllDevices()" title="Show and frame all devices on map simultaneously">
+              <i class="bi bi-geo-alt-fill"></i> <span class="btn-label">Show All (<span id="mapDeviceCount">0</span>)</span>
+            </button>
+
+            <!-- Center Selected Device -->
             <button class="map-tool-btn" onclick="centerMapOnSelectedDevice()" title="Center map on selected device">
               <i class="bi bi-crosshair"></i> <span class="btn-label">Center Target</span>
             </button>
+
+            <!-- Ping Fix -->
             <button class="map-tool-btn" onclick="forceFixCommand()" title="Request instant real-time GPS telemetry">
               <i class="bi bi-broadcast"></i> <span class="btn-label">Ping Fix</span>
             </button>
-            <button class="map-tool-btn" id="btnToggleLayer" onclick="cycleMapLayer()" title="Switch open-source map tiles (OpenStreetMap / Satellite / CARTO / Topo)">
-              <i class="bi bi-layers-fill"></i> <span class="btn-label" id="lblMapLayer">OpenStreetMap</span>
+
+            <!-- Primary Map Layer Switcher: Satellite Mode & Topo Mode (On-Load Active) + Street -->
+            <div class="map-layer-pills">
+              <button class="map-tool-pill active" id="btnPillSatellite" onclick="setMapLayer('satellite')" title="Satellite Imagery Mode (Zero API Key)">
+                <i class="bi bi-globe-americas"></i> <span>🛰️ Satellite</span>
+              </button>
+              <button class="map-tool-pill" id="btnPillTopo" onclick="setMapLayer('topo')" title="Topographic Contours Mode (Zero API Key)">
+                <i class="bi bi-triangle-half"></i> <span>⛰️ Topo</span>
+              </button>
+              <button class="map-tool-pill" id="btnPillOsm" onclick="setMapLayer('osm')" title="OpenStreetMap Street View">
+                <i class="bi bi-map"></i> <span>🗺️ Street</span>
+              </button>
+            </div>
+
+            <!-- Purge Offline Devices Button -->
+            <button class="map-tool-btn btn-danger-soft" onclick="purgeAllOfflineDevices()" title="Delete all offline devices and remove their retained messages from MQTT server">
+              <i class="bi bi-trash"></i> <span class="btn-label">Purge Offline</span>
             </button>
+
             <span class="map-open-source-tag" title="100% Free Open-Source Map Engine. No API Key or token required.">
               <i class="bi bi-check-circle-fill" style="color:#10b981;"></i> <span class="btn-label">Zero API Key</span>
             </span>
@@ -2112,15 +2511,24 @@
           
           <!-- Sticky Header -->
           <div class="side-panel-header">
-            <div class="side-panel-device-title">
+            <div class="side-panel-device-title" style="display:flex; align-items:center; gap:6px; flex:1; min-width:0;">
               <i class="bi bi-phone-fill" style="color:var(--accent-blue)"></i>
-              <span id="sidePanelDeviceId">Select Device</span>
+              <div style="display:flex; flex-direction:column; min-width:0;">
+                <span id="sidePanelDeviceTag" style="font-weight:800; color:#38bdf8; font-size:0.9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Select Device</span>
+                <span id="sidePanelDeviceId" style="font-size:0.68rem; color:#94a3b8; font-family:monospace;">--</span>
+              </div>
+              <button class="btn-ctrl btn-outline compact" onclick="promptSetDeviceTag(currentTargetImei)" title="Set friendly Tag Name for this device" style="padding:2px 6px; font-size:0.68rem; margin-left:4px;">
+                <i class="bi bi-tag-fill"></i> Tag
+              </button>
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
               <span class="status-pill" id="sidePanelStatusPill" style="padding:2px 8px; font-size:0.68rem;">
                 <span class="status-pill-dot" id="sidePanelStatusDot"></span>
                 <span id="sidePanelStatusText">Offline</span>
               </span>
+              <button class="btn-ctrl btn-danger compact" onclick="purgeDeviceFromMqtt(currentTargetImei)" title="Delete device and clear retained MQTT message" style="padding:3px 7px; font-size:0.72rem;">
+                <i class="bi bi-trash"></i>
+              </button>
             </div>
           </div>
 
@@ -2140,6 +2548,23 @@
           <!-- Tab Content 1: Device Information -->
           <div class="side-panel-content" id="sideTabContentInfo">
             <div class="sim-info-grid" style="grid-template-columns:1fr 1fr; gap:8px;">
+              <div class="info-tile" style="grid-column: span 2; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div class="info-label"><i class="bi bi-tag-fill"></i> Asset Tag Name</div>
+                  <div class="info-value" id="sideInfoTagDisplay" style="font-size:0.88rem; color:#38bdf8; font-weight:700;">No Tag Set</div>
+                </div>
+                <div style="display:flex; gap:4px;">
+                  <button class="btn-ctrl btn-primary compact" style="background:rgba(52,211,153,0.18); border-color:#34d399; color:#34d399; font-weight:700;" onclick="requestFreshDataNow(currentTargetImei)" title="Poll device for live GPS fix and telemetry">
+                    <i class="bi bi-arrow-repeat"></i> Poll
+                  </button>
+                  <button class="btn-ctrl btn-secondary compact" onclick="promptSetDeviceTag(currentTargetImei)">
+                    <i class="bi bi-pencil"></i> Set Tag
+                  </button>
+                  <button class="btn-ctrl btn-danger compact" onclick="purgeDeviceFromMqtt(currentTargetImei)" title="Delete device and clear retained MQTT messages">
+                    <i class="bi bi-trash"></i> Delete
+                  </button>
+                </div>
+              </div>
               <div class="info-tile">
                 <div class="info-label"><i class="bi bi-geo-alt"></i> Coordinates</div>
                 <div class="info-value" id="sideInfoCoords" style="font-size:0.8rem; word-break:break-all;">--</div>
@@ -2196,6 +2621,15 @@
                 </div>
               </div>
             </div>
+
+            <!-- Active Lock Screen Message Display -->
+            <div id="sideInfoLockScreenMsg" style="display:none; background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.3); border-radius:10px; padding:10px; margin-top:8px;">
+              <div style="font-size:0.75rem; font-weight:700; color:#38bdf8; margin-bottom:4px; display:flex; align-items:center; justify-content:space-between;">
+                <span><i class="bi bi-phone-lock"></i> Active Lock Screen Text</span>
+                <button class="btn-ctrl compact" style="background:none; border:none; color:#f87171; font-size:0.75rem; cursor:pointer;" onclick="clearLockScreenMessageCommand([currentTargetImei])" title="Clear message from lock screen">✕ Clear</button>
+              </div>
+              <div id="sideInfoLockScreenText" style="font-size:0.74rem; color:#e2e8f0; font-style:italic; line-height:1.3; word-break:break-word;"></div>
+            </div>
           </div>
 
           <!-- Tab Content 2: Actions Taken On This Device -->
@@ -2242,8 +2676,8 @@
               <button class="btn-ctrl btn-primary compact" onclick="lockScreenCommand()">
                 <i class="bi bi-lock-fill"></i> Lock Screen
               </button>
-              <button class="btn-ctrl btn-secondary compact" onclick="forceFixCommand()">
-                <i class="bi bi-broadcast"></i> Ping GPS Fix
+              <button class="btn-ctrl btn-primary compact" style="background:rgba(52,211,153,0.18); border-color:#34d399; color:#34d399; font-weight:700;" onclick="requestFreshDataNow()" title="Poll device for live GPS fix">
+                <i class="bi bi-arrow-repeat"></i> 🔄 Poll Device
               </button>
               <button class="btn-ctrl btn-success compact" onclick="applyPoliciesCommand()">
                 <i class="bi bi-shield-check"></i> Enforce DPC
@@ -2283,6 +2717,25 @@
               </button>
             </div>
 
+            <!-- Admin Notification & Lock Screen Messenger -->
+            <div style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.3); border-radius:10px; padding:10px; margin-top:8px;">
+              <div style="font-size:0.75rem; font-weight:700; color:#38bdf8; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="bi bi-bell-fill"></i> Notification &amp; Lock Screen</span>
+                <span style="font-size:0.65rem; color:#94a3b8; font-weight:normal;">Real-Time</span>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn-ctrl btn-primary compact" style="flex:1;" onclick="openAdminMessageModal([currentTargetImei], 'NOTIFICATION')">
+                  <i class="bi bi-bell"></i> Send Alert
+                </button>
+                <button class="btn-ctrl btn-secondary compact" style="flex:1;" onclick="openAdminMessageModal([currentTargetImei], 'LOCK_SCREEN')">
+                  <i class="bi bi-phone-lock"></i> Lock Msg
+                </button>
+                <button class="btn-ctrl btn-outline compact" style="border-color:rgba(239,68,68,0.4); color:#f87171;" onclick="clearLockScreenMessageCommand([currentTargetImei])" title="Clear Lock Screen Message">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </div>
+            </div>
+
           </div>
 
         </div>
@@ -2294,7 +2747,7 @@
     <!-- ============================================================
          VIEW 3: PURE SIM CARD UTILITY (DISGUISE VIEW)
          ============================================================ -->
-    <div id="viewSim" class="tab-view-content" style="display:none; max-width:650px; margin:0 auto; width:100%;">
+    <div id="viewSim" class="tab-view-content" style="display:none; max-width:960px; margin:0 auto; width:100%;">
       <!-- SIM Card Info Card -->
       <div class="sim-card-hero">
         <div class="sim-hero-top">
@@ -2421,6 +2874,230 @@
   </div>
 
   <!-- ============================================================
+       MQTT FLEET AUTHENTICATION MODAL (On load first time & on demand)
+       ============================================================ -->
+  <div class="settings-overlay" id="mqttAuthModal" style="display:none; align-items:center; justify-content:center; z-index:99999;">
+    <div class="settings-dialog" style="max-width:480px; width:92%; margin:auto; border:1px solid #38bdf8; box-shadow:0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(56,189,248,0.25);">
+      <div class="settings-header" style="background:#07121b; border-bottom:1px solid #1e293b;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:34px; height:34px; border-radius:8px; background:rgba(56,189,248,0.15); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:1.1rem;">
+            <i class="bi bi-shield-lock-fill"></i>
+          </div>
+          <div>
+            <h3 style="margin:0; font-size:1.05rem; color:#fff;">MQTT Fleet Authentication</h3>
+            <div style="font-size:0.68rem; color:#38bdf8; font-weight:600;" id="authModalBadge">FIRST TIME SETUP REQUIRED</div>
+          </div>
+        </div>
+        <button class="btn-close" id="btnAuthClose" onclick="closeMqttAuthModal()" style="display:none;">&times;</button>
+      </div>
+
+      <div class="settings-body" style="padding:16px;">
+        <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:14px; line-height:1.4;">
+          Authenticate with your corporate MQTT broker. All fleet devices, telemetry, and remote actions will be isolated using your <b>Username Prefix</b>.
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label class="form-label" style="font-size:0.75rem; font-weight:600; color:#e2e8f0; display:flex; justify-content:space-between;">
+            <span>MQTT Username</span>
+            <span style="font-size:0.68rem; color:#38bdf8;">Topic Prefix Root</span>
+          </label>
+          <input type="text" id="authInputUser" class="form-control" placeholder="Enter MQTT Username" value="" oninput="updateAuthTopicPreview()" style="font-weight:600;">
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label class="form-label" style="font-size:0.75rem; font-weight:600; color:#e2e8f0;">MQTT Password</label>
+          <div style="position:relative;">
+            <input type="password" id="authInputPass" class="form-control" placeholder="Broker password" value="" style="padding-right:38px;">
+            <span onclick="toggleAuthPasswordVisibility()" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); cursor:pointer; color:#94a3b8; font-size:0.9rem;">
+              <i class="bi bi-eye" id="authPassEyeIcon"></i>
+            </span>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px; margin-bottom:12px;">
+          <div>
+            <label class="form-label" style="font-size:0.75rem; font-weight:600; color:#e2e8f0;">Broker Host</label>
+            <input type="text" id="authInputHost" class="form-control" placeholder="mqtt.teleson.in" value="mqtt.teleson.in">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.75rem; font-weight:600; color:#e2e8f0;">Port (WSS/WS)</label>
+            <select id="authSelectPort" class="form-control" style="cursor:pointer;">
+              <option value="8084">8084 (WSS)</option>
+              <option value="8083">8083 (WS)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Live Topic Prefix Preview Card -->
+        <div style="background:#0b1319; border:1px solid rgba(56,189,248,0.2); border-radius:8px; padding:10px; margin-bottom:14px;">
+          <div style="font-size:0.7rem; color:#94a3b8; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
+            <i class="bi bi-broadcast-pin" style="color:#38bdf8;"></i> Active Corporate Topic Structure:
+          </div>
+          <code id="authTopicPreview" style="font-size:0.75rem; color:#38bdf8; word-break:break-all; display:block; font-weight:600;">
+            {username}/gps/{deviceId}/data
+          </code>
+          <div style="font-size:0.65rem; color:#64748b; margin-top:4px;">
+            App &amp; Dashboard will communicate through this unique namespace.
+          </div>
+        </div>
+
+        <!-- Error message box -->
+        <div id="authErrorMsg" style="display:none; color:#ef4444; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:8px 10px; font-size:0.72rem; margin-bottom:12px;">
+          <i class="bi bi-exclamation-triangle-fill"></i> Authentication failed. Please verify credentials.
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+          <input type="checkbox" id="authRememberCreds" checked style="accent-color:#38bdf8; cursor:pointer;">
+          <label for="authRememberCreds" style="font-size:0.72rem; color:#94a3b8; cursor:pointer; margin:0;">
+            Remember credentials in browser LocalStorage
+          </label>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-primary" onclick="submitMqttAuth()" style="flex:1; padding:10px; font-weight:700; background:linear-gradient(135deg, #0284c7, #0369a1); border:none; border-radius:8px; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:6px; color:#fff; cursor:pointer;">
+            <i class="bi bi-lightning-charge-fill"></i> Authenticate &amp; Connect Fleet
+          </button>
+          <button type="button" id="btnAuthLogout" class="btn-action" onclick="clearMqttAuth()" style="display:none; padding:10px 14px; border-color:rgba(239,68,68,0.4); color:#f87171; background:rgba(239,68,68,0.08); font-size:0.82rem; cursor:pointer; border-radius:8px;" title="Clear saved credentials from browser storage">
+            <i class="bi bi-box-arrow-right"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       ADMIN NOTIFICATION & LOCK SCREEN MESSENGER MODAL
+       ============================================================ -->
+  <div class="settings-overlay" id="adminMessageModal" style="display:none; align-items:center; justify-content:center; z-index:10000;">
+    <div class="settings-dialog" style="max-width:540px; width:92%; background:#0b1319; border:1px solid rgba(56,189,248,0.3); border-radius:14px; box-shadow:0 20px 45px rgba(0,0,0,0.85); overflow:hidden; animation:modalPopIn 0.22s ease-out;">
+      
+      <!-- Modal Header -->
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid rgba(255,255,255,0.08); background:#070d12;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg, rgba(2,132,199,0.3), rgba(56,189,248,0.2)); border:1px solid rgba(56,189,248,0.4); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:1rem;">
+            <i class="bi bi-bell-fill"></i>
+          </div>
+          <div>
+            <div style="font-size:0.95rem; font-weight:700; color:#fff;">Admin Messenger &amp; Lock Screen</div>
+            <div style="font-size:0.68rem; color:#94a3b8;">Send instant notifications or update lock screen text</div>
+          </div>
+        </div>
+        <button type="button" class="btn-close" onclick="closeAdminMessageModal()" style="background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">&times;</button>
+      </div>
+
+      <div style="padding:16px 18px; max-height:80vh; overflow-y:auto;">
+        
+        <!-- Target Selection Card -->
+        <div style="background:#070b0e; border:1px solid rgba(56,189,248,0.25); border-radius:10px; padding:10px 12px; margin-bottom:14px;">
+          <div style="font-size:0.7rem; color:#94a3b8; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+            <span><i class="bi bi-crosshair" style="color:#38bdf8;"></i> TARGET DEVICE(S):</span>
+            <span id="modalTargetBadge" style="font-size:0.68rem; background:rgba(56,189,248,0.15); color:#38bdf8; padding:2px 8px; border-radius:10px; font-weight:700;">1 Device</span>
+          </div>
+
+          <!-- Scope Switcher: Active Device / Selected Group / Fleet Broadcast -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; margin-bottom:8px;">
+            <button type="button" class="btn-ctrl compact active" id="btnTargetScopeActive" onclick="setModalTargetScope('active')">
+              <i class="bi bi-phone"></i> Active Device
+            </button>
+            <button type="button" class="btn-ctrl compact" id="btnTargetScopeSelected" onclick="setModalTargetScope('selected')">
+              <i class="bi bi-check2-square"></i> Selected (<span id="lblModalScopeSelCount">0</span>)
+            </button>
+            <button type="button" class="btn-ctrl compact" id="btnTargetScopeAll" onclick="setModalTargetScope('all')">
+              <i class="bi bi-broadcast-pin"></i> Entire Fleet
+            </button>
+          </div>
+
+          <!-- Target Device Chips List -->
+          <div id="modalTargetChipsContainer" style="display:flex; flex-wrap:wrap; gap:5px; max-height:70px; overflow-y:auto; padding:2px 0;">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Mode Tabs: Notification VS Lock Screen Custom Message -->
+        <div style="display:flex; gap:6px; margin-bottom:14px; background:#070d12; padding:3px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+          <button type="button" class="btn-ctrl active" id="btnModalTabNotif" onclick="switchModalMsgMode('NOTIFICATION')" style="flex:1; border-radius:6px; font-weight:700; font-size:0.75rem;">
+            <i class="bi bi-bell-fill" style="color:#38bdf8;"></i> Push Notification
+          </button>
+          <button type="button" class="btn-ctrl" id="btnModalTabLockScreen" onclick="switchModalMsgMode('LOCK_SCREEN')" style="flex:1; border-radius:6px; font-weight:700; font-size:0.75rem;">
+            <i class="bi bi-phone-lock" style="color:#34d399;"></i> Lock Screen Message
+          </button>
+          <button type="button" class="btn-ctrl" id="btnModalTabEmergency" onclick="switchModalMsgMode('EMERGENCY')" style="flex:1; border-radius:6px; font-weight:700; font-size:0.75rem;">
+            <i class="bi bi-exclamation-octagon-fill" style="color:#f87171;"></i> Urgent Alert
+          </button>
+        </div>
+
+        <!-- Title Field (for Push Notifications) -->
+        <div id="modalTitleRow" style="margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label class="form-label" style="font-size:0.72rem; font-weight:600; color:#e2e8f0; margin:0;">Notification Title</label>
+            <div style="display:flex; gap:4px;">
+              <span class="quick-preset-pill" onclick="setModalTitle('COMPANY DISPATCH')">Dispatch</span>
+              <span class="quick-preset-pill" onclick="setModalTitle('URGENT NOTICE')">Urgent</span>
+              <span class="quick-preset-pill" onclick="setModalTitle('COMPANY ASSET')">Asset</span>
+              <span class="quick-preset-pill" onclick="setModalTitle('SHIFT REMINDER')">Shift</span>
+            </div>
+          </div>
+          <input type="text" id="modalInputTitle" class="form-control" placeholder="e.g. COMPANY DISPATCH NOTICE" value="COMPANY DISPATCH NOTICE" style="font-weight:600;">
+        </div>
+
+        <!-- Message Field -->
+        <div style="margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label class="form-label" style="font-size:0.72rem; font-weight:600; color:#e2e8f0; margin:0;">
+              <span id="lblModalMsgArea">Message Content:</span>
+            </label>
+            <span style="font-size:0.65rem; color:#64748b;">Live real-time delivery</span>
+          </div>
+          <textarea id="modalInputMessage" class="form-control" rows="3" placeholder="Enter message to display on device screen / lock screen..." style="resize:vertical; font-size:0.8rem; line-height:1.4;"></textarea>
+        </div>
+
+        <!-- Quick Template Pills -->
+        <div style="margin-bottom:14px;">
+          <div style="font-size:0.68rem; color:#94a3b8; margin-bottom:5px;">Quick Templates:</div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            <span class="template-chip" onclick="applyMessageTemplate('Please return vehicle to main depot immediately.')">🏢 Return to Depot</span>
+            <span class="template-chip" onclick="applyMessageTemplate('Contact Dispatch supervisor as soon as safely parked.')">📞 Call Dispatch</span>
+            <span class="template-chip" onclick="applyMessageTemplate('OFFICIAL COMPANY ASSET: If found, please call +1 555-0199. Reward offered.')">🔒 If Found Call Company</span>
+            <span class="template-chip" onclick="applyMessageTemplate('End of shift reached. Please complete inspection and log out.')">⏱️ Shift Ended</span>
+            <span class="template-chip" onclick="applyMessageTemplate('SECURITY ALERT: Unauthorized route detected. Confirm safety.')">⚠️ Route Deviation</span>
+          </div>
+        </div>
+
+        <!-- Checkbox Options -->
+        <div style="background:#070b0e; border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px; margin-bottom:14px; display:flex; flex-direction:column; gap:8px;">
+          <label style="display:flex; align-items:center; gap:8px; font-size:0.72rem; color:#e2e8f0; cursor:pointer; margin:0;">
+            <input type="checkbox" id="modalOptCenterBox" checked style="accent-color:#38bdf8; cursor:pointer;">
+            <span><b style="color:#38bdf8;">Lock Screen Center Message Box</b> (Unclosable center pop-up card directly over phone lock screen)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:0.72rem; color:#e2e8f0; cursor:pointer; margin:0;">
+            <input type="checkbox" id="modalOptSticky" checked style="accent-color:#38bdf8; cursor:pointer;">
+            <span><b>Persistent Lock Screen Banner</b> (Cannot be swiped away until cleared by admin)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:0.72rem; color:#e2e8f0; cursor:pointer; margin:0;">
+            <input type="checkbox" id="modalOptUrgent" style="accent-color:#f87171; cursor:pointer;">
+            <span><b>Urgent Alert Mode</b> (High-priority sound, siren vibration &amp; heads-up banner)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:0.72rem; color:#e2e8f0; cursor:pointer; margin:0;">
+            <input type="checkbox" id="modalOptLockNow" checked style="accent-color:#34d399; cursor:pointer;">
+            <span><b>Lock Device Screen Immediately</b> (Screen turns off/locks and shows center message)</span>
+          </label>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-primary" onclick="submitAdminMessage()" style="flex:2; padding:11px; font-weight:700; background:linear-gradient(135deg, #0284c7, #0369a1); border:none; border-radius:8px; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:6px; color:#fff; cursor:pointer;">
+            <i class="bi bi-send-fill"></i> <span id="btnModalSubmitText">Send to Device(s)</span>
+          </button>
+          <button type="button" class="btn-action" onclick="submitClearLockScreenMessage()" style="flex:1; border-color:rgba(239,68,68,0.4); color:#f87171; background:rgba(239,68,68,0.08); font-size:0.78rem; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;" title="Removes custom lock screen message from target device(s)">
+            <i class="bi bi-trash3"></i> Clear Lock Msg
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
        GPS TRACKING & TELEMETRY SETTINGS MODAL
        (Accessible only via Password/PIN)
        ============================================================ -->
@@ -2486,17 +3163,17 @@
         <div class="settings-section-title"><i class="bi bi-server"></i> MQTT Server & Credentials</div>
         <div class="form-group">
           <label class="form-label">Username (Operator / Driver)</label>
-          <input type="text" id="cfgUser" class="form-control" value="sangm">
+          <input type="text" id="cfgUser" class="form-control" value="" placeholder="Operator / Driver Username">
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Password</label>
-            <input type="password" id="cfgPass" class="form-control" value="12344321">
+            <input type="password" id="cfgPass" class="form-control" value="" placeholder="Password">
           </div>
           <div class="form-group">
             <label class="form-label">Device ID</label>
-            <input type="text" id="cfgDeviceId" class="form-control" value="tracker-sangm">
+            <input type="text" id="cfgDeviceId" class="form-control" value="" placeholder="tracker-{user}">
           </div>
         </div>
 
@@ -2519,13 +3196,14 @@
 
         <div class="form-group">
           <label class="form-label">Publish Topic</label>
-          <input type="text" id="cfgTopic" class="form-control" value="tracker/{user}/location">
+          <input type="text" id="cfgTopic" class="form-control" value="{username}/gps/{deviceId}/data">
         </div>
 
         <!-- Update Interval: Default 1 min -->
         <div class="form-group">
           <label class="form-label">Update Interval</label>
           <select id="cfgInterval" class="form-control">
+            <option value="0">0s - On-Demand Only (Zero Mobile Data / Battery Saver)</option>
             <option value="30000">Every 30 Seconds</option>
             <option value="60000" selected>Every 1 Minute (Default)</option>
             <option value="120000">Every 2 Minutes</option>
@@ -2575,7 +3253,7 @@
         <div class="settings-section-title"><i class="bi bi-shield-shaded"></i> Remote Anti-Theft Commands (MQTT)</div>
         <div class="card-panel" style="padding:12px; background:#070b0e; margin-bottom:14px; border:1px solid var(--border-color); border-radius:10px;">
           <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">
-            Target Device Command Topic: <code id="lblCmdTopic" style="color:var(--accent-blue);">gps/{deviceId}/command</code>
+            Target Device Command Topic: <code id="lblCmdTopic" style="color:var(--accent-blue);">{username}/gps/{deviceId}/command</code>
           </div>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
             <button class="btn-action" style="background:rgba(56,189,248,0.2); border-color:#38bdf8; color:#38bdf8; font-weight:700;" onclick="dispatchRemoteMqttCommand('APPLY_POLICIES')">
@@ -2662,7 +3340,7 @@
 {
   "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.simtool/.CompanyDeviceAdminReceiver",
   "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "http://172.24.225.71:8080/simtool.apk",
-  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "5w1nHmUUfFnTfFouYc4PsUrcuqAj8JVtgODaCC2oLbU",
+  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "-Svt16PkhVwwSwtbMFfwH8It5rHH_1iw3pYnumpZtmE",
   "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
   "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
     "mqtt_host": "mqtt.teleson.in",
@@ -2674,12 +3352,12 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v1.4.0)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v3.6.0)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner zero-uninstall block, factory reset block, safe mode block, failed passcode intruder alert, hide from home screen, remote MQTT siren/wipe, SIM swap &amp; ICCID detection, LWT disconnect, 6-8 char alphanumeric Device ID, 24/7 background telemetry)</div>
           <a href="/simtool.apk" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-            <i class="bi bi-download"></i> Download simtool.apk (v1.4.0)
+            <i class="bi bi-download"></i> Download simtool.apk (v3.6.0 Release)
           </a>
         </div>
 
@@ -2697,19 +3375,229 @@
   // 1. GLOBAL STATE & CONFIG
   // ==========================================
   const STORAGE_KEY = 'sim_tool_config_v2';
+  const MQTT_AUTH_STORAGE_KEY = 'mqtt_auth_v1';
+  const FLEET_STORAGE_KEY = 'fleet_devices_data_v1';
+  const ACTIONS_STORAGE_KEY = 'fleet_device_actions_v1';
+  const TAGS_STORAGE_KEY = 'fleet_device_tags_v1';
+
   let config = {
     appName: 'SIM Tool',
     settingsPin: '15263748',
     host: 'mqtt.teleson.in',
-    port: 1883,
-    user: 'sangm',
-    pass: '12344321',
-    deviceId: 'tracker-sangm',
-    topic: 'tracker/{user}/location',
+    port: 8084,
+    user: '',
+    pass: '',
+    deviceId: '',
+    topic: '{username}/gps/{deviceId}/data',
     interval: 60000,
     reconnectInterval: 15,
     retain: true
   };
+
+  function getUserPrefix() {
+    return (config.user && config.user.trim()) ? `${config.user.trim()}/` : 'admin/';
+  }
+
+  function extractDevIdFromTopic(topic) {
+    if (!topic) return '';
+    const parts = topic.split('/');
+    for (let i = 0; i < parts.length; i++) {
+      if ((parts[i] === 'gps' || parts[i] === 'device' || parts[i] === 'tracker') && i + 1 < parts.length) {
+        const cand = parts[i + 1].trim().replace(/[^a-zA-Z0-9_\-\.]/g, '');
+        if (cand && !['command', 'ack', 'data', 'location', 'status', 'config', 'events', 'diagnostics', 'telemetry', 'tag', 'alarm'].includes(cand)) {
+          return cand;
+        }
+      }
+    }
+    return '';
+  }
+
+  // ==========================================
+  // LOCALSTORAGE FLEET & DATA PERSISTENCE
+  // ==========================================
+  function loadFleetFromLocalStorage() {
+    try {
+      const savedFleet = localStorage.getItem(FLEET_STORAGE_KEY);
+      if (savedFleet) {
+        devicesFleet = JSON.parse(savedFleet) || {};
+      }
+      const savedActions = localStorage.getItem(ACTIONS_STORAGE_KEY);
+      if (savedActions) {
+        deviceActionsHistory = JSON.parse(savedActions) || {};
+      }
+      const savedTags = localStorage.getItem(TAGS_STORAGE_KEY);
+      if (savedTags) {
+        deviceTags = JSON.parse(savedTags) || {};
+      }
+    } catch(e) {
+      console.warn('LocalStorage restore error:', e);
+    }
+  }
+
+  let saveFleetTimer = null;
+  function persistFleetToLocalStorage() {
+    if (saveFleetTimer) clearTimeout(saveFleetTimer);
+    saveFleetTimer = setTimeout(() => {
+      try {
+        localStorage.setItem(FLEET_STORAGE_KEY, JSON.stringify(devicesFleet));
+        localStorage.setItem(ACTIONS_STORAGE_KEY, JSON.stringify(deviceActionsHistory));
+        localStorage.setItem(TAGS_STORAGE_KEY, JSON.stringify(deviceTags));
+      } catch (e) {
+        console.warn('LocalStorage persist error:', e);
+      }
+    }, 400);
+  }
+
+  // ==========================================
+  // MQTT AUTHENTICATION MODAL CONTROLLER
+  // ==========================================
+  function openMqttAuthModal(isFirstTime = false) {
+    const modal = document.getElementById('mqttAuthModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    
+    const closeBtn = document.getElementById('btnAuthClose');
+    const badge = document.getElementById('authModalBadge');
+    const logoutBtn = document.getElementById('btnAuthLogout');
+    if (closeBtn) closeBtn.style.display = isFirstTime ? 'none' : 'block';
+    if (badge) badge.textContent = isFirstTime ? 'FIRST TIME SETUP REQUIRED' : 'BROKER SETTINGS';
+
+    const savedAuth = localStorage.getItem(MQTT_AUTH_STORAGE_KEY);
+    if (logoutBtn) {
+      logoutBtn.style.display = (savedAuth || config.user) ? 'inline-flex' : 'none';
+    }
+
+    const uInput = document.getElementById('authInputUser');
+    const pInput = document.getElementById('authInputPass');
+    const hInput = document.getElementById('authInputHost');
+    const ptInput = document.getElementById('authSelectPort');
+
+    if (uInput) uInput.value = config.user || '';
+    if (pInput) pInput.value = config.pass || '';
+    if (hInput) hInput.value = config.host || 'mqtt.teleson.in';
+    if (ptInput) ptInput.value = String(config.port === 8083 ? 8083 : 8084);
+
+    updateAuthTopicPreview();
+  }
+
+  function clearMqttAuth() {
+    try {
+      localStorage.removeItem(MQTT_AUTH_STORAGE_KEY);
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const obj = JSON.parse(stored);
+        obj.user = '';
+        obj.pass = '';
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+      }
+    } catch(e) {}
+
+    config.user = '';
+    config.pass = '';
+
+    if (mqttWsClient) {
+      try { mqttWsClient.end(true); } catch(e) {}
+      mqttWsClient = null;
+    }
+
+    const uInput = document.getElementById('authInputUser');
+    const pInput = document.getElementById('authInputPass');
+    if (uInput) uInput.value = '';
+    if (pInput) pInput.value = '';
+
+    const authPill = document.getElementById('topAuthUserText');
+    if (authPill) authPill.textContent = 'Login';
+    updateBrokerPill('offline', 'Auth Required');
+
+    logTerminal('sys', '[LOGOUT] Cleared saved credentials from LocalStorage.');
+    openMqttAuthModal(true);
+  }
+
+  function closeMqttAuthModal() {
+    const modal = document.getElementById('mqttAuthModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function toggleAuthPasswordVisibility() {
+    const passInput = document.getElementById('authInputPass');
+    const eye = document.getElementById('authPassEyeIcon');
+    if (!passInput) return;
+    if (passInput.type === 'password') {
+      passInput.type = 'text';
+      if (eye) eye.className = 'bi bi-eye-slash';
+    } else {
+      passInput.type = 'password';
+      if (eye) eye.className = 'bi bi-eye';
+    }
+  }
+
+  function updateAuthTopicPreview() {
+    const uInput = document.getElementById('authInputUser');
+    const preview = document.getElementById('authTopicPreview');
+    const u = (uInput && uInput.value.trim()) ? uInput.value.trim() : '{username}';
+    if (preview) {
+      preview.textContent = `${u}/gps/{deviceId}/data`;
+    }
+  }
+
+  function submitMqttAuth() {
+    const u = document.getElementById('authInputUser').value.trim();
+    const p = document.getElementById('authInputPass').value.trim();
+    const h = document.getElementById('authInputHost').value.trim();
+    const pt = parseInt(document.getElementById('authSelectPort').value, 10) || 8084;
+    const rem = document.getElementById('authRememberCreds').checked;
+
+    if (!u || !p || !h) {
+      const err = document.getElementById('authErrorMsg');
+      if (err) {
+        err.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Please enter Username, Password and Broker Host.';
+        err.style.display = 'block';
+      } else {
+        alert('Please enter Username, Password and Broker Host.');
+      }
+      return;
+    }
+
+    config.user = u;
+    config.pass = p;
+    config.host = h;
+    config.port = pt;
+    if (!config.deviceId || config.deviceId.startsWith('tracker-')) {
+      config.deviceId = `tracker-${u}`;
+    }
+    config.topic = `${u}/gps/{deviceId}/data`;
+
+    if (rem) {
+      try {
+        localStorage.setItem(MQTT_AUTH_STORAGE_KEY, JSON.stringify({
+          user: u,
+          pass: p,
+          host: h,
+          port: pt,
+          authenticated: true,
+          savedAt: Date.now()
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      } catch(e) {}
+    }
+
+    // Update header text
+    const authPill = document.getElementById('topAuthUserText');
+    if (authPill) authPill.textContent = u;
+
+    // Also update Settings modal fields if open
+    if (document.getElementById('cfgUser')) document.getElementById('cfgUser').value = u;
+    if (document.getElementById('cfgPass')) document.getElementById('cfgPass').value = p;
+    if (document.getElementById('cfgDeviceId')) document.getElementById('cfgDeviceId').value = config.deviceId;
+    if (document.getElementById('cfgHost')) document.getElementById('cfgHost').value = h;
+    if (document.getElementById('cfgPort')) document.getElementById('cfgPort').value = String(pt);
+
+    closeMqttAuthModal();
+    logTerminal('sys', `[AUTH UPDATED] User credentials set for '${u}'. Connecting to broker...`);
+
+    // Initialize or reconnect WebSocket
+    initMqttWebSocket(pt);
+  }
 
   const LAUNCHER_PRESETS = [
     "SIM Tool",
@@ -2740,16 +3628,31 @@
   let mqttWsClient = null;
   let currentTermFilter = 'all';
   let devicesFleet = {};
+  let selectedFleetDevices = new Set();
+  let modalTargetScope = 'active'; // 'active', 'selected', 'all'
+  let modalMsgMode = 'NOTIFICATION'; // 'NOTIFICATION', 'LOCK_SCREEN', 'EMERGENCY'
+  let modalExplicitTargets = null;
   let deviceActionsHistory = {}; // devId -> array of action history items
+  let deviceTags = {}; // devId -> "Custom Friendly Tag Name" (persisted in localStorage & MQTT)
   let fleetMarkers = {}; // devId -> L.marker
   let fleetCircles = {}; // devId -> L.circle
-  let activeMapLayer = 'osm'; // 'osm', 'satellite', 'voyager', 'topo'
+  let activeMapLayer = 'satellite'; // 'satellite', 'topo', 'osm', 'voyager' (defaults to satellite on load)
   let tileLayerOsm = null;
   let tileLayerVoyager = null;
   let tileLayerSatellite = null;
   let tileLayerTopo = null;
   let leafletLayerControl = null;
   let activeSidePanelTab = 'info'; // 'info', 'actions', 'controls'
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 
   const FLEET_OFFLINE_TIMEOUT_MS = 3 * 60 * 1000; // 3 minutes timeout for offline
   const FLEET_RECENT_UPDATE_MS = 20 * 1000; // 20 seconds for active update pulse
@@ -2781,6 +3684,22 @@
   // ==========================================
   function loadConfig() {
     try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const qUser = urlParams.get('user');
+      const qPass = urlParams.get('pass');
+      const qHost = urlParams.get('host');
+      const qPort = urlParams.get('port');
+
+      const authStored = localStorage.getItem(MQTT_AUTH_STORAGE_KEY);
+      if (authStored) {
+        const authData = JSON.parse(authStored);
+        if (authData && authData.user) {
+          config.user = authData.user;
+          config.pass = authData.pass;
+          config.host = authData.host || config.host;
+          config.port = authData.port || config.port;
+        }
+      }
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         config = { ...config, ...JSON.parse(stored) };
@@ -2788,17 +3707,41 @@
         const legacy = localStorage.getItem('sim_tool_config_v1');
         if (legacy) config = { ...config, ...JSON.parse(legacy) };
       }
+
+      if (authStored) {
+        const authData = JSON.parse(authStored);
+        if (authData && authData.user) {
+          config.user = authData.user;
+          config.pass = authData.pass;
+        }
+      }
+
+      if (qUser) config.user = qUser;
+      if (qPass) config.pass = qPass;
+      if (qHost) config.host = qHost;
+      if (qPort) config.port = parseInt(qPort, 10);
+    } catch(e) {}
+
+    try {
+      const savedTags = localStorage.getItem('fleet_device_tags_v1');
+      if (savedTags) deviceTags = JSON.parse(savedTags) || {};
     } catch(e) {}
 
     const appName = config.appName || 'SIM Tool';
     if (document.getElementById('cfgAppName')) document.getElementById('cfgAppName').value = appName;
     applyAppName(appName);
 
-    if (document.getElementById('cfgUser')) document.getElementById('cfgUser').value = config.user;
-    if (document.getElementById('cfgPass')) document.getElementById('cfgPass').value = config.pass;
-    if (document.getElementById('cfgDeviceId')) document.getElementById('cfgDeviceId').value = config.deviceId || `tracker-${config.user}`;
+    const authPill = document.getElementById('topAuthUserText');
+    if (authPill) authPill.textContent = config.user || 'Login';
+
+    if (document.getElementById('cfgUser')) document.getElementById('cfgUser').value = config.user || '';
+    if (document.getElementById('cfgPass')) document.getElementById('cfgPass').value = config.pass || '';
+    if (document.getElementById('cfgDeviceId')) document.getElementById('cfgDeviceId').value = config.deviceId || (config.user ? `tracker-${config.user}` : '');
     if (document.getElementById('cfgHost')) document.getElementById('cfgHost').value = config.host;
     if (document.getElementById('cfgPort')) document.getElementById('cfgPort').value = (config.port === 8083) ? '8083' : '8084';
+    if (!config.topic || config.topic.includes('tracker/') || config.topic.endsWith('/location')) {
+      config.topic = `${config.user || 'admin'}/gps/{deviceId}/data`;
+    }
     if (document.getElementById('cfgTopic')) document.getElementById('cfgTopic').value = config.topic;
     if (document.getElementById('cfgInterval')) document.getElementById('cfgInterval').value = config.interval;
     if (document.getElementById('cfgReconnectInterval')) document.getElementById('cfgReconnectInterval').value = config.reconnectInterval || 15;
@@ -2826,6 +3769,9 @@
     config.host = document.getElementById('cfgHost').value.trim();
     config.port = parseInt(document.getElementById('cfgPort').value.trim(), 10) || 8084;
     config.topic = document.getElementById('cfgTopic').value.trim();
+    if (!config.topic || config.topic.includes('tracker/') || config.topic.endsWith('/location')) {
+      config.topic = `${config.user || 'admin'}/gps/{deviceId}/data`;
+    }
     config.interval = parseInt(document.getElementById('cfgInterval').value, 10) || 60000;
     config.reconnectInterval = parseInt(document.getElementById('cfgReconnectInterval').value, 10) || 15;
     const selRec = document.getElementById('selReconnectCadence');
@@ -2835,6 +3781,18 @@
     if (newPin) config.settingsPin = newPin;
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    try {
+      localStorage.setItem(MQTT_AUTH_STORAGE_KEY, JSON.stringify({
+        user: config.user,
+        pass: config.pass,
+        host: config.host,
+        port: config.port,
+        authenticated: true,
+        savedAt: Date.now()
+      }));
+    } catch(e) {}
+    const authPill = document.getElementById('topAuthUserText');
+    if (authPill) authPill.textContent = config.user;
     applyAppName(config.appName);
 
     if (currentTargetImei) {
@@ -2872,6 +3830,227 @@
   // ==========================================
   // 3. MULTI-DEVICE FLEET MANAGEMENT & ACTIONS
   // ==========================================
+  function getDeviceTagName(devId) {
+    if (!devId) return '';
+    return deviceTags[devId] || (devicesFleet[devId] && devicesFleet[devId].tagName) || '';
+  }
+
+  function getDeviceDisplayName(devId) {
+    if (!devId) return '--';
+    const tag = getDeviceTagName(devId);
+    return tag ? `${tag} (${devId})` : devId;
+  }
+
+  function promptSetDeviceTag(devId) {
+    if (!devId) devId = currentTargetImei;
+    if (!devId) {
+      alert('Please select or inspect a device first to set its friendly tag name.');
+      return;
+    }
+    const currentTag = getDeviceTagName(devId);
+    const newTag = prompt(`🏷️ Set Friendly Tag / Asset Name for: ${devId}\n\nExamples: "Delivery Van #1", "Driver John", "Office Asset", "Truck 04"\n(Leave blank to remove tag):`, currentTag);
+    if (newTag === null) return; // user cancelled
+    setDeviceTag(devId, newTag.trim());
+  }
+
+  function setDeviceTag(devId, tag, shouldPublishMqtt = true) {
+    if (!devId) return;
+    if (tag) {
+      deviceTags[devId] = tag;
+      if (devicesFleet[devId]) devicesFleet[devId].tagName = tag;
+    } else {
+      delete deviceTags[devId];
+      if (devicesFleet[devId]) delete devicesFleet[devId].tagName;
+    }
+
+    persistFleetToLocalStorage();
+
+    // Broadcast tag to MQTT with retain: true so other dashboards stay in sync!
+    if (shouldPublishMqtt && mqttWsClient && mqttWsClient.connected) {
+      const userPrefix = getUserPrefix();
+      const payload = JSON.stringify({ deviceId: devId, tagName: tag || '', timestamp: Date.now() });
+      try {
+        mqttWsClient.publish(`${userPrefix}gps/${devId}/tag`, payload, { qos: 1, retain: true });
+      } catch(e) {}
+    }
+
+    // Refresh UI
+    updateFleetMarker(devId);
+    renderFleetCarousel();
+    renderRightPanelInfo();
+    renderCurrentDeviceStatus();
+    updateTargetUiDisplays();
+    logTerminal('sys', `[TAG UPDATED] Device ${devId} tag set to: "${tag || '(cleared)'}"`);
+  }
+
+  function purgeDeviceFromMqtt(devId) {
+    if (!devId) return;
+    const tagName = getDeviceTagName(devId);
+    const displayName = tagName ? `${tagName} (${devId})` : devId;
+
+    if (!confirm(`⚠️ Permanently DELETE ${displayName} from fleet and PURGE its retained messages from MQTT server?\n\nThis removes the asset from the map and clears MQTT retained location/status so it won't reappear.`)) {
+      return;
+    }
+
+    deleteDeviceAndClearMqttRetain(devId);
+    logTerminal('alert', `[DELETED] Device ${displayName} removed & MQTT retain purged.`);
+  }
+
+  function purgeAllOfflineDevices() {
+    const offlineDevs = [];
+    for (const id in devicesFleet) {
+      if (!isDeviceOnline(devicesFleet[id])) {
+        offlineDevs.push(id);
+      }
+    }
+
+    if (offlineDevs.length === 0) {
+      alert('No offline devices detected. All registered devices are currently active online!');
+      return;
+    }
+
+    if (!confirm(`⚠️ Delete ALL ${offlineDevs.length} offline device(s) and PURGE their retained messages from the MQTT server?\n\nDevices: ${offlineDevs.join(', ')}`)) {
+      return;
+    }
+
+    offlineDevs.forEach(id => {
+      deleteDeviceAndClearMqttRetain(id);
+    });
+
+    logTerminal('alert', `[BULK PURGE] Deleted ${offlineDevs.length} offline devices and cleared MQTT retained messages.`);
+  }
+
+  function deleteDeviceAndClearMqttRetain(devId) {
+    if (!devId) return;
+
+    // 1. Purge MQTT retained messages by publishing empty string with retain: true
+    if (mqttWsClient && mqttWsClient.connected) {
+      const userPrefix = getUserPrefix();
+      const topicsToPurge = [
+        `${userPrefix}gps/${devId}/data`,
+        `${userPrefix}gps/${devId}/status`,
+        `${userPrefix}gps/${devId}/location`,
+        `${userPrefix}gps/${devId}/telemetry`,
+        `${userPrefix}gps/${devId}/config`,
+        `${userPrefix}gps/${devId}/alarm`,
+        `${userPrefix}gps/${devId}/tag`,
+        `${userPrefix}gps/${devId}/events`,
+        `${userPrefix}gps/${devId}/diagnostics`,
+        `${userPrefix}company/device/${devId}/location`,
+        `${userPrefix}company/device/${devId}/status`,
+        `${userPrefix}company/device/${devId}/config`,
+        `${userPrefix}company/device/${devId}/diagnostics`,
+        `${userPrefix}company/device/${devId}/events`,
+        `gps/${devId}/data`,
+        `gps/${devId}/location`,
+        `gps/${devId}/telemetry`,
+        `gps/${devId}/status`,
+        `gps/${devId}/config`,
+        `gps/${devId}/alarm`,
+        `gps/${devId}/tag`,
+        `gps/${devId}/events`,
+        `gps/${devId}/diagnostics`,
+        `company/device/${devId}/location`,
+        `company/device/${devId}/status`,
+        `company/device/${devId}/config`,
+        `tracker/${devId}/location`
+      ];
+
+      topicsToPurge.forEach(topic => {
+        try {
+          mqttWsClient.publish(topic, '', { qos: 1, retain: true });
+        } catch(e) {
+          console.warn('Error purging retained topic ' + topic, e);
+        }
+      });
+    }
+
+    // 2. Remove from Leaflet map
+    if (fleetMarkers[devId]) {
+      if (fullMap) fullMap.removeLayer(fleetMarkers[devId]);
+      delete fleetMarkers[devId];
+    }
+    if (fleetCircles[devId]) {
+      if (fullMap) fullMap.removeLayer(fleetCircles[devId]);
+      delete fleetCircles[devId];
+    }
+
+    // 3. Remove from memory and persist to LocalStorage
+    delete devicesFleet[devId];
+    delete deviceActionsHistory[devId];
+    delete deviceTags[devId];
+    selectedFleetDevices.delete(devId);
+    persistFleetToLocalStorage();
+
+    // 4. Update currentTargetImei if needed
+    if (currentTargetImei === devId) {
+      const remaining = Object.keys(devicesFleet);
+      if (remaining.length > 0) {
+        selectDevice(remaining[0], true);
+      } else {
+        currentTargetImei = '';
+        renderRightPanelInfo();
+        renderCurrentDeviceStatus();
+        updateTargetUiDisplays();
+      }
+    }
+
+    // 5. Update UI
+    renderFleetCarousel();
+    updateFleetSummary();
+    updateMapDeviceCount();
+    fitMapToAllDevices();
+  }
+
+  function toggleMapFullscreen() {
+    const wrapper = document.querySelector('.map-stage-wrapper');
+    if (!wrapper) return;
+
+    if (!document.fullscreenElement && !document.webkitFullscreenElement && !wrapper.classList.contains('pseudo-fullscreen-map')) {
+      if (wrapper.requestFullscreen) {
+        wrapper.requestFullscreen().catch(err => {
+          wrapper.classList.toggle('pseudo-fullscreen-map');
+          handleFullscreenChange();
+        });
+      } else if (wrapper.webkitRequestFullscreen) {
+        wrapper.webkitRequestFullscreen();
+      } else {
+        wrapper.classList.toggle('pseudo-fullscreen-map');
+        handleFullscreenChange();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(err => {
+          wrapper.classList.remove('pseudo-fullscreen-map');
+          handleFullscreenChange();
+        });
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else {
+        wrapper.classList.remove('pseudo-fullscreen-map');
+        handleFullscreenChange();
+      }
+    }
+  }
+
+  function handleFullscreenChange() {
+    const wrapper = document.querySelector('.map-stage-wrapper');
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || (wrapper && wrapper.classList.contains('pseudo-fullscreen-map')));
+    const icon = document.getElementById('iconFullscreen');
+    const lbl = document.getElementById('lblFullscreen');
+    if (icon) icon.className = isFs ? 'bi bi-fullscreen-exit' : 'bi bi-arrows-fullscreen';
+    if (lbl) lbl.textContent = isFs ? 'Exit Full Screen' : 'Full Screen';
+    setTimeout(() => {
+      if (fullMap) {
+        fullMap.invalidateSize();
+        if (isFs) fitMapToAllDevices();
+      }
+    }, 250);
+  }
+
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
   function loadTargetImei() {
     try {
       const saved = localStorage.getItem('target_device_imei');
@@ -2934,7 +4113,7 @@
 
   function updateTargetUiDisplays() {
     const lbl = document.getElementById('lblCmdTopic');
-    if (lbl) lbl.textContent = `gps/${currentTargetImei}/command`;
+    if (lbl) lbl.textContent = `${getUserPrefix()}gps/${currentTargetImei}/command`;
   }
 
   function selectDevice(devId, panMap = true) {
@@ -2982,17 +4161,21 @@
     const inp = document.getElementById('targetImeiInput');
     if (inp) inp.value = devId;
 
+    const tagName = getDeviceTagName(devId);
     const mapTgt = document.getElementById('fullMapTargetId');
-    if (mapTgt) mapTgt.textContent = devId;
+    if (mapTgt) mapTgt.textContent = tagName ? `${tagName} (${devId})` : devId;
+
+    const sideTag = document.getElementById('sidePanelDeviceTag');
+    if (sideTag) sideTag.textContent = tagName || devId;
 
     const sideTgt = document.getElementById('sidePanelDeviceId');
-    if (sideTgt) sideTgt.textContent = devId;
+    if (sideTgt) sideTgt.textContent = tagName ? `ID: ${devId}` : devId;
 
     const sideAudit = document.getElementById('sideAuditDeviceId');
-    if (sideAudit) sideAudit.textContent = devId;
+    if (sideAudit) sideAudit.textContent = tagName ? `${tagName} (${devId})` : devId;
 
     const sideCtrl = document.getElementById('sideControlDeviceId');
-    if (sideCtrl) sideCtrl.textContent = devId;
+    if (sideCtrl) sideCtrl.textContent = tagName ? `${tagName} (${devId})` : devId;
 
     updateTargetUiDisplays();
     renderCurrentDeviceStatus();
@@ -3019,6 +4202,7 @@
     if (deviceActionsHistory[devId].length > 100) {
       deviceActionsHistory[devId].pop();
     }
+    persistFleetToLocalStorage();
     if (devId === currentTargetImei) {
       renderRightPanelActions();
     }
@@ -3027,6 +4211,7 @@
   function clearDeviceActions(devId) {
     if (!devId) return;
     deviceActionsHistory[devId] = [];
+    persistFleetToLocalStorage();
     if (devId === currentTargetImei) {
       renderRightPanelActions();
     }
@@ -3069,6 +4254,11 @@
         badgeClass = 'loc';
         icon = 'bi-geo-alt-fill';
       }
+      if (item.action && (item.action.includes('NOTIFICATION') || item.action.includes('MESSAGE'))) {
+        icon = 'bi-bell-fill';
+      } else if (item.action && item.action.includes('LOCK_SCREEN')) {
+        icon = 'bi-phone-lock';
+      }
 
       html += `
         <div class="action-timeline-item ${badgeClass}">
@@ -3094,6 +4284,15 @@
     const isOnline = isDeviceOnline(d);
 
     // Header in Side Panel
+    const tagName = getDeviceTagName(currentTargetImei);
+    const sideTag = document.getElementById('sidePanelDeviceTag');
+    if (sideTag) sideTag.textContent = tagName || currentTargetImei || 'Select Device';
+    const sideTgt = document.getElementById('sidePanelDeviceId');
+    if (sideTgt) sideTgt.textContent = tagName ? `ID: ${currentTargetImei}` : (currentTargetImei || '--');
+
+    const tagDisplay = document.getElementById('sideInfoTagDisplay');
+    if (tagDisplay) tagDisplay.textContent = tagName ? `🏷️ ${tagName}` : 'No Tag Set';
+
     const dot = document.getElementById('sidePanelStatusDot');
     const txt = document.getElementById('sidePanelStatusText');
     const pill = document.getElementById('sidePanelStatusPill');
@@ -3159,13 +4358,25 @@
       mdmOwn.className = `badge-mini ${isOwner ? 'success' : 'warning'}`;
     }
 
+    // Active Lock Screen Message in Info Tab
+    const lockMsgEl = document.getElementById('sideInfoLockScreenMsg');
+    if (lockMsgEl) {
+      if (d && d.lockScreenMessage && d.isLockScreenMessageActive) {
+        lockMsgEl.style.display = 'block';
+        const txtEl = document.getElementById('sideInfoLockScreenText');
+        if (txtEl) txtEl.textContent = d.lockScreenMessage;
+      } else {
+        lockMsgEl.style.display = 'none';
+      }
+    }
+
     // Update Map HUD
     const hudTarget = document.getElementById('fullMapTargetId');
     const hudCoords = document.getElementById('fullMapCoords');
     const hudSpeedAcc = document.getElementById('fullMapSpeedAcc');
     const hudTime = document.getElementById('fullMapTime');
 
-    if (hudTarget) hudTarget.textContent = currentTargetImei || '--';
+    if (hudTarget) hudTarget.textContent = tagName ? `${tagName} (${currentTargetImei})` : (currentTargetImei || '--');
     if (hudCoords) hudCoords.textContent = (d && d.lat !== undefined) ? `${d.lat.toFixed(5)}, ${d.lon.toFixed(5)}` : 'Acquiring GPS fix...';
     if (hudSpeedAcc) hudSpeedAcc.textContent = d ? `${(d.speed || 0).toFixed(1)} km/h (±${d.accuracy || 0} m)` : '0.0 km/h (±-- m)';
     if (hudTime) hudTime.textContent = (d && d.timeStr) ? d.timeStr : (d && d.lastSeenTime ? new Date(d.lastSeenTime).toLocaleTimeString() : '--:--:--');
@@ -3187,6 +4398,7 @@
       }
     });
 
+    const offlineCount = Math.max(0, total - onlineCount);
     const elTotal = document.getElementById('statFleetTotal');
     const elOnline = document.getElementById('statFleetOnline');
     const elOffline = document.getElementById('statFleetOffline');
@@ -3194,8 +4406,13 @@
 
     if (elTotal) elTotal.textContent = total;
     if (elOnline) elOnline.textContent = onlineCount;
-    if (elOffline) elOffline.textContent = Math.max(0, total - onlineCount);
+    if (elOffline) elOffline.textContent = offlineCount;
     if (elDpc) elDpc.textContent = dpcCount;
+
+    const elTotalInline = document.getElementById('statFleetTotalInline');
+    if (elTotalInline) elTotalInline.textContent = total;
+    const elOfflinePurge = document.getElementById('fleetOfflineCount');
+    if (elOfflinePurge) elOfflinePurge.textContent = offlineCount;
 
     renderFleetCarousel();
   }
@@ -3210,6 +4427,7 @@
     const keys = Object.keys(devicesFleet);
     if (keys.length === 0) {
       carousel.innerHTML = '<div style="color:var(--text-muted); font-size:0.75rem; font-style:italic;">Listening on MQTT for fleet devices...</div>';
+      updateFleetSelectionUi();
       return;
     }
 
@@ -3220,24 +4438,33 @@
     const now = Date.now();
     keys.forEach(id => {
       const d = devicesFleet[id];
-      if (query && !id.toLowerCase().includes(query) && !(d.carrier || '').toLowerCase().includes(query)) {
+      const tagName = getDeviceTagName(id);
+      if (query && !id.toLowerCase().includes(query) && !tagName.toLowerCase().includes(query) && !(d.carrier || '').toLowerCase().includes(query)) {
         return;
       }
       const isOnline = isDeviceOnline(d);
       const isSelected = (id === currentTargetImei);
+      const isChecked = selectedFleetDevices.has(id);
       const isRecentlyUpdated = (now - (d.lastLocationTime || 0)) < FLEET_RECENT_UPDATE_MS;
       const dotColor = isOnline ? '#34d399' : '#ef4444';
       const batStr = d.battery && d.battery !== '--' ? ` | 🔋${d.battery}` : '';
       const statusBadge = isOnline ? '' : '<span style="font-size:0.62rem; color:#f87171; background:rgba(239,68,68,0.14); padding:1px 5px; border-radius:4px; font-weight:700;">Offline</span>';
       const updateTag = isRecentlyUpdated ? '<span style="font-size:0.62rem; color:#34d399; background:rgba(16,185,129,0.15); padding:1px 5px; border-radius:4px; font-weight:700;">⚡ Updated</span>' : '';
 
+      const titleHtml = tagName 
+        ? `<span class="chip-tag-name">🏷️ ${escapeHtml(tagName)}</span> <span class="chip-id">(${id})</span>` 
+        : `<span>${id}</span>`;
+
       html += `
-        <div class="fleet-device-chip ${isSelected ? 'active' : ''} ${isRecentlyUpdated ? 'just-updated-chip' : ''}" data-id="${id}" onclick="selectDevice('${id}', true)">
-          <span style="width:7px; height:7px; border-radius:50%; background:${dotColor}; box-shadow:0 0 6px ${dotColor};"></span>
-          <span>${id}</span>
+        <div class="fleet-device-chip ${isSelected ? 'active' : ''} ${isChecked ? 'chip-checked' : ''} ${isRecentlyUpdated ? 'just-updated-chip' : ''}" data-id="${id}" onclick="selectDevice('${id}', true)">
+          <input type="checkbox" class="fleet-chip-checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleDeviceSelection('${id}', this.checked)" title="Select for notification / lock screen message">
+          <span style="width:7px; height:7px; border-radius:50%; background:${dotColor}; box-shadow:0 0 6px ${dotColor}; flex-shrink:0;"></span>
+          ${titleHtml}
           ${statusBadge}
           ${updateTag}
           <span style="font-size:0.68rem; color:var(--text-muted); font-weight:normal;">${batStr}</span>
+          <span class="chip-btn-icon" onclick="event.stopPropagation(); promptSetDeviceTag('${id}')" title="Set friendly Tag Name">🏷️</span>
+          <span class="chip-btn-icon delete" onclick="event.stopPropagation(); purgeDeviceFromMqtt('${id}')" title="Delete device and clear retained MQTT message">🗑️</span>
         </div>
       `;
     });
@@ -3247,6 +4474,7 @@
     }
 
     carousel.innerHTML = html;
+    updateFleetSelectionUi();
   }
 
   function filterFleetCarousel() {
@@ -3379,6 +4607,13 @@
       mqttWsClient = null;
     }
 
+    if (!config.user || !config.pass) {
+      logTerminal('alert', '[MQTT AUTH] Username and password required. Please authenticate.');
+      updateBrokerPill('offline', 'Auth Required');
+      openMqttAuthModal(true);
+      return;
+    }
+
     const isHttps = location.protocol === 'https:';
     if (!forcedPort) {
       if (config.port === 8083 || config.port === 8084) {
@@ -3396,8 +4631,8 @@
     const clientId = 'dashboard_' + Math.random().toString(16).substr(2, 8);
     const options = {
       clientId: clientId,
-      username: config.user || 'sangm',
-      password: config.pass || '12344321',
+      username: config.user,
+      password: config.pass,
       clean: true,
       reconnectPeriod: 4000,
       connectTimeout: 8000
@@ -3422,21 +4657,16 @@
         logTerminal('sys', `[BROKER ONLINE] Connected successfully to ${wsUrl}`);
         updateBrokerPill('online', 'Broker Online');
 
-        // Wildcard subscriptions to capture all fleet activities
+        // Wildcard subscriptions with username prefix + root fallback
+        // Strict minimal subscriptions under corporate username prefix
+        const userPrefix = getUserPrefix();
         const fleetTopics = [
-          'gps/+/status',
-          'gps/+/ack',
-          'gps/+/events',
-          'gps/+/diagnostics',
-          'gps/+/config',
-          'gps/#',
-          'company/device/#',
-          'tracker/+/location'
+          `${userPrefix}gps/#`
         ];
 
         mqttWsClient.subscribe(fleetTopics, (err) => {
           if (!err) {
-            logTerminal('sys', '[FLEET SUBSCRIPTION] Listening on all corporate channels (gps/+, company/device/+)');
+            logTerminal('sys', `[FLEET SUBSCRIPTION] Listening strictly on corporate channel: ${userPrefix}gps/#`);
           } else {
             logTerminal('alert', '[SUBSCRIPTION ERROR] ' + err.message);
           }
@@ -3449,8 +4679,19 @@
 
       mqttWsClient.on('error', (err) => {
         clearTimeout(fallbackTimer);
-        logTerminal('alert', `[MQTT ERROR] ${err ? err.message : 'Unknown'}`);
+        const errMsg = err ? (err.message || String(err)) : 'Unknown';
+        logTerminal('alert', `[MQTT ERROR] ${errMsg}`);
         updateBrokerPill('offline', 'Broker Error');
+
+        if (errMsg.toLowerCase().includes('not authorized') || errMsg.toLowerCase().includes('refused') || errMsg.toLowerCase().includes('bad user') || errMsg.toLowerCase().includes('auth')) {
+          const authErr = document.getElementById('authErrorMsg');
+          if (authErr) {
+            authErr.innerHTML = `<i class="bi bi-exclamation-triangle-fill"></i> Authentication failed: ${escapeHtml(errMsg)}`;
+            authErr.style.display = 'block';
+          }
+          openMqttAuthModal(false);
+        }
+
         if (!isHttps && activeWsPort === 8083) {
           logTerminal('sys', '[PORT FAILOVER] Switching to secure WSS 8084...');
           setTimeout(() => initMqttWebSocket(8084), 1500);
@@ -3494,6 +4735,34 @@
   // 6. INBOUND MQTT MESSAGE ROUTER (FLEET)
   // ==========================================
   function handleIncomingMqttMessage(topic, messageStr) {
+    // 0. Handle MQTT Retained Purge packets (empty payload with retain)
+    if (!messageStr || messageStr.trim() === '') {
+      let purgedDevId = extractDevIdFromTopic(topic);
+      if (purgedDevId && devicesFleet[purgedDevId]) {
+        if (fleetMarkers[purgedDevId] && fullMap) {
+          fullMap.removeLayer(fleetMarkers[purgedDevId]);
+          delete fleetMarkers[purgedDevId];
+        }
+        if (fleetCircles[purgedDevId] && fullMap) {
+          fullMap.removeLayer(fleetCircles[purgedDevId]);
+          delete fleetCircles[purgedDevId];
+        }
+        delete devicesFleet[purgedDevId];
+        delete deviceActionsHistory[purgedDevId];
+        delete deviceTags[purgedDevId];
+        persistFleetToLocalStorage();
+        updateFleetSummary();
+        updateMapDeviceCount();
+        if (currentTargetImei === purgedDevId) {
+          const remaining = Object.keys(devicesFleet);
+          if (remaining.length > 0) selectDevice(remaining[0], false);
+          else currentTargetImei = '';
+        }
+        logTerminal('sys', `[RETAIN PURGED] Device ${purgedDevId} cleared by MQTT server.`);
+      }
+      return;
+    }
+
     let data = null;
     try {
       data = JSON.parse(messageStr);
@@ -3503,19 +4772,24 @@
     }
 
     // Extract device ID from packet or topic (supports alphanumeric IDs & numeric IMEIs)
-    let devId = (data.deviceId || data.imei || '').trim();
-    if (!devId) {
-      const parts = topic.split('/');
-      if (parts[0] === 'gps' && parts.length >= 2) {
-        devId = parts[1];
-      } else if (parts[0] === 'company' && parts[1] === 'device' && parts.length >= 3) {
-        devId = parts[2];
-      } else if (parts[0] === 'tracker' && parts.length >= 2) {
-        devId = parts[1];
+    let devId = (data.deviceId || data.imei || '').trim() || extractDevIdFromTopic(topic);
+    devId = String(devId).trim().replace(/[^a-zA-Z0-9_\-\.]/g, '');
+    if (!devId || ['command', 'ack', 'location', 'status', 'config', 'events', 'diagnostics', 'telemetry', 'tag', 'alarm'].includes(devId)) return;
+
+    if (topic.endsWith('/tag')) {
+      if (data && data.tagName !== undefined) {
+        setDeviceTag(devId, data.tagName, false);
+      }
+      return;
+    }
+
+    if (data.tagName || data.alias || data.tag) {
+      const remoteTag = data.tagName || data.alias || data.tag;
+      if (remoteTag && (!deviceTags[devId] || deviceTags[devId] !== remoteTag)) {
+        deviceTags[devId] = remoteTag;
+        try { localStorage.setItem('fleet_device_tags_v1', JSON.stringify(deviceTags)); } catch(e) {}
       }
     }
-    devId = String(devId).trim().replace(/[^a-zA-Z0-9_\-\.]/g, '');
-    if (!devId || devId === 'command' || devId === 'ack' || devId === 'location') return;
 
     if (!devicesFleet[devId]) {
       devicesFleet[devId] = {
@@ -3540,6 +4814,8 @@
       handleStatusMessage(devId, data);
     } else if (topic.endsWith('/ack')) {
       handleAckMessage(devId, data);
+    } else if (topic.endsWith('/data')) {
+      handleUnifiedDataMessage(devId, data, topic);
     } else if (topic.endsWith('/events')) {
       handleSecurityEventMessage(devId, data);
     } else if (topic.endsWith('/diagnostics')) {
@@ -3551,9 +4827,103 @@
     }
 
     updateFleetSummary();
+    persistFleetToLocalStorage();
     if (devId === currentTargetImei) {
       renderCurrentDeviceStatus();
       renderRightPanelInfo();
+    }
+  }
+
+  // ==========================================
+  // UNIFIED DEVICE STATE HANDLER (/data)
+  // Consolidates GPS fix, battery, carrier, MDM status & lock message
+  // ==========================================
+  function handleUnifiedDataMessage(imei, data, topic) {
+    if (!devicesFleet[imei]) {
+      devicesFleet[imei] = {
+        imei: imei,
+        deviceId: imei,
+        status: 'CONNECTED',
+        battery: '--',
+        carrier: 'Cellular',
+        lastSeenTime: Date.now(),
+        lastLocationTime: 0
+      };
+    }
+    const dev = devicesFleet[imei];
+    dev.lastSeenTime = Date.now();
+    dev.status = 'CONNECTED';
+
+    // Battery
+    if (data.battery !== undefined && data.battery >= 0) {
+      dev.battery = data.battery + '%';
+    } else if (data.batteryLevel !== undefined && data.batteryLevel >= 0) {
+      dev.battery = data.batteryLevel + '%';
+    }
+    if (data.isCharging !== undefined) {
+      dev.isCharging = !!data.isCharging;
+    }
+
+    // Telephony & Cellular
+    if (data.carrier) dev.carrier = data.carrier;
+    if (data.simState) dev.simState = data.simState;
+    if (data.iccid) dev.iccid = data.iccid;
+    if (data.simOperator) dev.simOperator = data.simOperator;
+    if (data.networkType) dev.networkType = data.networkType;
+
+    // MDM & Policies
+    if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
+    if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
+    if (data.uninstallBlocked !== undefined) dev.uninstallBlocked = !!data.uninstallBlocked;
+    if (data.factoryResetBlocked !== undefined) dev.factoryResetBlocked = !!data.factoryResetBlocked;
+    if (data.gpsLockedOn !== undefined) dev.gpsLockedOn = !!data.gpsLockedOn;
+    if (data.adbBlocked !== undefined) dev.adbBlocked = !!data.adbBlocked;
+    if (data.lockScreenActive !== undefined) dev.isLockScreenMessageActive = !!data.lockScreenActive;
+    if (data.lockScreenMessage !== undefined) dev.lockScreenMessage = data.lockScreenMessage;
+
+    // Config & Diagnostics
+    if (data.intervalSeconds !== undefined) dev.intervalSeconds = data.intervalSeconds;
+    if (data.reconnectIntervalSeconds !== undefined) dev.reconnectIntervalSeconds = data.reconnectIntervalSeconds;
+    if (data.appVersion) dev.appVersion = data.appVersion;
+    if (data.appName) dev.appName = data.appName;
+    if (data.deviceInfo) dev.diagnostics = data;
+
+    // Tag
+    if (data.tagName) {
+      setDeviceTag(imei, data.tagName, false);
+    }
+
+    // Trigger feedback log
+    const trig = data.trigger || 'SYNC';
+    const hasFix = (data.hasGpsFix !== false && (data.lat !== undefined || data.latitude !== undefined));
+    logTerminal('sys', `[UNIFIED DATA] [${imei}] Trigger: ${trig} | Battery: ${dev.battery} | Carrier: ${dev.carrier || 'Cellular'}${hasFix ? ` | 📍 Fix: ${data.lat}, ${data.lon}` : ' | 📡 On-Demand Sleep Mode'}`);
+
+    // If Location is present, update map & position
+    if (data.lat !== undefined || data.latitude !== undefined) {
+      handleLocationTelemetry(imei, data, topic);
+    }
+
+    // If this device is currently selected, update all UI badges and inputs
+    if (imei === currentTargetImei) {
+      updateMdmBadge('badgeMdmUninstall', !!dev.uninstallBlocked, dev.uninstallBlocked ? 'Uninstall: BLOCKED' : 'Uninstall: ALLOWED');
+      updateMdmBadge('badgeMdmReset', !!dev.factoryResetBlocked, dev.factoryResetBlocked ? 'Reset: BLOCKED' : 'Reset: ALLOWED');
+      updateMdmBadge('badgeMdmGps', !!dev.gpsLockedOn, dev.gpsLockedOn ? 'GPS: LOCKED ON' : 'GPS: NORMAL');
+
+      const selInt = document.getElementById('selIntervalCadence');
+      if (selInt && data.intervalSeconds !== undefined) {
+        selInt.value = String(data.intervalSeconds);
+      }
+      const selRec = document.getElementById('selReconnectCadence');
+      if (selRec && data.reconnectIntervalSeconds) {
+        selRec.value = String(data.reconnectIntervalSeconds);
+      }
+      const lockMsgInput = document.getElementById('inpLockScreenMessage');
+      if (lockMsgInput && data.lockScreenMessage !== undefined) {
+        lockMsgInput.value = data.lockScreenMessage;
+      }
+      renderCurrentDeviceStatus();
+      renderRightPanelInfo();
+      renderRightPanelActions();
     }
   }
 
@@ -3622,6 +4992,13 @@
     const action = data.action || data.command || 'COMMAND';
     const status = data.status || 'SUCCESS';
     const msg = data.message || data.result || '';
+
+    // Route security events delivered via ack channel
+    if (data.event || action === 'SECURITY_ALERT') {
+      handleSecurityEventMessage(imei, data);
+      return;
+    }
+
     const isSuccess = status === 'SUCCESS' || status.includes('SUCCESS');
     const isOwner = data.isDeviceOwner !== undefined ? data.isDeviceOwner : null;
     const ownerTag = (isOwner !== null) ? (isOwner ? ' [DPC: Active]' : ' [DPC: Pending]') : '';
@@ -3654,6 +5031,12 @@
         devicesFleet[imei].uninstallBlocked = false;
         devicesFleet[imei].factoryResetBlocked = false;
         devicesFleet[imei].gpsLockedOn = false;
+      }
+      if (action === 'SET_LOCK_SCREEN_MESSAGE') {
+        devicesFleet[imei].isLockScreenMessageActive = true;
+      } else if (action === 'CLEAR_LOCK_SCREEN_MESSAGE') {
+        devicesFleet[imei].isLockScreenMessageActive = false;
+        devicesFleet[imei].lockScreenMessage = '';
       }
       if (isOwner !== null) devicesFleet[imei].isDeviceOwner = isOwner;
     }
@@ -3765,6 +5148,10 @@
       if (data.factoryResetBlocked !== undefined) devicesFleet[imei].factoryResetBlocked = !!data.factoryResetBlocked;
       if (data.gpsLockedOn !== undefined) devicesFleet[imei].gpsLockedOn = !!data.gpsLockedOn;
       if (data.isDeviceOwner !== undefined) devicesFleet[imei].isDeviceOwner = !!data.isDeviceOwner;
+      if (data.lockScreenMessage !== undefined) {
+        devicesFleet[imei].lockScreenMessage = data.lockScreenMessage;
+        devicesFleet[imei].isLockScreenMessageActive = !!data.isLockScreenMessageActive;
+      }
     }
 
     recordDeviceAction(imei, {
@@ -3806,10 +5193,6 @@
   }
 
   function handleLocationTelemetry(imei, data, topic) {
-    const rawLat = (data.lat !== undefined) ? data.lat : ((data.latitude !== undefined) ? data.latitude : (data.coords && data.coords.latitude));
-    const rawLon = (data.lon !== undefined) ? data.lon : ((data.lng !== undefined) ? data.lng : ((data.longitude !== undefined) ? data.longitude : (data.coords && data.coords.longitude)));
-    if (rawLat === undefined || rawLon === undefined || isNaN(rawLat) || isNaN(rawLon)) return;
-
     if (!devicesFleet[imei]) {
       devicesFleet[imei] = {
         imei: imei,
@@ -3818,13 +5201,35 @@
         battery: '--',
         carrier: 'Cellular',
         lastSeenTime: Date.now(),
-        lastLocationTime: Date.now()
+        lastLocationTime: 0
       };
     }
     devicesFleet[imei].lastSeenTime = Date.now();
-    devicesFleet[imei].lastLocationTime = Date.now();
     devicesFleet[imei].status = 'CONNECTED';
 
+    if (data.batteryLevel !== undefined && data.batteryLevel >= 0) {
+      devicesFleet[imei].battery = data.batteryLevel + '%';
+    }
+    if (data.gps_status) {
+      devicesFleet[imei].gps_status = data.gps_status;
+    }
+    if (data.deviceInfo) {
+      if (data.deviceInfo.batteryLevel !== undefined && data.deviceInfo.batteryLevel >= 0) {
+        devicesFleet[imei].battery = data.deviceInfo.batteryLevel + '%';
+      }
+      if (data.deviceInfo.carrier) {
+        devicesFleet[imei].carrier = data.deviceInfo.carrier;
+      }
+    }
+
+    const rawLat = (data.lat !== undefined) ? data.lat : ((data.latitude !== undefined) ? data.latitude : (data.coords && data.coords.latitude));
+    const rawLon = (data.lon !== undefined) ? data.lon : ((data.lng !== undefined) ? data.lng : ((data.longitude !== undefined) ? data.longitude : (data.coords && data.coords.longitude)));
+    if (rawLat === undefined || rawLon === undefined || isNaN(rawLat) || isNaN(rawLon)) {
+      updateFleetSummary();
+      return;
+    }
+
+    devicesFleet[imei].lastLocationTime = Date.now();
     const lat = parseFloat(rawLat);
     const lon = parseFloat(rawLon);
     const speed = data.speed !== undefined ? parseFloat(data.speed) : 0.0;
@@ -3836,15 +5241,6 @@
     devicesFleet[imei].speed = speed;
     devicesFleet[imei].accuracy = acc;
     devicesFleet[imei].timeStr = timeStr;
-
-    if (data.deviceInfo) {
-      if (data.deviceInfo.batteryLevel !== undefined && data.deviceInfo.batteryLevel >= 0) {
-        devicesFleet[imei].battery = data.deviceInfo.batteryLevel + '%';
-      }
-      if (data.deviceInfo.carrier) {
-        devicesFleet[imei].carrier = data.deviceInfo.carrier;
-      }
-    }
 
     logTerminal('loc', `[GPS FIX] [Device: ${imei || 'Unknown'}] ${lat.toFixed(5)}, ${lon.toFixed(5)} | Speed: ${speed.toFixed(1)} km/h | Acc: ±${acc}m`);
 
@@ -3908,11 +5304,28 @@
     };
 
     const payloadStr = JSON.stringify(payload);
-    const topic1 = `gps/${devId}/command`;
-    const topic2 = `company/device/${devId}/command`;
+    const userPrefix = getUserPrefix();
 
+    if (devId === 'broadcast' || devId === 'all') {
+      const topic1 = `${userPrefix}gps/broadcast/command`;
+      mqttWsClient.publish(topic1, payloadStr, { qos: 1, retain: false });
+
+      const fleetKeys = Object.keys(devicesFleet);
+      fleetKeys.forEach(dId => {
+        recordDeviceAction(dId, {
+          type: 'COMMAND',
+          action: action,
+          status: 'DISPATCHED',
+          message: `Broadcast to entire fleet (Payload: ${payloadStr})`
+        });
+      });
+
+      logTerminal('cmd', `[BROADCAST DISPATCHED] ${action} -> ALL FLEET | Topic: ${topic1} | Payload: ${payloadStr}`);
+      return;
+    }
+
+    const topic1 = `${userPrefix}gps/${devId}/command`;
     mqttWsClient.publish(topic1, payloadStr, { qos: 1, retain: false });
-    mqttWsClient.publish(topic2, payloadStr, { qos: 1, retain: false });
 
     recordDeviceAction(devId, {
       type: 'COMMAND',
@@ -3921,7 +5334,22 @@
       message: `Dispatched to ${topic1} (Payload: ${payloadStr})`
     });
 
-    logTerminal('cmd', `[DISPATCHED] ${action} -> ${devId} | Payload: ${payloadStr}`);
+    logTerminal('cmd', `[DISPATCHED] ${action} -> ${devId} | Topic: ${topic1} | Payload: ${payloadStr}`);
+  }
+
+  function requestFreshDataNow(targetDevId) {
+    const devId = targetDevId || currentTargetImei;
+    if (!devId) {
+      alert('Please select a target device first.');
+      return;
+    }
+    logTerminal('cmd', `[ON-DEMAND REQUEST] 📡 Polling device ${devId} for fresh GPS & unified telemetry...`);
+    publishRemoteCommand('GET_DATA', { timestamp: Date.now() }, devId);
+  }
+
+  function requestAllDevicesData() {
+    logTerminal('cmd', `[FLEET POLL] 📡 Requesting on-demand data from all connected fleet devices...`);
+    publishRemoteCommand('GET_DATA', { timestamp: Date.now() }, 'broadcast');
   }
 
   function triggerSirenCommand() {
@@ -3934,12 +5362,17 @@
   }
 
   function forceFixCommand() {
-    publishRemoteCommand('FORCE_FIX');
+    requestFreshDataNow();
   }
 
   function setIntervalCommand() {
-    const secs = parseInt(document.getElementById('selIntervalCadence').value, 10) || 60;
-    publishRemoteCommand('SET_INTERVAL', { seconds: secs });
+    const val = document.getElementById('selIntervalCadence').value;
+    const secs = parseInt(val, 10);
+    const effectiveSecs = isNaN(secs) ? 60 : secs;
+    publishRemoteCommand('SET_INTERVAL', { seconds: effectiveSecs });
+    if (effectiveSecs === 0) {
+      logTerminal('cmd', `[POWER SAVER] Switched device ${currentTargetImei} to On-Demand sleeping mode. Zero background location publishes.`);
+    }
   }
 
   function setReconnectIntervalCommand() {
@@ -3955,8 +5388,66 @@
     publishRemoteCommand('SET_PORT', { port: port });
   }
 
+  function toggleUninstallCommand() {
+    const d = devicesFleet[currentTargetImei];
+    const isBlocked = d && d.uninstallBlocked;
+    const action = isBlocked ? 'UNBLOCK_UNINSTALL' : 'BLOCK_UNINSTALL';
+    const msg = isBlocked 
+      ? `Allow app uninstallation on asset ${currentTargetImei}?`
+      : `Block app uninstallation on asset ${currentTargetImei}?\n\nThis removes the Uninstall button from the Android OS so the app cannot be deleted.`;
+    if (confirm(msg)) {
+      publishRemoteCommand(action);
+    }
+  }
+
+  function toggleResetCommand() {
+    const d = devicesFleet[currentTargetImei];
+    const isBlocked = d && d.factoryResetBlocked;
+    const action = isBlocked ? 'UNBLOCK_FACTORY_RESET' : 'BLOCK_FACTORY_RESET';
+    const msg = isBlocked
+      ? `Allow Factory Reset and Safe Mode on asset ${currentTargetImei}?`
+      : `Block Factory Reset and Safe Mode on asset ${currentTargetImei}?\n\nThis locks the hardware against factory resets.`;
+    if (confirm(msg)) {
+      publishRemoteCommand(action);
+    }
+  }
+
+  function toggleGpsLockCommand() {
+    const d = devicesFleet[currentTargetImei];
+    const isLocked = d && d.gpsLockedOn;
+    const action = isLocked ? 'UNLOCK_GPS' : 'LOCK_GPS_ON';
+    const msg = isLocked
+      ? `Unlock GPS toggle on asset ${currentTargetImei}?`
+      : `Permanently lock GPS location ON for asset ${currentTargetImei}?\n\nThis prevents thieves from turning off GPS location.`;
+    if (confirm(msg)) {
+      publishRemoteCommand(action);
+    }
+  }
+
+  function toggleAdbCommand() {
+    const d = devicesFleet[currentTargetImei];
+    const isBlocked = d && d.adbBlocked;
+    const action = isBlocked ? 'UNBLOCK_ADB' : 'BLOCK_ADB';
+    const msg = isBlocked
+      ? `Allow USB / ADB debugging on asset ${currentTargetImei}?`
+      : `Block USB / ADB debugging and file transfer on asset ${currentTargetImei}?`;
+    if (confirm(msg)) {
+      publishRemoteCommand(action);
+    }
+  }
+
   function dispatchRemoteMqttCommand(action, params) {
-    publishRemoteCommand(action, params);
+    if (action === 'BLOCK_UNINSTALL') {
+      toggleUninstallCommand();
+    } else if (action === 'BLOCK_FACTORY_RESET') {
+      toggleResetCommand();
+    } else if (action === 'LOCK_GPS_ON') {
+      toggleGpsLockCommand();
+    } else if (action === 'BLOCK_ADB') {
+      toggleAdbCommand();
+    } else {
+      publishRemoteCommand(action, params);
+    }
   }
 
   function clearRetainedCommand() {
@@ -4087,6 +5578,388 @@
   }
 
   // ==========================================
+  // MULTI-DEVICE SELECTION & ADMIN MESSENGER
+  // ==========================================
+  function toggleDeviceSelection(devId, isChecked) {
+    if (!devId) return;
+    if (isChecked) {
+      selectedFleetDevices.add(devId);
+    } else {
+      selectedFleetDevices.delete(devId);
+    }
+    updateFleetSelectionUi();
+    const chip = document.querySelector(`.fleet-device-chip[data-id="${devId}"]`);
+    if (chip) {
+      chip.classList.toggle('chip-checked', isChecked);
+    }
+  }
+
+  function selectAllFleetDevices() {
+    const keys = Object.keys(devicesFleet);
+    keys.forEach(id => selectedFleetDevices.add(id));
+    renderFleetCarousel();
+    updateFleetSelectionUi();
+  }
+
+  function deselectAllFleetDevices() {
+    selectedFleetDevices.clear();
+    renderFleetCarousel();
+    updateFleetSelectionUi();
+  }
+
+  function toggleSelectAllFleetDevices() {
+    const keys = Object.keys(devicesFleet);
+    if (keys.length > 0 && selectedFleetDevices.size === keys.length) {
+      deselectAllFleetDevices();
+    } else {
+      selectAllFleetDevices();
+    }
+  }
+
+  function updateFleetSelectionUi() {
+    const selCount = selectedFleetDevices.size;
+    const totalCount = Object.keys(devicesFleet).length;
+
+    const bar = document.getElementById('fleetSelectionBar');
+    const lblSel = document.getElementById('lblSelectedCount');
+    if (bar && lblSel) {
+      if (selCount > 0) {
+        bar.style.display = 'inline-flex';
+        lblSel.textContent = `${selCount} Selected`;
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
+    const lblModalScope = document.getElementById('lblModalScopeSelCount');
+    if (lblModalScope) lblModalScope.textContent = selCount;
+
+    const btnCount = document.getElementById('btnMsgTargetCount');
+    if (btnCount) {
+      btnCount.textContent = selCount > 0 ? selCount : (currentTargetImei ? 1 : 0);
+    }
+
+    const btnSelectAll = document.getElementById('btnSelectAllDevices');
+    if (btnSelectAll) {
+      if (totalCount > 0 && selCount === totalCount) {
+        btnSelectAll.innerHTML = '<i class="bi bi-x-square"></i> Deselect All';
+      } else {
+        btnSelectAll.innerHTML = '<i class="bi bi-check2-square"></i> Select All';
+      }
+    }
+  }
+
+  function openAdminMessageModal(specificTargets = null, defaultMode = null) {
+    modalExplicitTargets = (specificTargets && specificTargets.length > 0) ? specificTargets : null;
+
+    if (defaultMode) {
+      switchModalMsgMode(defaultMode);
+    }
+
+    if (modalExplicitTargets) {
+      if (modalExplicitTargets.length === 1 && modalExplicitTargets[0] === currentTargetImei) {
+        setModalTargetScope('active');
+      } else {
+        setModalTargetScope('selected');
+      }
+    } else if (selectedFleetDevices.size > 0) {
+      setModalTargetScope('selected');
+    } else {
+      setModalTargetScope('active');
+    }
+
+    const modal = document.getElementById('adminMessageModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        const input = document.getElementById('modalInputMessage');
+        if (input) input.focus();
+      }, 100);
+    }
+  }
+
+  function openAdminMessageForSelected() {
+    if (selectedFleetDevices.size > 0) {
+      openAdminMessageModal(Array.from(selectedFleetDevices), 'NOTIFICATION');
+    } else if (currentTargetImei) {
+      openAdminMessageModal([currentTargetImei], 'NOTIFICATION');
+    } else {
+      openAdminMessageModal(null, 'NOTIFICATION');
+    }
+  }
+
+  function closeAdminMessageModal() {
+    const modal = document.getElementById('adminMessageModal');
+    if (modal) modal.style.display = 'none';
+    modalExplicitTargets = null;
+  }
+
+  function setModalTargetScope(scope) {
+    modalTargetScope = scope; // 'active', 'selected', 'all'
+    const bActive = document.getElementById('btnTargetScopeActive');
+    const bSel = document.getElementById('btnTargetScopeSelected');
+    const bAll = document.getElementById('btnTargetScopeAll');
+
+    if (bActive) bActive.classList.toggle('active', scope === 'active');
+    if (bSel) bSel.classList.toggle('active', scope === 'selected');
+    if (bAll) bAll.classList.toggle('active', scope === 'all');
+
+    renderModalTargetChips();
+  }
+
+  function switchModalMsgMode(mode) {
+    modalMsgMode = mode; // 'NOTIFICATION', 'LOCK_SCREEN', 'EMERGENCY'
+    const tabNotif = document.getElementById('btnModalTabNotif');
+    const tabLock = document.getElementById('btnModalTabLockScreen');
+    const tabEmerg = document.getElementById('btnModalTabEmergency');
+
+    if (tabNotif) tabNotif.classList.toggle('active', mode === 'NOTIFICATION');
+    if (tabLock) tabLock.classList.toggle('active', mode === 'LOCK_SCREEN');
+    if (tabEmerg) tabEmerg.classList.toggle('active', mode === 'EMERGENCY');
+
+    const titleRow = document.getElementById('modalTitleRow');
+    const titleInput = document.getElementById('modalInputTitle');
+    const msgArea = document.getElementById('lblModalMsgArea');
+    const msgInput = document.getElementById('modalInputMessage');
+    const chkSticky = document.getElementById('modalOptSticky');
+    const chkUrgent = document.getElementById('modalOptUrgent');
+    const chkCenter = document.getElementById('modalOptCenterBox');
+    const chkLockNow = document.getElementById('modalOptLockNow');
+    const btnSubmitText = document.getElementById('btnModalSubmitText');
+
+    if (mode === 'LOCK_SCREEN') {
+      if (titleRow) titleRow.style.display = 'none';
+      if (msgArea) msgArea.textContent = 'Lock Screen Text (Displayed unclosable in center of device screen):';
+      if (chkCenter) chkCenter.checked = true;
+      if (chkSticky) chkSticky.checked = true;
+      if (chkUrgent) chkUrgent.checked = false;
+      if (chkLockNow) chkLockNow.checked = true;
+      if (btnSubmitText) btnSubmitText.textContent = 'Lock Screen & Display Center Msg';
+      if (msgInput) msgInput.placeholder = 'e.g. OFFICIAL ASSET: If found, please call +1 555-0199 immediately.';
+    } else if (mode === 'EMERGENCY') {
+      if (titleRow) titleRow.style.display = 'block';
+      if (titleInput) titleInput.value = 'URGENT SECURITY ALERT';
+      if (msgArea) msgArea.textContent = 'Urgent Alert Message:';
+      if (chkCenter) chkCenter.checked = true;
+      if (chkSticky) chkSticky.checked = true;
+      if (chkUrgent) chkUrgent.checked = true;
+      if (chkLockNow) chkLockNow.checked = true;
+      if (btnSubmitText) btnSubmitText.textContent = 'Send Urgent Alert & Lock Box';
+      if (msgInput) msgInput.placeholder = 'e.g. SECURITY WARNING: Immediate supervisor check-in required!';
+    } else {
+      if (titleRow) titleRow.style.display = 'block';
+      if (titleInput && titleInput.value === 'URGENT SECURITY ALERT') {
+        titleInput.value = 'COMPANY DISPATCH NOTICE';
+      }
+      if (msgArea) msgArea.textContent = 'Notification Message:';
+      if (chkCenter) chkCenter.checked = false;
+      if (chkSticky) chkSticky.checked = false;
+      if (chkUrgent) chkUrgent.checked = false;
+      if (chkLockNow) chkLockNow.checked = false;
+      if (btnSubmitText) btnSubmitText.textContent = 'Send Push Notification';
+      if (msgInput) msgInput.placeholder = 'Enter message text to push to device(s)...';
+    }
+  }
+
+  function setModalTitle(text) {
+    const input = document.getElementById('modalInputTitle');
+    if (input) input.value = text;
+  }
+
+  function applyMessageTemplate(text) {
+    const input = document.getElementById('modalInputMessage');
+    if (input) input.value = text;
+  }
+
+  function getTargetDevicesForModal() {
+    if (modalTargetScope === 'all') {
+      return ['broadcast'];
+    }
+    if (modalTargetScope === 'selected') {
+      if (modalExplicitTargets && modalExplicitTargets.length > 0) {
+        return modalExplicitTargets;
+      }
+      if (selectedFleetDevices.size > 0) {
+        return Array.from(selectedFleetDevices);
+      }
+      return currentTargetImei ? [currentTargetImei] : [];
+    }
+    return currentTargetImei ? [currentTargetImei] : [];
+  }
+
+  function renderModalTargetChips() {
+    const container = document.getElementById('modalTargetChipsContainer');
+    const badge = document.getElementById('modalTargetBadge');
+    if (!container) return;
+
+    if (modalTargetScope === 'all') {
+      if (badge) badge.textContent = `All Fleet Devices (${Object.keys(devicesFleet).length})`;
+      container.innerHTML = `
+        <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.4); border-radius:6px; padding:3px 8px; font-size:0.72rem; font-weight:700;">
+          <i class="bi bi-broadcast"></i> Entire Fleet Broadcast (All Connected Devices)
+        </span>
+      `;
+      return;
+    }
+
+    const targets = getTargetDevicesForModal();
+    if (badge) {
+      badge.textContent = `${targets.length} Device${targets.length === 1 ? '' : 's'}`;
+    }
+
+    if (targets.length === 0) {
+      container.innerHTML = `<span style="color:#94a3b8; font-size:0.72rem; font-style:italic;">No target devices selected.</span>`;
+      return;
+    }
+
+    let html = '';
+    targets.forEach(id => {
+      const tagName = getDeviceTagName(id);
+      const isOnline = devicesFleet[id] ? isDeviceOnline(devicesFleet[id]) : false;
+      const dotColor = isOnline ? '#34d399' : '#ef4444';
+      const label = tagName ? `🏷️ ${escapeHtml(tagName)} (${id})` : id;
+      html += `
+        <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:6px; padding:3px 8px; font-size:0.7rem; color:#e2e8f0;">
+          <span style="width:6px; height:6px; border-radius:50%; background:${dotColor};"></span>
+          <span>${label}</span>
+        </span>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  function submitAdminMessage() {
+    const targets = getTargetDevicesForModal();
+    if (targets.length === 0) {
+      alert('⚠️ No target device selected.');
+      return;
+    }
+
+    const msgInput = document.getElementById('modalInputMessage');
+    const msg = (msgInput ? msgInput.value : '').trim();
+    if (!msg) {
+      alert('⚠️ Please enter message text to send.');
+      if (msgInput) msgInput.focus();
+      return;
+    }
+
+    const titleInput = document.getElementById('modalInputTitle');
+    const title = (titleInput ? titleInput.value : '').trim() || 'Company Notice';
+    const sticky = document.getElementById('modalOptSticky') ? document.getElementById('modalOptSticky').checked : false;
+    const urgent = document.getElementById('modalOptUrgent') ? document.getElementById('modalOptUrgent').checked : false;
+    const lockNow = document.getElementById('modalOptLockNow') ? document.getElementById('modalOptLockNow').checked : false;
+    const centerBox = document.getElementById('modalOptCenterBox') ? document.getElementById('modalOptCenterBox').checked : true;
+
+    if (modalMsgMode === 'LOCK_SCREEN' || centerBox) {
+      targets.forEach(targetId => {
+        publishRemoteCommand('SET_LOCK_SCREEN_MESSAGE', {
+          message: msg,
+          lock: lockNow,
+          centerBox: centerBox
+        }, targetId);
+      });
+      alert(`✅ Center Lock Screen Message Box dispatched to ${targets.length === 1 && targets[0] === 'broadcast' ? 'all fleet devices' : targets.length + ' device(s)'}! Screen locked with unclosable message.`);
+    } else {
+      targets.forEach(targetId => {
+        publishRemoteCommand('SEND_NOTIFICATION', {
+          title: title,
+          message: msg,
+          sticky: sticky,
+          urgent: urgent,
+          lock: lockNow,
+          centerBox: centerBox,
+          id: Math.floor(Date.now() % 100000) + 3000
+        }, targetId);
+      });
+      alert(`✅ Push Notification dispatched to ${targets.length === 1 && targets[0] === 'broadcast' ? 'all fleet devices' : targets.length + ' device(s)'}!`);
+    }
+
+    closeAdminMessageModal();
+  }
+
+  function submitClearLockScreenMessage() {
+    const targets = getTargetDevicesForModal();
+    if (targets.length === 0) {
+      alert('⚠️ No target device selected.');
+      return;
+    }
+
+    const desc = (targets.length === 1 && targets[0] === 'broadcast') 
+      ? 'all fleet devices' 
+      : `${targets.length} selected device(s)`;
+
+    if (confirm(`Clear custom lock screen message on ${desc}?`)) {
+      targets.forEach(targetId => {
+        publishRemoteCommand('CLEAR_LOCK_SCREEN_MESSAGE', {}, targetId);
+      });
+      alert(`✅ Clear Lock Screen command dispatched to ${desc}.`);
+      closeAdminMessageModal();
+    }
+  }
+
+  function clearLockScreenMessageCommand(targetList = null) {
+    const targets = (targetList && targetList.length > 0) ? targetList : [currentTargetImei];
+    const devId = targets[0];
+    if (!devId) {
+      alert('No device selected.');
+      return;
+    }
+    if (confirm(`Clear custom lock screen message from device ${devId}?`)) {
+      targets.forEach(id => {
+        publishRemoteCommand('CLEAR_LOCK_SCREEN_MESSAGE', {}, id);
+      });
+      alert('✅ Clear Lock Screen command sent.');
+    }
+  }
+
+  function quickSendNotificationFromControl() {
+    const input = document.getElementById('ctrlQuickMsgText');
+    const msg = (input ? input.value : '').trim();
+    if (!msg) {
+      alert('⚠️ Please enter a notification message in the input field.');
+      if (input) input.focus();
+      return;
+    }
+    if (!currentTargetImei) {
+      alert('⚠️ Please select a target device.');
+      return;
+    }
+
+    publishRemoteCommand('SEND_NOTIFICATION', {
+      title: 'COMPANY DISPATCH',
+      message: msg,
+      sticky: true,
+      urgent: false
+    }, currentTargetImei);
+
+    if (input) input.value = '';
+    alert(`✅ Notification sent to ${currentTargetImei}!`);
+  }
+
+  function quickSetLockScreenFromControl() {
+    const input = document.getElementById('ctrlQuickMsgText');
+    const msg = (input ? input.value : '').trim();
+    if (!msg) {
+      alert('⚠️ Please enter the lock screen text in the input field.');
+      if (input) input.focus();
+      return;
+    }
+    if (!currentTargetImei) {
+      alert('⚠️ Please select a target device.');
+      return;
+    }
+
+    publishRemoteCommand('SET_LOCK_SCREEN_MESSAGE', {
+      message: msg,
+      lock: true,
+      centerBox: true
+    }, currentTargetImei);
+
+    if (input) input.value = '';
+    alert(`✅ Center Lock Screen Message Box locked onto ${currentTargetImei}! Device screen locked with mandatory message.`);
+  }
+
+  // ==========================================
   // 8. LIVE TERMINAL LOG WINDOW & FILTERING
   // ==========================================
   function logTerminal(type, text) {
@@ -4142,24 +6015,27 @@
   // 9. MULTI-DEVICE OPEN-SOURCE FLEET MAP (ZERO API KEY)
   // ==========================================
   function getMarkerIcon(devId, isOnline, isSelected, isJustUpdated = false) {
-    const shortLabel = devId && devId.length > 8 ? devId.slice(-6) : devId;
+    const tagName = getDeviceTagName(devId);
+    const shortId = devId && devId.length > 8 ? devId.slice(-6) : devId;
+    const displayLabel = tagName || shortId;
+    const fullTooltip = tagName ? `${tagName} (${devId})` : devId;
 
     if (!isOnline) {
       // SMALL RED ICON FOR OFFLINE (> 3 minutes without status)
       const selectedBorder = isSelected ? 'border: 2px solid #38bdf8; box-shadow: 0 0 10px #38bdf8;' : 'border: 1.5px solid #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.5);';
       const html = `
-        <div class="custom-fleet-pin offline-pin ${isSelected ? 'selected-glow' : ''}" data-devid="${devId}" style="position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer;" title="${devId} (Offline >3m)">
+        <div class="custom-fleet-pin offline-pin ${isSelected ? 'selected-glow' : ''}" data-devid="${devId}" style="position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer;" title="${escapeHtml(fullTooltip)} (Offline >3m)">
           <div style="background:#ef4444; width:12px; height:12px; border-radius:50%; ${selectedBorder} transition:all 0.25s ease;"></div>
-          <div style="background:rgba(69,10,10,0.92); color:#fca5a5; font-size:8.5px; font-weight:700; padding:1px 5px; border-radius:4px; margin-top:2px; white-space:nowrap; border:1px solid rgba(239,68,68,0.4); box-shadow:0 1px 4px rgba(0,0,0,0.4); text-transform:uppercase;">
-            ${shortLabel}
+          <div style="background:rgba(69,10,10,0.92); color:#fca5a5; font-size:8.5px; font-weight:700; padding:1px 5px; border-radius:4px; margin-top:2px; white-space:nowrap; border:1px solid rgba(239,68,68,0.4); box-shadow:0 1px 4px rgba(0,0,0,0.4); max-width:110px; overflow:hidden; text-overflow:ellipsis;">
+            ${escapeHtml(displayLabel)}
           </div>
         </div>
       `;
       return L.divIcon({
         className: 'fleet-marker-container offline-container',
         html: html,
-        iconSize: [44, 30],
-        iconAnchor: [22, 6],
+        iconSize: [48, 30],
+        iconAnchor: [24, 6],
         popupAnchor: [0, -10]
       });
     }
@@ -4172,16 +6048,16 @@
     const selectedRing = isSelected ? 'border: 2px solid #38bdf8; box-shadow: 0 0 14px #38bdf8;' : 'border: 2px solid #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.5);';
     const labelBg = isRecentlyUpdated ? '#065f46' : (isSelected ? '#0284c7' : '#1e293b');
     const labelBorder = isRecentlyUpdated ? 'border: 1px solid #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.6);' : 'border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 5px rgba(0,0,0,0.4);';
-    const prefix = isRecentlyUpdated ? '⚡ ' : '';
+    const prefix = isRecentlyUpdated ? '⚡ ' : (tagName ? '🏷️ ' : '');
 
     const html = `
-      <div class="custom-fleet-pin ${glowClass} ${updatePulseClass}" data-devid="${devId}" style="position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer;" title="${devId} (Active Online)">
+      <div class="custom-fleet-pin ${glowClass} ${updatePulseClass}" data-devid="${devId}" style="position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer;" title="${escapeHtml(fullTooltip)} (Active Online)">
         ${isRecentlyUpdated ? '<div class="update-pulse-ring"></div>' : ''}
         <div style="background:${statusColor}; width:20px; height:20px; border-radius:50%; ${selectedRing} display:flex; align-items:center; justify-content:center; transition:all 0.2s ease;">
           <div style="width:6px; height:6px; border-radius:50%; background:#ffffff;"></div>
         </div>
-        <div style="background:${labelBg}; color:#ffffff; font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; margin-top:2px; white-space:nowrap; ${labelBorder} text-transform:uppercase;">
-          ${prefix}${shortLabel}
+        <div style="background:${labelBg}; color:#ffffff; font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; margin-top:2px; white-space:nowrap; ${labelBorder} max-width:130px; overflow:hidden; text-overflow:ellipsis;">
+          ${prefix}${escapeHtml(displayLabel)}
         </div>
       </div>
     `;
@@ -4189,8 +6065,8 @@
     return L.divIcon({
       className: 'fleet-marker-container',
       html: html,
-      iconSize: [60, 42],
-      iconAnchor: [30, 10],
+      iconSize: [64, 44],
+      iconAnchor: [32, 10],
       popupAnchor: [0, -15]
     });
   }
@@ -4248,36 +6124,29 @@
         }
       }
 
+      // Default to Satellite Mode on load as requested
       fullMap = L.map('liveFullMap', {
         zoomControl: true,
-        layers: [tileLayerOsm]
+        layers: [tileLayerSatellite]
       }).setView([initialLat, initialLon], initialZoom);
 
-      activeMapLayer = 'osm';
+      activeMapLayer = 'satellite';
       fullMapInitialized = true;
 
       // Add standard Leaflet layer selector on top right
       const baseMaps = {
-        "🗺️ OpenStreetMap (Open Source)": tileLayerOsm,
         "🛰️ Open Satellite": tileLayerSatellite,
-        "🏙️ CARTO Clean": tileLayerVoyager,
-        "⛰️ OpenTopoMap": tileLayerTopo
+        "⛰️ OpenTopoMap": tileLayerTopo,
+        "🗺️ OpenStreetMap (Open Source)": tileLayerOsm,
+        "🏙️ CARTO Clean": tileLayerVoyager
       };
       leafletLayerControl = L.control.layers(baseMaps, null, { position: 'topright' }).addTo(fullMap);
 
       fullMap.on('baselayerchange', (e) => {
-        if (e.layer === tileLayerOsm) activeMapLayer = 'osm';
-        else if (e.layer === tileLayerSatellite) activeMapLayer = 'satellite';
-        else if (e.layer === tileLayerVoyager) activeMapLayer = 'voyager';
-        else if (e.layer === tileLayerTopo) activeMapLayer = 'topo';
-
-        const lbl = document.getElementById('lblMapLayer');
-        if (lbl) {
-          if (activeMapLayer === 'osm') lbl.textContent = 'OpenStreetMap';
-          else if (activeMapLayer === 'satellite') lbl.textContent = 'Satellite';
-          else if (activeMapLayer === 'voyager') lbl.textContent = 'CARTO Clean';
-          else if (activeMapLayer === 'topo') lbl.textContent = 'OpenTopoMap';
-        }
+        if (e.layer === tileLayerOsm) setMapLayer('osm');
+        else if (e.layer === tileLayerSatellite) setMapLayer('satellite');
+        else if (e.layer === tileLayerVoyager) setMapLayer('voyager');
+        else if (e.layer === tileLayerTopo) setMapLayer('topo');
       });
 
       // Plot all existing devices simultaneously
@@ -4321,6 +6190,14 @@
     fullMap.addLayer(targetLayer);
     activeMapLayer = name;
 
+    // Update pill buttons UI
+    const pSat = document.getElementById('btnPillSatellite');
+    const pTopo = document.getElementById('btnPillTopo');
+    const pOsm = document.getElementById('btnPillOsm');
+    if (pSat) pSat.classList.toggle('active', name === 'satellite');
+    if (pTopo) pTopo.classList.toggle('active', name === 'topo');
+    if (pOsm) pOsm.classList.toggle('active', name === 'osm');
+
     const lbl = document.getElementById('lblMapLayer');
     if (lbl) {
       if (name === 'osm') lbl.textContent = 'OpenStreetMap';
@@ -4331,7 +6208,7 @@
   }
 
   function cycleMapLayer() {
-    const sequence = ['osm', 'satellite', 'voyager', 'topo'];
+    const sequence = ['satellite', 'topo', 'osm', 'voyager'];
     const nextIdx = (sequence.indexOf(activeMapLayer) + 1) % sequence.length;
     setMapLayer(sequence[nextIdx]);
   }
@@ -4363,11 +6240,15 @@
     const latLng = [d.lat, d.lon];
     const icon = getMarkerIcon(devId, isOnline, isSelected, isJustUpdated);
 
+    const tagName = getDeviceTagName(devId);
     const popupHtml = `
-      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; min-width:180px; padding:2px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:6px; margin-bottom:6px;">
-          <strong style="color:#0f172a; font-size:13px;"><i class="bi bi-phone"></i> ${devId}</strong>
-          <span style="font-size:10px; padding:2px 6px; border-radius:10px; font-weight:700; ${isOnline ? 'background:#dcfce7; color:#166534;' : 'background:#fee2e2; color:#991b1b;'}">
+      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; min-width:210px; padding:2px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #e2e8f0; padding-bottom:6px; margin-bottom:6px; gap:6px;">
+          <div>
+            <strong style="color:#0f172a; font-size:13px; display:block;"><i class="bi ${tagName ? 'bi-tag-fill' : 'bi-phone'}" style="color:${tagName ? '#0284c7' : '#64748b'};"></i> ${escapeHtml(tagName || devId)}</strong>
+            ${tagName ? `<span style="font-size:10px; color:#64748b; font-family:monospace;">ID: ${devId}</span>` : ''}
+          </div>
+          <span style="font-size:9.5px; padding:2px 6px; border-radius:10px; font-weight:700; white-space:nowrap; ${isOnline ? 'background:#dcfce7; color:#166534;' : 'background:#fee2e2; color:#991b1b;'}">
             ${isOnline ? 'ONLINE' : 'OFFLINE (>3m)'}
           </span>
         </div>
@@ -4381,6 +6262,12 @@
         <div style="margin-top:8px; display:flex; gap:4px;">
           <button onclick="selectDevice('${devId}', true)" style="flex:1; padding:5px 8px; font-size:11px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:4px; cursor:pointer;">
             Inspect Asset
+          </button>
+          <button onclick="promptSetDeviceTag('${devId}')" title="Set or change friendly tag name" style="padding:5px 8px; font-size:11px; font-weight:600; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; border-radius:4px; cursor:pointer;">
+            🏷️ Tag
+          </button>
+          <button onclick="purgeDeviceFromMqtt('${devId}')" title="Delete device and clear retained MQTT message" style="padding:5px 8px; font-size:11px; font-weight:600; background:#fee2e2; color:#991b1b; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">
+            🗑️
           </button>
         </div>
       </div>
@@ -4752,16 +6639,57 @@
   // ==========================================
   window.addEventListener('DOMContentLoaded', () => {
     loadConfig();
+    loadFleetFromLocalStorage();
     loadTargetImei();
     populateDisguiseDropdown();
     fetchSimInfo();
     startGpsWatch();
-    initMqttWebSocket();
     switchNavTab('map');
     updateFleetSummary();
     renderFleetCarousel();
-    renderRightPanelInfo();
-    renderRightPanelActions();
+
+    // Check if any devices exist in restored local storage
+    const restoredKeys = Object.keys(devicesFleet);
+    if (restoredKeys.length > 0) {
+      if (!currentTargetImei || !devicesFleet[currentTargetImei]) {
+        currentTargetImei = restoredKeys[0];
+      }
+      renderCurrentDeviceStatus();
+      renderRightPanelInfo();
+      renderRightPanelActions();
+      logTerminal('sys', `[LOCAL STORAGE RESTORED] Loaded ${restoredKeys.length} fleet device(s) from local cache.`);
+    }
+
+    // Check MQTT Authentication state
+    const savedAuth = localStorage.getItem('mqtt_auth_v1');
+    if (savedAuth || (config.user && config.pass)) {
+      try {
+        if (savedAuth) {
+          const authObj = JSON.parse(savedAuth);
+          if (authObj && authObj.authenticated && authObj.user) {
+            config.user = authObj.user;
+            config.pass = authObj.pass;
+            config.host = authObj.host || config.host;
+            config.port = authObj.port || config.port;
+          }
+        }
+        if (config.user && config.pass) {
+          const authPill = document.getElementById('topAuthUserText');
+          if (authPill) authPill.textContent = config.user;
+          initMqttWebSocket();
+        } else {
+          updateBrokerPill('offline', 'Auth Required');
+          openMqttAuthModal(true);
+        }
+      } catch(e) {
+        updateBrokerPill('offline', 'Auth Required');
+        openMqttAuthModal(true);
+      }
+    } else {
+      // First time load -> Show Auth Modal!
+      updateBrokerPill('offline', 'Auth Required');
+      openMqttAuthModal(true);
+    }
 
     // Periodic fleet offline check (every 10s checks for 3-minute timeout)
     setInterval(checkFleetTimeoutStatus, 10000);
