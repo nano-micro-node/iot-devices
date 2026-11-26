@@ -3511,8 +3511,11 @@
 
     <div class="header-actions">
       <!-- MQTT Auth & User Topic Prefix Pill -->
-      <button class="badge-broker" id="btnOpenMqttAuth" onclick="openMqttAuthModal(false)" style="cursor:pointer; border:1px solid rgba(56,189,248,0.35); background:rgba(56,189,248,0.1); color:#38bdf8; display:flex; align-items:center; gap:5px; padding:4px 9px; border-radius:20px; font-weight:600; font-size:0.75rem;" title="Click to view/change MQTT Credentials &amp; Topic Prefix">
-        <i class="bi bi-shield-lock-fill"></i> <span id="topAuthUserText">Login</span>
+      <button class="badge-broker" id="btnOpenMqttAuth" onclick="openMqttAuthModal(false)" style="cursor:pointer; border:1px solid rgba(56,189,248,0.35); background:rgba(56,189,248,0.1); color:#38bdf8; display:flex; align-items:center; gap:5px; padding:4px 9px; border-radius:20px; font-weight:600; font-size:0.75rem;" title="Click to switch MQTT User Account &amp; Topic Prefix">
+        <i class="bi bi-person-badge-fill"></i> <span id="topAuthUserText">Login Required</span>
+      </button>
+      <button class="badge-broker" id="btnTopLogout" onclick="clearMqttAuth()" style="display:none; cursor:pointer; border:1px solid rgba(239,68,68,0.35); background:rgba(239,68,68,0.1); color:#f87171; align-items:center; gap:4px; padding:4px 8px; border-radius:20px; font-weight:600; font-size:0.72rem;" title="Logout &amp; Clear Current User Session">
+        <i class="bi bi-box-arrow-right"></i>
       </button>
 
       <!-- Live Broker Status Pill -->
@@ -3637,8 +3640,9 @@
       <div class="sidebar-panel-header">
         <div class="sidebar-panel-title">
           <i class="bi bi-phone-fill" style="color:var(--accent-blue)"></i>
-          <span>Fleet Devices</span>
+          <span>User Fleet</span>
           <span class="badge-mini info" id="leftFleetTotalBadge">0</span>
+          <span class="badge-mini info" id="leftFleetUserNamespace" style="font-size:0.58rem;">Locked</span>
         </div>
         <button type="button" class="sidebar-icon-close" onclick="toggleLeftSidebar(false)" title="Collapse Left Sidebar">
           <i class="bi bi-chevron-left"></i>
@@ -4165,6 +4169,55 @@
               <input type="text" id="inpSilentApkUrl" class="form-control compact" placeholder="Silent APK URL (http://.../app.apk)">
               <button class="btn-ctrl btn-success compact" onclick="enterpriseInstallApkCommand()"><i class="bi bi-download"></i> Silent Install (Auto DPC/Root)</button>
             </div>
+
+            <div class="mdm-sub-heading" style="margin-top:8px;"><i class="bi bi-git"></i> SIM Tool OTA &amp; Version Control (Upgrade &amp; Downgrade)</div>
+            <div style="background:#070d14; border:1px solid rgba(56,189,248,0.22); border-radius:9px; padding:10px; margin-bottom:6px;">
+              <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="badge-mini info" id="badgeVerCtrlCurrent">Installed: v-- (vc --)</span>
+                  <span class="badge-mini success" id="badgeVerCtrlAvailable">OTA Available: Checking...</span>
+                  <span class="badge-mini warning" id="badgeVerCtrlMode">MODE: AUTO</span>
+                </div>
+                <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                  <button type="button" class="btn-ctrl btn-outline compact" onclick="checkRemoteOtaManifest(true)"><i class="bi bi-cloud-arrow-down"></i> Check OTA Host</button>
+                  <button type="button" class="btn-ctrl btn-outline compact" onclick="triggerDeviceOtaCheckCommand()"><i class="bi bi-phone"></i> Device Check OTA</button>
+                  <button type="button" class="btn-ctrl btn-primary compact" onclick="dispatchOtaUpdateNowCommand(false)"><i class="bi bi-lightning-fill"></i> OTA Update Now</button>
+                </div>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px;">
+                <input type="text" id="inpOtaManifestUrl" class="form-control compact" style="flex:1; min-width:210px;" value="https://nano-micro-node.github.io/iot-devices/simtool.json" placeholder="OTA Manifest JSON URL (simtool.json)">
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="setOtaHostPreset('https://nano-micro-node.github.io/iot-devices/simtool.json')" title="GitHub Pages Hosted OTA">GitHub OTA</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="setOtaHostPreset('/releases/versions.json')" title="Local Server Archive">/releases/</button>
+              </div>
+              <div id="otaRemoteStatusSummary" style="font-size:0.68rem; color:#cbd5e1; background:rgba(15,23,42,0.7); border:1px solid rgba(255,255,255,0.06); border-radius:7px; padding:7px 9px; margin-bottom:8px;">
+                Remote OTA Host: <code>https://nano-micro-node.github.io/iot-devices/simtool.json</code>
+              </div>
+              <div class="mdm-table-scroll" style="max-height:175px; margin-bottom:8px;">
+                <table class="perm-table" style="margin:0;">
+                  <thead>
+                    <tr>
+                      <th>Release Version</th>
+                      <th>Details</th>
+                      <th style="text-align:right;">Upgrade / Downgrade</th>
+                    </tr>
+                  </thead>
+                  <tbody id="verCtrlCatalogBody">
+                    <tr><td colspan="3" style="text-align:center; color:#94a3b8; padding:12px;">Loading releases catalog...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+                <input type="text" id="inpSelfUpdateUrl" class="form-control compact" value="https://nano-micro-node.github.io/iot-devices/simtool.apk" placeholder="SIM Tool APK URL (https://nano-micro-node.github.io/iot-devices/simtool.apk)">
+                <input type="text" id="inpSelfUpdateSha256" class="form-control compact" placeholder="Optional SHA-256 checksum">
+              </div>
+              <div class="btn-group-2">
+                <button type="button" class="btn-ctrl btn-success compact" onclick="triggerSelfUpdateCommand(false)"><i class="bi bi-arrow-up-circle-fill"></i> Upgrade SIM Tool</button>
+                <button type="button" class="btn-ctrl btn-warning compact" onclick="triggerSelfUpdateCommand(true)"><i class="bi bi-arrow-down-circle-fill"></i> Downgrade / Rollback</button>
+              </div>
+              <div style="font-size:0.65rem; color:#94a3b8; margin-top:6px;">
+                Versioned Packages: <code>simtool_&lt;version&gt;.apk</code> (+ <code>.idsig</code>) · Latest Alias: <code>https://nano-micro-node.github.io/iot-devices/simtool.apk</code> · Manifest: <code>simtool.json</code>. Root installs silently (including <code>-d</code> direct downgrade); DPC updates silently over <code>PackageInstaller</code> with automatic rollback APK fallback.
+              </div>
+            </div>
           </div>
 
           <!-- ==========================================
@@ -4495,7 +4548,7 @@
             </div>
             <div>
               <label style="font-size:0.65rem; color:#94a3b8; display:block; margin-bottom:2px;">MQTT Username</label>
-              <input type="text" id="inpAppCfgUser" class="form-control compact" placeholder="sangm" oninput="markAppCfgDirty(this.id)">
+              <input type="text" id="inpAppCfgUser" class="form-control compact" placeholder="MQTT username (prefix)" oninput="markAppCfgDirty(this.id)">
             </div>
             <div>
               <label style="font-size:0.65rem; color:#94a3b8; display:block; margin-bottom:2px;">MQTT Password (optional change)</label>
@@ -4781,6 +4834,7 @@
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('SET_NOTIFICATION', { enabled: true })"><i class="bi bi-bell"></i> FGS Notif ON</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('SET_NOTIFICATION', { enabled: false })"><i class="bi bi-bell-slash"></i> FGS Silent</button>
                 <button type="button" class="btn-ctrl btn-secondary compact" onclick="dispatchCentralCommand('REBOOT', {}, true)"><i class="bi bi-arrow-clockwise"></i> DPC Reboot</button>
+                <button type="button" class="btn-ctrl btn-danger compact" data-cap="DPC" onclick="confirmReleaseDeviceOwner()"><i class="bi bi-box-arrow-right"></i> Release DPC</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="switchRailPage('features')"><i class="bi bi-sliders"></i> App Settings</button>
               </div>
             </div>
@@ -5608,7 +5662,7 @@
   <!-- ============================================================
        MQTT FLEET AUTHENTICATION MODAL (On load first time & on demand)
        ============================================================ -->
-  <div class="settings-overlay" id="mqttAuthModal" style="display:none; align-items:center; justify-content:center; z-index:99999;">
+  <div class="settings-overlay" id="mqttAuthModal" style="display:none; align-items:center; justify-content:center; z-index:99999; background:rgba(4,9,15,0.95); backdrop-filter:blur(10px);">
     <div class="settings-dialog" style="max-width:480px; width:92%; margin:auto; border:1px solid #38bdf8; box-shadow:0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(56,189,248,0.25);">
       <div class="settings-header" style="background:#07121b; border-bottom:1px solid #1e293b;">
         <div style="display:flex; align-items:center; gap:8px;">
@@ -5616,8 +5670,8 @@
             <i class="bi bi-shield-lock-fill"></i>
           </div>
           <div>
-            <h3 style="margin:0; font-size:1.05rem; color:#fff;">MQTT Fleet Authentication</h3>
-            <div style="font-size:0.68rem; color:#38bdf8; font-weight:600;" id="authModalBadge">FIRST TIME SETUP REQUIRED</div>
+            <h3 style="margin:0; font-size:1.05rem; color:#fff;">User MQTT Fleet Login</h3>
+            <div style="font-size:0.68rem; color:#38bdf8; font-weight:600;" id="authModalBadge">USER AUTHENTICATION REQUIRED</div>
           </div>
         </div>
         <button class="btn-close" id="btnAuthClose" onclick="closeMqttAuthModal()" style="display:none;">&times;</button>
@@ -5625,7 +5679,7 @@
 
       <div class="settings-body" style="padding:16px;">
         <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:14px; line-height:1.4;">
-          Authenticate with your corporate MQTT broker. All fleet devices, telemetry, and remote actions will be isolated using your <b>Username Prefix</b>.
+          User-based dashboard only: sign in with your MQTT username &amp; password. Devices configured with the same <b>MQTT Username &amp; Topic Prefix</b> appear strictly inside your account.
         </div>
 
         <div style="margin-bottom:12px;">
@@ -5940,8 +5994,8 @@
         <!-- 3. MQTT Server & Credentials -->
         <div class="settings-section-title"><i class="bi bi-server"></i> MQTT Server & Credentials</div>
         <div class="form-group">
-          <label class="form-label">Username (Operator / Driver)</label>
-          <input type="text" id="cfgUser" class="form-control" value="" placeholder="Operator / Driver Username">
+          <label class="form-label">Username (Topic Prefix Owner)</label>
+          <input type="text" id="cfgUser" class="form-control" value="" placeholder="MQTT Username (Topic Prefix)" oninput="updateSettingsTopicPreview()">
         </div>
 
         <div class="form-row">
@@ -5951,7 +6005,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Device ID</label>
-            <input type="text" id="cfgDeviceId" class="form-control" value="" placeholder="tracker-{user}">
+            <input type="text" id="cfgDeviceId" class="form-control" value="" placeholder="Optional local ID" oninput="updateSettingsTopicPreview()">
           </div>
         </div>
 
@@ -5973,8 +6027,8 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Publish Topic</label>
-          <input type="text" id="cfgTopic" class="form-control" value="{username}/gps/{deviceId}/data">
+          <label class="form-label">Locked User Topic Pattern</label>
+          <input type="text" id="cfgTopic" class="form-control" value="{username}/gps/{deviceId}/data" readonly style="opacity:0.8; font-family:monospace;">
         </div>
 
         <!-- Update Interval: Default 1 min -->
@@ -6073,6 +6127,9 @@
             <button class="btn-action" style="background:rgba(100,116,139,0.15); border-color:#94a3b8; color:#94a3b8;" onclick="dispatchRemoteMqttCommand('UNLOCK_POLICIES')">
               <i class="bi bi-unlock"></i> 🔓 Unlock Policies
             </button>
+            <button class="btn-action" style="background:rgba(245,158,11,0.15); border-color:#f59e0b; color:#fbbf24;" onclick="confirmReleaseDeviceOwner()">
+              <i class="bi bi-shield-slash"></i> 🧹 Release DPC (Uninstall)
+            </button>
             <button class="btn-action" style="background:rgba(220,38,38,0.25); border-color:#dc2626; color:#ef4444;" onclick="confirmRemoteWipe()">
               <i class="bi bi-trash-fill"></i> 🗑️ Remote Wipe
             </button>
@@ -6130,13 +6187,24 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v3.6.0)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v4.2.1)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
-          <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner zero-uninstall block, factory reset block, safe mode block, failed passcode intruder alert, hide from home screen, remote MQTT siren/wipe, SIM swap &amp; ICCID detection, LWT disconnect, 6-8 char alphanumeric Device ID, 24/7 background telemetry)</div>
-          <a href="/simtool.apk" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-            <i class="bi bi-download"></i> Download simtool.apk (v3.6.0 Release)
-          </a>
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_4.2.1.apk" target="_blank" download="simtool_4.2.1.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_4.2.1.apk (v4.2.1 Release)
+            </a>
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
+            </a>
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk.idsig" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.35); color: #38bdf8; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-file-earmark-check"></i> .apk.idsig
+            </a>
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool.json" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(148,163,184,0.14); border:1px solid rgba(148,163,184,0.35); color: #e2e8f0; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-archive"></i> simtool.json
+            </a>
+          </div>
         </div>
 
       </div>
@@ -6154,9 +6222,11 @@
   // ==========================================
   const STORAGE_KEY = 'sim_tool_config_v2';
   const MQTT_AUTH_STORAGE_KEY = 'mqtt_auth_v1';
-  const FLEET_STORAGE_KEY = 'fleet_devices_data_v1';
-  const ACTIONS_STORAGE_KEY = 'fleet_device_actions_v1';
-  const TAGS_STORAGE_KEY = 'fleet_device_tags_v1';
+  const FLEET_STORAGE_BASE = 'fleet_devices_data_v2';
+  const ACTIONS_STORAGE_BASE = 'fleet_device_actions_v2';
+  const TAGS_STORAGE_BASE = 'fleet_device_tags_v2';
+  const TARGET_IMEI_BASE = 'target_device_imei_v2';
+  const NOTIF_HISTORY_BASE = 'notif_manager_history_v2';
 
   let config = {
     appName: 'SIM Tool',
@@ -6172,41 +6242,165 @@
     retain: true
   };
 
+  function normalizeMqttUsername(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    const u = raw.trim();
+    if (!u || /[\/+#\s]/.test(u)) return '';
+    return u;
+  }
+
+  function getAuthenticatedUsername() {
+    return normalizeMqttUsername(config && config.user);
+  }
+
+  function isUserAuthenticated() {
+    return !!(getAuthenticatedUsername() && config && config.pass && String(config.pass).trim());
+  }
+
   function getUserPrefix() {
-    return (config.user && config.user.trim()) ? `${config.user.trim()}/` : 'admin/';
+    const u = getAuthenticatedUsername();
+    return u ? `${u}/` : '';
+  }
+
+  function getUserStorageKey(baseKey, explicitUser) {
+    const u = normalizeMqttUsername(explicitUser || getAuthenticatedUsername());
+    return u ? `${baseKey}::${u}` : '';
+  }
+
+  function isTopicOwnedByCurrentUser(topic) {
+    const u = getAuthenticatedUsername();
+    if (!u || !topic || typeof topic !== 'string') return false;
+    return topic.startsWith(`${u}/gps/`);
   }
 
   function extractDevIdFromTopic(topic) {
     if (!topic) return '';
     const parts = topic.split('/');
-    for (let i = 0; i < parts.length; i++) {
-      if ((parts[i] === 'gps' || parts[i] === 'device' || parts[i] === 'tracker') && i + 1 < parts.length) {
-        const cand = parts[i + 1].trim().replace(/[^a-zA-Z0-9_\-\.]/g, '');
-        if (cand && !['command', 'ack', 'data', 'location', 'status', 'config', 'events', 'diagnostics', 'telemetry', 'tag', 'alarm'].includes(cand)) {
-          return cand;
-        }
+    const authUser = getAuthenticatedUsername();
+    if (authUser && parts.length >= 4 && parts[0] === authUser && parts[1] === 'gps') {
+      const devCand = parts[2].trim().replace(/[^a-zA-Z0-9_\-\.]/g, '');
+      if (devCand && !['broadcast', 'command', 'ack', 'data', 'location', 'status', 'config', 'events', 'diagnostics', 'telemetry', 'tag', 'alarm'].includes(devCand)) {
+        return devCand;
       }
+      return '';
     }
     return '';
   }
 
+  function syncUserNamespaceUi() {
+    const u = getAuthenticatedUsername();
+    const ok = isUserAuthenticated();
+    const authPill = document.getElementById('topAuthUserText');
+    if (authPill) authPill.textContent = (u && ok) ? `User: ${u}` : 'Login Required';
+    const btnLogout = document.getElementById('btnTopLogout');
+    if (btnLogout) btnLogout.style.display = ok ? 'inline-flex' : 'none';
+    const nsBadge = document.getElementById('leftFleetUserNamespace');
+    if (nsBadge) {
+      nsBadge.textContent = (u && ok) ? `${u}/gps/#` : 'Locked';
+      nsBadge.className = 'badge-mini ' + (ok ? 'success' : 'warning');
+    }
+    updateSettingsTopicPreview();
+    updateTargetUiDisplays();
+  }
+
+  function updateSettingsTopicPreview() {
+    const cfgTopicEl = document.getElementById('cfgTopic');
+    if (!cfgTopicEl) return;
+    const uEl = document.getElementById('cfgUser');
+    const u = normalizeMqttUsername(uEl ? uEl.value : config.user) || '{username}';
+    cfgTopicEl.value = `${u}/gps/{deviceId}/data`;
+  }
+
+  function resetUserScopedDashboardState() {
+    if (saveFleetTimer) {
+      clearTimeout(saveFleetTimer);
+      saveFleetTimer = null;
+    }
+    Object.keys(fleetMarkers).forEach(id => {
+      try { if (fullMap) fullMap.removeLayer(fleetMarkers[id]); } catch (e) {}
+    });
+    Object.keys(fleetCircles).forEach(id => {
+      try { if (fullMap) fullMap.removeLayer(fleetCircles[id]); } catch (e) {}
+    });
+    fleetMarkers = {};
+    fleetCircles = {};
+    devicesFleet = {};
+    deviceActionsHistory = {};
+    deviceTags = {};
+    selectedFleetDevices.clear();
+    if (typeof notifHistoryRecords !== 'undefined') notifHistoryRecords = [];
+    if (typeof cachedInstalledApps !== 'undefined') cachedInstalledApps = [];
+    if (typeof cachedRunningProcs !== 'undefined') cachedRunningProcs = [];
+    if (typeof chunkBuffers !== 'undefined') Object.keys(chunkBuffers).forEach(k => delete chunkBuffers[k]);
+    if (typeof rootTerminalHistory !== 'undefined') rootTerminalHistory.length = 0;
+    if (typeof centralBatchLogs !== 'undefined') centralBatchLogs.length = 0;
+    if (typeof commsCachedCallLogs !== 'undefined') Object.keys(commsCachedCallLogs).forEach(k => delete commsCachedCallLogs[k]);
+    if (typeof commsCachedSmsLogs !== 'undefined') Object.keys(commsCachedSmsLogs).forEach(k => delete commsCachedSmsLogs[k]);
+    if (typeof commsLastStatusByDevice !== 'undefined') Object.keys(commsLastStatusByDevice).forEach(k => delete commsLastStatusByDevice[k]);
+    currentTargetImei = '';
+    lastCoords = null;
+    if (typeof appCfgDirtyFields !== 'undefined') appCfgDirtyFields.clear();
+
+    const devText = document.getElementById('topDeviceText');
+    if (devText) devText.textContent = 'Offline';
+    const devPill = document.getElementById('topDevicePill');
+    if (devPill) devPill.style.borderColor = '';
+    const tgtInp = document.getElementById('targetImeiInput');
+    if (tgtInp) tgtInp.value = '';
+    const mapTgt = document.getElementById('fullMapTargetId');
+    if (mapTgt) mapTgt.textContent = '--';
+    const sideTag = document.getElementById('sidePanelDeviceTag');
+    if (sideTag) sideTag.textContent = '--';
+    const sideTgt = document.getElementById('sidePanelDeviceId');
+    if (sideTgt) sideTgt.textContent = '--';
+    const sideAudit = document.getElementById('sideAuditDeviceId');
+    if (sideAudit) sideAudit.textContent = '--';
+    const sideCtrl = document.getElementById('sideControlDeviceId');
+    if (sideCtrl) sideCtrl.textContent = '--';
+    const appsBody = document.getElementById('mdmAppsListBody');
+    if (appsBody) appsBody.innerHTML = '';
+    const permsBody = document.getElementById('mdmPermsBody');
+    if (permsBody) permsBody.innerHTML = '';
+    const procBody = document.getElementById('rootProcessBody');
+    if (procBody) procBody.innerHTML = '';
+    const filesBody = document.getElementById('rootFilesBody');
+    if (filesBody) filesBody.innerHTML = '';
+
+    if (typeof updateFleetSummary === 'function') updateFleetSummary();
+    if (typeof renderLeftDeviceSidebar === 'function') renderLeftDeviceSidebar();
+    if (typeof renderFleetCarousel === 'function') renderFleetCarousel();
+    if (typeof updateMapDeviceCount === 'function') updateMapDeviceCount();
+    if (typeof syncHeaderScopeChip === 'function') syncHeaderScopeChip();
+    if (typeof renderCurrentDeviceStatus === 'function') renderCurrentDeviceStatus();
+    if (typeof renderRightPanelInfo === 'function') renderRightPanelInfo();
+    if (typeof renderRightPanelActions === 'function') renderRightPanelActions();
+    if (typeof renderCommsCallLogsTable === 'function') renderCommsCallLogsTable();
+    if (typeof renderCommsSmsLogsTable === 'function') renderCommsSmsLogsTable();
+    if (typeof updateNmBadgeCount === 'function') updateNmBadgeCount();
+    if (typeof applyDeviceCapabilityFiltering === 'function') applyDeviceCapabilityFiltering(null);
+    updateTargetUiDisplays();
+  }
+
   // ==========================================
-  // LOCALSTORAGE FLEET & DATA PERSISTENCE
+  // LOCALSTORAGE FLEET & DATA PERSISTENCE (PER-USER ISOLATED)
   // ==========================================
   function loadFleetFromLocalStorage() {
+    if (!isUserAuthenticated()) {
+      devicesFleet = {};
+      deviceActionsHistory = {};
+      deviceTags = {};
+      return;
+    }
     try {
-      const savedFleet = localStorage.getItem(FLEET_STORAGE_KEY);
-      if (savedFleet) {
-        devicesFleet = JSON.parse(savedFleet) || {};
-      }
-      const savedActions = localStorage.getItem(ACTIONS_STORAGE_KEY);
-      if (savedActions) {
-        deviceActionsHistory = JSON.parse(savedActions) || {};
-      }
-      const savedTags = localStorage.getItem(TAGS_STORAGE_KEY);
-      if (savedTags) {
-        deviceTags = JSON.parse(savedTags) || {};
-      }
+      const fleetKey = getUserStorageKey(FLEET_STORAGE_BASE);
+      const actionsKey = getUserStorageKey(ACTIONS_STORAGE_BASE);
+      const tagsKey = getUserStorageKey(TAGS_STORAGE_BASE);
+      const savedFleet = fleetKey ? localStorage.getItem(fleetKey) : null;
+      devicesFleet = savedFleet ? (JSON.parse(savedFleet) || {}) : {};
+      const savedActions = actionsKey ? localStorage.getItem(actionsKey) : null;
+      deviceActionsHistory = savedActions ? (JSON.parse(savedActions) || {}) : {};
+      const savedTags = tagsKey ? localStorage.getItem(TAGS_STORAGE_BASE ? tagsKey : '') : null;
+      deviceTags = savedTags ? (JSON.parse(savedTags) || {}) : {};
     } catch(e) {
       console.warn('LocalStorage restore error:', e);
     }
@@ -6214,12 +6408,16 @@
 
   let saveFleetTimer = null;
   function persistFleetToLocalStorage() {
+    if (!isUserAuthenticated()) return;
     if (saveFleetTimer) clearTimeout(saveFleetTimer);
     saveFleetTimer = setTimeout(() => {
       try {
-        localStorage.setItem(FLEET_STORAGE_KEY, JSON.stringify(devicesFleet));
-        localStorage.setItem(ACTIONS_STORAGE_KEY, JSON.stringify(deviceActionsHistory));
-        localStorage.setItem(TAGS_STORAGE_KEY, JSON.stringify(deviceTags));
+        const fleetKey = getUserStorageKey(FLEET_STORAGE_BASE);
+        const actionsKey = getUserStorageKey(ACTIONS_STORAGE_BASE);
+        const tagsKey = getUserStorageKey(TAGS_STORAGE_BASE);
+        if (fleetKey) localStorage.setItem(fleetKey, JSON.stringify(devicesFleet));
+        if (actionsKey) localStorage.setItem(actionsKey, JSON.stringify(deviceActionsHistory));
+        if (tagsKey) localStorage.setItem(tagsKey, JSON.stringify(deviceTags));
       } catch (e) {
         console.warn('LocalStorage persist error:', e);
       }
@@ -6233,12 +6431,13 @@
     const modal = document.getElementById('mqttAuthModal');
     if (!modal) return;
     modal.style.display = 'flex';
+    const forceLock = isFirstTime || !isUserAuthenticated();
     
     const closeBtn = document.getElementById('btnAuthClose');
     const badge = document.getElementById('authModalBadge');
     const logoutBtn = document.getElementById('btnAuthLogout');
-    if (closeBtn) closeBtn.style.display = isFirstTime ? 'none' : 'block';
-    if (badge) badge.textContent = isFirstTime ? 'FIRST TIME SETUP REQUIRED' : 'BROKER SETTINGS';
+    if (closeBtn) closeBtn.style.display = forceLock ? 'none' : 'block';
+    if (badge) badge.textContent = forceLock ? 'USER AUTHENTICATION REQUIRED' : 'USER ACCOUNT & TOPIC NAMESPACE';
 
     const savedAuth = localStorage.getItem(MQTT_AUTH_STORAGE_KEY);
     if (logoutBtn) {
@@ -6266,32 +6465,41 @@
         const obj = JSON.parse(stored);
         obj.user = '';
         obj.pass = '';
+        obj.deviceId = '';
         localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
       }
     } catch(e) {}
 
     config.user = '';
     config.pass = '';
+    config.deviceId = '';
+    config.topic = '{username}/gps/{deviceId}/data';
 
     if (mqttWsClient) {
       try { mqttWsClient.end(true); } catch(e) {}
       mqttWsClient = null;
     }
 
+    resetUserScopedDashboardState();
+    syncUserNamespaceUi();
+
     const uInput = document.getElementById('authInputUser');
     const pInput = document.getElementById('authInputPass');
     if (uInput) uInput.value = '';
     if (pInput) pInput.value = '';
+    if (document.getElementById('cfgUser')) document.getElementById('cfgUser').value = '';
+    if (document.getElementById('cfgPass')) document.getElementById('cfgPass').value = '';
+    closeGpsSettings();
+    closePinModal();
 
-    const authPill = document.getElementById('topAuthUserText');
-    if (authPill) authPill.textContent = 'Login';
     updateBrokerPill('offline', 'Auth Required');
 
-    logTerminal('sys', '[LOGOUT] Cleared saved credentials from LocalStorage.');
+    logTerminal('sys', '[LOGOUT] Cleared user credentials and locked dashboard session.');
     openMqttAuthModal(true);
   }
 
   function closeMqttAuthModal() {
+    if (!isUserAuthenticated()) return;
     const modal = document.getElementById('mqttAuthModal');
     if (modal) modal.style.display = 'none';
   }
@@ -6314,35 +6522,47 @@
     const preview = document.getElementById('authTopicPreview');
     const u = (uInput && uInput.value.trim()) ? uInput.value.trim() : '{username}';
     if (preview) {
-      preview.textContent = `${u}/gps/{deviceId}/data`;
+      preview.textContent = `${u}/gps/{deviceId}/data  (Subscribe: ${u}/gps/#)`;
     }
   }
 
   function submitMqttAuth() {
-    const u = document.getElementById('authInputUser').value.trim();
+    const rawUser = document.getElementById('authInputUser').value;
+    const u = normalizeMqttUsername(rawUser);
     const p = document.getElementById('authInputPass').value.trim();
     const h = document.getElementById('authInputHost').value.trim();
     const pt = parseInt(document.getElementById('authSelectPort').value, 10) || 8084;
     const rem = document.getElementById('authRememberCreds').checked;
 
-    if (!u || !p || !h) {
+    const showAuthErr = (msg) => {
       const err = document.getElementById('authErrorMsg');
       if (err) {
-        err.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Please enter Username, Password and Broker Host.';
+        err.innerHTML = `<i class="bi bi-exclamation-triangle-fill"></i> ${escapeHtml(msg)}`;
         err.style.display = 'block';
       } else {
-        alert('Please enter Username, Password and Broker Host.');
+        alert(msg);
       }
+    };
+
+    if (!u || !p || !h) {
+      showAuthErr(!u && rawUser && rawUser.trim()
+        ? 'Invalid MQTT Username (do not use spaces, /, +, or #).'
+        : 'Please enter valid MQTT Username, Password and Broker Host.');
       return;
+    }
+
+    const authErrBox = document.getElementById('authErrorMsg');
+    if (authErrBox) authErrBox.style.display = 'none';
+
+    const prevUser = getAuthenticatedUsername();
+    if (prevUser !== u) {
+      resetUserScopedDashboardState();
     }
 
     config.user = u;
     config.pass = p;
     config.host = h;
     config.port = pt;
-    if (!config.deviceId || config.deviceId.startsWith('tracker-')) {
-      config.deviceId = `tracker-${u}`;
-    }
     config.topic = `${u}/gps/{deviceId}/data`;
 
     if (rem) {
@@ -6359,21 +6579,26 @@
       } catch(e) {}
     }
 
-    // Update header text
-    const authPill = document.getElementById('topAuthUserText');
-    if (authPill) authPill.textContent = u;
+    // Reload isolated user-scoped cache before connecting broker
+    loadFleetFromLocalStorage();
+    loadNmHistoryFromLocalStorage();
+    loadTargetImei();
+    updateFleetSummary();
+    renderLeftDeviceSidebar();
+    renderFleetCarousel();
+    updateAllFleetMarkers();
+    syncUserNamespaceUi();
 
-    // Also update Settings modal fields if open
+    // Update Settings modal fields
     if (document.getElementById('cfgUser')) document.getElementById('cfgUser').value = u;
     if (document.getElementById('cfgPass')) document.getElementById('cfgPass').value = p;
-    if (document.getElementById('cfgDeviceId')) document.getElementById('cfgDeviceId').value = config.deviceId;
+    if (document.getElementById('cfgDeviceId')) document.getElementById('cfgDeviceId').value = config.deviceId || '';
     if (document.getElementById('cfgHost')) document.getElementById('cfgHost').value = h;
     if (document.getElementById('cfgPort')) document.getElementById('cfgPort').value = String(pt);
 
     closeMqttAuthModal();
-    logTerminal('sys', `[AUTH UPDATED] User credentials set for '${u}'. Connecting to broker...`);
+    logTerminal('sys', `[USER SESSION] Signed in as '${u}' | Topic Prefix: ${u}/gps/#`);
 
-    // Initialize or reconnect WebSocket
     initMqttWebSocket(pt);
   }
 
@@ -6489,42 +6714,37 @@
       if (authStored) {
         const authData = JSON.parse(authStored);
         if (authData && authData.user) {
-          config.user = authData.user;
+          config.user = normalizeMqttUsername(authData.user);
           config.pass = authData.pass;
         }
       }
 
-      if (qUser) config.user = qUser;
+      if (qUser) config.user = normalizeMqttUsername(qUser);
       if (qPass) config.pass = qPass;
       if (qHost) config.host = qHost;
       if (qPort) config.port = parseInt(qPort, 10);
+      config.user = normalizeMqttUsername(config.user);
     } catch(e) {}
 
-    try {
-      const savedTags = localStorage.getItem('fleet_device_tags_v1');
-      if (savedTags) deviceTags = JSON.parse(savedTags) || {};
-    } catch(e) {}
+    deviceTags = {};
 
     const appName = config.appName || 'SIM Tool';
     if (document.getElementById('cfgAppName')) document.getElementById('cfgAppName').value = appName;
     applyAppName(appName);
 
-    const authPill = document.getElementById('topAuthUserText');
-    if (authPill) authPill.textContent = config.user || 'Login';
-
     if (document.getElementById('cfgUser')) document.getElementById('cfgUser').value = config.user || '';
     if (document.getElementById('cfgPass')) document.getElementById('cfgPass').value = config.pass || '';
-    if (document.getElementById('cfgDeviceId')) document.getElementById('cfgDeviceId').value = config.deviceId || (config.user ? `tracker-${config.user}` : '');
+    if (document.getElementById('cfgDeviceId')) document.getElementById('cfgDeviceId').value = config.deviceId || '';
     if (document.getElementById('cfgHost')) document.getElementById('cfgHost').value = config.host;
     if (document.getElementById('cfgPort')) document.getElementById('cfgPort').value = (config.port === 8083) ? '8083' : '8084';
-    if (!config.topic || config.topic.includes('tracker/') || config.topic.endsWith('/location')) {
-      config.topic = `${config.user || 'admin'}/gps/{deviceId}/data`;
-    }
+    const activeU = normalizeMqttUsername(config.user);
+    config.topic = activeU ? `${activeU}/gps/{deviceId}/data` : '{username}/gps/{deviceId}/data';
     if (document.getElementById('cfgTopic')) document.getElementById('cfgTopic').value = config.topic;
     if (document.getElementById('cfgInterval')) document.getElementById('cfgInterval').value = config.interval;
     if (document.getElementById('cfgReconnectInterval')) document.getElementById('cfgReconnectInterval').value = config.reconnectInterval || 15;
     if (document.getElementById('selReconnectCadence')) document.getElementById('selReconnectCadence').value = config.reconnectInterval || 15;
     if (document.getElementById('cfgPin')) document.getElementById('cfgPin').value = config.settingsPin || '15263748';
+    syncUserNamespaceUi();
   }
 
   function applyAppName(name) {
@@ -6540,16 +6760,34 @@
   }
 
   function saveGpsSettings() {
-    config.appName = document.getElementById('cfgAppName').value.trim() || 'SIM Tool';
-    config.user = document.getElementById('cfgUser').value.trim();
-    config.pass = document.getElementById('cfgPass').value.trim();
-    config.deviceId = document.getElementById('cfgDeviceId').value.trim();
-    config.host = document.getElementById('cfgHost').value.trim();
-    config.port = parseInt(document.getElementById('cfgPort').value.trim(), 10) || 8084;
-    config.topic = document.getElementById('cfgTopic').value.trim();
-    if (!config.topic || config.topic.includes('tracker/') || config.topic.endsWith('/location')) {
-      config.topic = `${config.user || 'admin'}/gps/{deviceId}/data`;
+    const rawUser = document.getElementById('cfgUser').value;
+    const cleanUser = normalizeMqttUsername(rawUser);
+    const cleanPass = document.getElementById('cfgPass').value.trim();
+    const cleanHost = document.getElementById('cfgHost').value.trim();
+    const cleanPort = parseInt(document.getElementById('cfgPort').value.trim(), 10) || 8084;
+    if (!cleanUser || !cleanPass || !cleanHost) {
+      alert('Valid MQTT Username (no spaces, /, +, or #), Password, and Broker Host are required for User Dashboard access.');
+      return;
     }
+
+    const prevUser = getAuthenticatedUsername();
+    const prevHost = config.host;
+    const prevPort = config.port;
+    const prevPass = config.pass;
+    const identityChanged = (prevUser !== cleanUser) || (prevPass !== cleanPass) || (prevHost !== cleanHost) || (prevPort !== cleanPort);
+
+    if (prevUser !== cleanUser) {
+      resetUserScopedDashboardState();
+    }
+
+    config.appName = document.getElementById('cfgAppName').value.trim() || 'SIM Tool';
+    config.user = cleanUser;
+    config.pass = cleanPass;
+    config.deviceId = document.getElementById('cfgDeviceId').value.trim();
+    config.host = cleanHost;
+    config.port = cleanPort;
+    config.topic = `${cleanUser}/gps/{deviceId}/data`;
+    document.getElementById('cfgTopic').value = config.topic;
     config.interval = parseInt(document.getElementById('cfgInterval').value, 10) || 60000;
     config.reconnectInterval = parseInt(document.getElementById('cfgReconnectInterval').value, 10) || 15;
     const selRec = document.getElementById('selReconnectCadence');
@@ -6569,11 +6807,22 @@
         savedAt: Date.now()
       }));
     } catch(e) {}
-    const authPill = document.getElementById('topAuthUserText');
-    if (authPill) authPill.textContent = config.user;
+
+    if (prevUser !== cleanUser) {
+      loadFleetFromLocalStorage();
+      loadNmHistoryFromLocalStorage();
+      loadTargetImei();
+      updateFleetSummary();
+      renderLeftDeviceSidebar();
+      renderFleetCarousel();
+      updateAllFleetMarkers();
+    }
+    syncUserNamespaceUi();
     applyAppName(config.appName);
 
-    if (currentTargetImei) {
+    if (identityChanged) {
+      initMqttWebSocket(config.port);
+    } else if (currentTargetImei) {
       publishRemoteCommand('SET_RECONNECT_INTERVAL', { seconds: config.reconnectInterval });
     }
 
@@ -6644,14 +6893,16 @@
     persistFleetToLocalStorage();
 
     // Broadcast tag to MQTT with retain: true AND push SET_DEVICE_NAME command so SettingsActivity stays in sync
-    if (shouldPublishMqtt && mqttWsClient && mqttWsClient.connected) {
+    if (shouldPublishMqtt && mqttWsClient && mqttWsClient.connected && isUserAuthenticated()) {
+      const authUser = getAuthenticatedUsername();
       const userPrefix = getUserPrefix();
-      const payload = JSON.stringify({ deviceId: devId, tagName: tag || '', timestamp: Date.now() });
+      const payload = JSON.stringify({ username: authUser, deviceId: devId, tagName: tag || '', timestamp: Date.now() });
       try {
         mqttWsClient.publish(`${userPrefix}gps/${devId}/tag`, payload, { qos: 1, retain: true });
         mqttWsClient.publish(`${userPrefix}gps/${devId}/command`, JSON.stringify({
           action: 'SET_DEVICE_NAME',
           command: 'SET_DEVICE_NAME',
+          username: authUser,
           tagName: tag || '',
           imei: devId,
           deviceId: devId,
@@ -6713,7 +6964,10 @@
     }
     if (currentTargetImei === oldId) {
       currentTargetImei = newId;
-      try { localStorage.setItem('target_device_imei', newId); } catch(e) {}
+      try {
+        const tgtKey = getUserStorageKey(TARGET_IMEI_BASE);
+        if (tgtKey) localStorage.setItem(tgtKey, newId);
+      } catch(e) {}
       if (typeof appCfgDirtyFields !== 'undefined') appCfgDirtyFields.clear();
     }
     persistFleetToLocalStorage();
@@ -6765,8 +7019,8 @@
   function deleteDeviceAndClearMqttRetain(devId) {
     if (!devId) return;
 
-    // 1. Purge MQTT retained messages by publishing empty string with retain: true
-    if (mqttWsClient && mqttWsClient.connected) {
+    // 1. Purge MQTT retained messages strictly inside the authenticated user's namespace
+    if (mqttWsClient && mqttWsClient.connected && isUserAuthenticated()) {
       const userPrefix = getUserPrefix();
       const topicsToPurge = [
         `${userPrefix}gps/${devId}/data`,
@@ -6778,24 +7032,7 @@
         `${userPrefix}gps/${devId}/tag`,
         `${userPrefix}gps/${devId}/events`,
         `${userPrefix}gps/${devId}/diagnostics`,
-        `${userPrefix}company/device/${devId}/location`,
-        `${userPrefix}company/device/${devId}/status`,
-        `${userPrefix}company/device/${devId}/config`,
-        `${userPrefix}company/device/${devId}/diagnostics`,
-        `${userPrefix}company/device/${devId}/events`,
-        `gps/${devId}/data`,
-        `gps/${devId}/location`,
-        `gps/${devId}/telemetry`,
-        `gps/${devId}/status`,
-        `gps/${devId}/config`,
-        `gps/${devId}/alarm`,
-        `gps/${devId}/tag`,
-        `gps/${devId}/events`,
-        `gps/${devId}/diagnostics`,
-        `company/device/${devId}/location`,
-        `company/device/${devId}/status`,
-        `company/device/${devId}/config`,
-        `tracker/${devId}/location`
+        `${userPrefix}gps/${devId}/ack`
       ];
 
       topicsToPurge.forEach(topic => {
@@ -6894,26 +7131,20 @@
   document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
   function loadTargetImei() {
-    try {
-      const saved = localStorage.getItem('target_device_imei');
-      if (saved && saved.trim() && saved.trim() !== '864321045987123') {
-        currentTargetImei = saved.trim();
-      } else {
-        currentTargetImei = config.deviceId || '';
+    currentTargetImei = '';
+    if (isUserAuthenticated()) {
+      try {
+        const tgtKey = getUserStorageKey(TARGET_IMEI_BASE);
+        const saved = tgtKey ? localStorage.getItem(tgtKey) : null;
+        if (saved && saved.trim() && devicesFleet[saved.trim()]) {
+          currentTargetImei = saved.trim();
+        } else {
+          const keys = Object.keys(devicesFleet);
+          if (keys.length > 0) currentTargetImei = keys[0];
+        }
+      } catch(e) {
+        currentTargetImei = '';
       }
-    } catch(e) {
-      currentTargetImei = config.deviceId || '';
-    }
-
-    if (currentTargetImei && !devicesFleet[currentTargetImei]) {
-      devicesFleet[currentTargetImei] = {
-        imei: currentTargetImei,
-        deviceId: currentTargetImei,
-        status: 'CONNECTED',
-        battery: '--',
-        carrier: 'Cellular',
-        lastSeenTime: Date.now()
-      };
     }
 
     const inp = document.getElementById('targetImeiInput');
@@ -6924,7 +7155,7 @@
 
     updateTargetUiDisplays();
     updateFleetSummary();
-    if (currentTargetImei) {
+    if (currentTargetImei && devicesFleet[currentTargetImei]) {
       selectDevice(currentTargetImei, false);
     }
   }
@@ -6955,14 +7186,18 @@
 
   function updateTargetUiDisplays() {
     const lbl = document.getElementById('lblCmdTopic');
-    if (lbl) lbl.textContent = `${getUserPrefix()}gps/${currentTargetImei}/command`;
+    const up = getUserPrefix();
+    if (lbl) lbl.textContent = (up && currentTargetImei) ? `${up}gps/${currentTargetImei}/command` : '{username}/gps/{deviceId}/command';
   }
 
   function selectDevice(devId, panMap = true) {
     if (!devId) return;
     const prevId = currentTargetImei;
     currentTargetImei = devId;
-    try { localStorage.setItem('target_device_imei', devId); } catch(e) {}
+    try {
+      const tgtKey = getUserStorageKey(TARGET_IMEI_BASE);
+      if (tgtKey) localStorage.setItem(tgtKey, devId);
+    } catch(e) {}
 
     // Ensure device exists in fleet record
     if (!devicesFleet[devId]) {
@@ -8337,13 +8572,14 @@
       mqttWsClient = null;
     }
 
-    if (!config.user || !config.pass) {
-      logTerminal('alert', '[MQTT AUTH] Username and password required. Please authenticate.');
+    if (!isUserAuthenticated()) {
+      logTerminal('alert', '[MQTT AUTH] Valid MQTT username and password required. Please authenticate.');
       updateBrokerPill('offline', 'Auth Required');
       openMqttAuthModal(true);
       return;
     }
 
+    const authUser = getAuthenticatedUsername();
     const isHttps = location.protocol === 'https:';
     if (!forcedPort) {
       if (config.port === 8083 || config.port === 8084) {
@@ -8358,10 +8594,11 @@
     const protocol = (activeWsPort === 8084) ? 'wss://' : 'ws://';
     const wsUrl = `${protocol}${config.host}:${activeWsPort}/mqtt`;
 
-    const clientId = 'dashboard_' + Math.random().toString(16).substr(2, 8);
+    const safeUserTag = authUser.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const clientId = `dash_${safeUserTag}_${Math.random().toString(16).substr(2, 6)}`;
     const options = {
       clientId: clientId,
-      username: config.user,
+      username: authUser,
       password: config.pass,
       clean: true,
       reconnectPeriod: 4000,
@@ -8384,19 +8621,22 @@
 
       mqttWsClient.on('connect', () => {
         clearTimeout(fallbackTimer);
-        logTerminal('sys', `[BROKER ONLINE] Connected successfully to ${wsUrl}`);
+        const userPrefix = getUserPrefix();
+        if (!userPrefix || !isUserAuthenticated()) {
+          try { mqttWsClient.end(true); } catch(e) {}
+          return;
+        }
+        logTerminal('sys', `[BROKER ONLINE] Connected successfully to ${wsUrl} (User: ${getAuthenticatedUsername()})`);
         updateBrokerPill('online', 'Broker Online');
 
-        // Wildcard subscriptions with username prefix + root fallback
-        // Strict minimal subscriptions under corporate username prefix
-        const userPrefix = getUserPrefix();
+        // Strict per-user wildcard subscription under {username}/gps/#
         const fleetTopics = [
           `${userPrefix}gps/#`
         ];
 
         mqttWsClient.subscribe(fleetTopics, (err) => {
           if (!err) {
-            logTerminal('sys', `[FLEET SUBSCRIPTION] Listening strictly on corporate channel: ${userPrefix}gps/#`);
+            logTerminal('sys', `[USER NAMESPACE] Listening strictly to: ${userPrefix}gps/#`);
           } else {
             logTerminal('alert', '[SUBSCRIPTION ERROR] ' + err.message);
           }
@@ -8465,6 +8705,11 @@
   // 6. INBOUND MQTT MESSAGE ROUTER (FLEET)
   // ==========================================
   function handleIncomingMqttMessage(topic, messageStr) {
+    const authUser = getAuthenticatedUsername();
+    if (!isUserAuthenticated() || !authUser || !isTopicOwnedByCurrentUser(topic)) {
+      return;
+    }
+
     // 0. Handle MQTT Retained Purge packets (empty payload with retain)
     if (!messageStr || messageStr.trim() === '') {
       let purgedDevId = extractDevIdFromTopic(topic);
@@ -8501,10 +8746,18 @@
       return;
     }
 
-    // Extract device ID from packet or topic (supports alphanumeric IDs & numeric IMEIs)
-    let devId = (data.deviceId || data.imei || '').trim() || extractDevIdFromTopic(topic);
+    const pktUser = (data && (data.username || data.user)) ? String(data.username || data.user).trim() : '';
+    if (pktUser && pktUser !== authUser) {
+      logTerminal('alert', `[ISOLATION DROP] Ignored payload for user '${pktUser}' on ${topic} (active user: '${authUser}').`);
+      return;
+    }
+
+    // Extract device ID strictly from {username}/gps/{deviceId}/... topic or packet
+    const topicDevId = extractDevIdFromTopic(topic);
+    if (!topicDevId) return;
+    let devId = (data.deviceId || data.imei || '').trim() || topicDevId;
     devId = String(devId).trim().replace(/[^a-zA-Z0-9_\-\.]/g, '');
-    if (!devId || ['command', 'ack', 'location', 'status', 'config', 'events', 'diagnostics', 'telemetry', 'tag', 'alarm'].includes(devId)) return;
+    if (!devId || ['broadcast', 'command', 'ack', 'location', 'status', 'config', 'events', 'diagnostics', 'telemetry', 'tag', 'alarm'].includes(devId)) return;
 
     if (data.previousDeviceId && data.previousDeviceId !== devId) {
       migrateFleetDeviceEntry(String(data.previousDeviceId).trim(), devId);
@@ -8521,7 +8774,6 @@
       const remoteTag = data.tagName || data.alias || data.tag;
       if (remoteTag && (!deviceTags[devId] || deviceTags[devId] !== remoteTag)) {
         deviceTags[devId] = remoteTag;
-        try { localStorage.setItem('fleet_device_tags_v1', JSON.stringify(deviceTags)); } catch(e) {}
       }
     }
 
@@ -8529,14 +8781,16 @@
       devicesFleet[devId] = {
         imei: devId,
         deviceId: devId,
+        username: authUser,
         status: 'CONNECTED',
         battery: '--',
         carrier: 'Cellular',
         lastSeenTime: Date.now()
       };
-      logTerminal('sys', `[FLEET ASSET DISCOVERED] Discovered device ID: ${devId}`);
+      logTerminal('sys', `[USER ASSET] (${authUser}) Discovered device ID: ${devId}`);
       updateFleetSummary();
     }
+    devicesFleet[devId].username = authUser;
     devicesFleet[devId].lastSeenTime = Date.now();
 
     // Auto-bind to first incoming device if none currently selected
@@ -8729,6 +8983,18 @@
     if (data.intervalSeconds !== undefined) dev.intervalSeconds = data.intervalSeconds;
     if (data.reconnectIntervalSeconds !== undefined) dev.reconnectIntervalSeconds = data.reconnectIntervalSeconds;
     if (data.appVersion) dev.appVersion = data.appVersion;
+    if (data.buildNumber !== undefined) dev.buildNumber = Number(data.buildNumber);
+    if (data.canSilentUpdate !== undefined) dev.canSilentUpdate = !!data.canSilentUpdate;
+    if (data.canDowngradeNative !== undefined) dev.canDowngradeNative = !!data.canDowngradeNative;
+    if (data.otaManifestUrl) dev.otaManifestUrl = data.otaManifestUrl;
+    if (data.otaAvailableVersionCode !== undefined) dev.otaAvailableVersionCode = Number(data.otaAvailableVersionCode);
+    if (data.otaAvailableVersionName !== undefined) dev.otaAvailableVersionName = data.otaAvailableVersionName;
+    if (data.otaAvailableApkUrl) dev.otaAvailableApkUrl = data.otaAvailableApkUrl;
+    if (data.otaAvailableIdsigUrl) dev.otaAvailableIdsigUrl = data.otaAvailableIdsigUrl;
+    if (data.otaUpdateAvailable !== undefined) dev.otaUpdateAvailable = !!data.otaUpdateAvailable;
+    if (data.otaUpdateDirection) dev.otaUpdateDirection = data.otaUpdateDirection;
+    if (data.otaIdsigAvailable !== undefined) dev.otaIdsigAvailable = !!data.otaIdsigAvailable;
+    if (data.otaLastError !== undefined) dev.otaLastError = data.otaLastError;
     if (data.appName || data.app) dev.appName = data.appName || data.app;
     if (data.launcherName) dev.launcherName = data.launcherName;
     if (data.brokerHost) dev.brokerHost = data.brokerHost;
@@ -8895,6 +9161,37 @@
       dev.uninstallBlocked = dev.mdm.restrictions.uninstallBlocked = false;
       dev.factoryResetBlocked = dev.mdm.restrictions.factoryResetBlocked = false;
       dev.gpsLockedOn = dev.mdm.restrictions.gpsLockedOn = false;
+    } else if (action === 'GET_VERSION_INFO' || action === 'CHECK_APP_VERSION' || action === 'CHECK_OTA_UPDATE' || action === 'CHECK_OTA' || action === 'GET_OTA_STATUS' || action === 'SET_OTA_MANIFEST_URL') {
+      if (ack.appVersion) dev.appVersion = ack.appVersion;
+      if (ack.currentVersionName) dev.appVersion = ack.currentVersionName;
+      if (ack.buildNumber !== undefined) dev.buildNumber = Number(ack.buildNumber);
+      if (ack.currentVersionCode !== undefined) dev.buildNumber = Number(ack.currentVersionCode);
+      if (ack.canSilentUpdate !== undefined) dev.canSilentUpdate = !!ack.canSilentUpdate;
+      if (ack.canDowngradeNative !== undefined) dev.canDowngradeNative = !!ack.canDowngradeNative;
+      if (ack.availableVersionCode !== undefined) dev.otaAvailableVersionCode = Number(ack.availableVersionCode);
+      if (ack.availableVersionName !== undefined) dev.otaAvailableVersionName = ack.availableVersionName;
+      if (ack.apkUrl) dev.otaAvailableApkUrl = ack.apkUrl;
+      if (ack.idsigUrl) dev.otaAvailableIdsigUrl = ack.idsigUrl;
+      if (ack.direction) dev.otaUpdateDirection = ack.direction;
+      if (ack.updateAvailable !== undefined) dev.otaUpdateAvailable = !!ack.updateAvailable;
+      if (ack.idsigAvailable !== undefined) dev.otaIdsigAvailable = !!ack.idsigAvailable;
+      if (ack.error !== undefined) dev.otaLastError = ack.error;
+      if (typeof renderVersionControlPanel === 'function') renderVersionControlPanel();
+    } else if (action === 'OTA_UPDATE_NOW' || action === 'SELF_UPDATE' || action === 'UPGRADE_APP' || action === 'DOWNGRADE_APP' || action === 'ROLLBACK_APP') {
+      if (ack.appVersion) dev.appVersion = ack.appVersion;
+      if (ack.buildNumber !== undefined) dev.buildNumber = Number(ack.buildNumber);
+      if (typeof renderVersionControlPanel === 'function') renderVersionControlPanel();
+    } else if ((action === 'CLEAR_DEVICE_OWNER' || action === 'RELEASE_DEVICE_OWNER' || action === 'UNPROVISION_DPC') && isSuccess) {
+      dev.isDeviceOwner = false;
+      dev.isDeviceAdmin = false;
+      if (dev.mdm) {
+        dev.mdm.isDeviceOwner = false;
+        dev.mdm.isDeviceAdmin = false;
+      }
+      dev.uninstallBlocked = false;
+      dev.factoryResetBlocked = false;
+      dev.isLauncherHidden = false;
+      dev.isCompleteHidden = false;
     } else if (action === 'SET_LOCK_SCREEN_MESSAGE' && isSuccess) {
       dev.isLockScreenMessageActive = true;
     } else if (action === 'CLEAR_LOCK_SCREEN_MESSAGE' && isSuccess) {
@@ -9226,7 +9523,7 @@
 
     if (data.lat && data.lon) {
       logTerminal('alert', `   📍 Incident Location: ${data.lat}, ${data.lon} (±${data.accuracy || 0}m)`);
-      handleLocationTelemetry(imei, data, `gps/${imei}/events`);
+      handleLocationTelemetry(imei, data, `${getUserPrefix()}gps/${imei}/events`);
     }
 
     if (imei === currentTargetImei) {
@@ -9437,20 +9734,27 @@
   // 7. ALL REMOTE MQTT COMMANDS DISPATCHER
   // ==========================================
   function publishRemoteCommand(action, extraPayload = {}, targetId = null) {
+    if (!isUserAuthenticated()) {
+      openMqttAuthModal(true);
+      return;
+    }
     if (!mqttWsClient || !mqttWsClient.connected) {
       alert('⚠️ MQTT Broker is currently offline or reconnecting.\nPlease verify broker connection.');
       return;
     }
 
+    const authUser = getAuthenticatedUsername();
     const devId = targetId || currentTargetImei;
     const payload = {
       action: action,
+      username: authUser,
       timestamp: Date.now(),
       ...extraPayload
     };
 
     const payloadStr = JSON.stringify(payload);
     const userPrefix = getUserPrefix();
+    if (!userPrefix) return;
 
     if (devId === 'broadcast' || devId === 'all') {
       const topic1 = `${userPrefix}gps/broadcast/command`;
@@ -11385,6 +11689,14 @@
     }
   }
 
+  function confirmReleaseDeviceOwner() {
+    const scopeTxt = (typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0)
+      ? `${selectedFleetDevices.size} selected device(s)` : `device ${currentTargetImei}`;
+    if (confirm(`Release Device Owner (DPC) & Device Admin on ${scopeTxt}?\n\nThis clears all restrictions, removes Device Owner (clearDeviceOwnerApp), unhides the app icon, and allows normal APK uninstallation (adb uninstall com.simtool or App Info -> Uninstall).`)) {
+      dispatchTargetOrGroupCommand('CLEAR_DEVICE_OWNER');
+    }
+  }
+
   function fetchInstalledAppsCommand() {
     const includeSystem = !!document.getElementById('chkIncludeSystemApps').checked;
     publishRemoteCommand('GET_PACKAGES', { includeSystem: includeSystem });
@@ -11486,6 +11798,303 @@
     if (!url) return alert('Please enter an APK URL.');
     if (confirm(`Silently download and install APK on ${currentTargetImei} from:\n${url}?`)) {
       publishRemoteCommand('ENTERPRISE_INSTALL_APK', { url: url });
+    }
+  }
+
+  const DEFAULT_OTA_MANIFEST_URL = 'https://nano-micro-node.github.io/iot-devices/simtool.json';
+  const DEFAULT_OTA_APK_URL = 'https://nano-micro-node.github.io/iot-devices/simtool.apk';
+  const DEFAULT_OTA_IDSIG_URL = 'https://nano-micro-node.github.io/iot-devices/simtool.apk.idsig';
+  let cachedReleaseCatalog = [];
+  let cachedRemoteOtaInfo = null;
+
+  function resolveAbsoluteApkUrl(relOrAbsUrl) {
+    if (!relOrAbsUrl) return '';
+    if (/^https?:\/\//i.test(relOrAbsUrl)) return relOrAbsUrl;
+    if (window.location && /^https?:$/i.test(window.location.protocol)) {
+      return window.location.origin + (relOrAbsUrl.startsWith('/') ? '' : '/') + relOrAbsUrl;
+    }
+    return relOrAbsUrl;
+  }
+
+  function setOtaHostPreset(url) {
+    const inp = document.getElementById('inpOtaManifestUrl');
+    if (inp) inp.value = url;
+    checkRemoteOtaManifest(true);
+  }
+
+  function triggerDeviceOtaCheckCommand() {
+    const inp = document.getElementById('inpOtaManifestUrl');
+    const url = (inp && inp.value.trim()) ? inp.value.trim() : DEFAULT_OTA_MANIFEST_URL;
+    dispatchTargetOrGroupCommand('CHECK_OTA_UPDATE', { manifestUrl: url });
+  }
+
+  function dispatchOtaUpdateNowCommand(allowDowngrade) {
+    const inpM = document.getElementById('inpOtaManifestUrl');
+    const manifestUrl = (inpM && inpM.value.trim()) ? inpM.value.trim() : DEFAULT_OTA_MANIFEST_URL;
+    const scopeTxt = (typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0)
+      ? `${selectedFleetDevices.size} selected device(s)` : `device ${currentTargetImei}`;
+    const remVn = cachedRemoteOtaInfo && cachedRemoteOtaInfo.versionName ? cachedRemoteOtaInfo.versionName : '--';
+    const remVc = cachedRemoteOtaInfo && cachedRemoteOtaInfo.versionCode ? cachedRemoteOtaInfo.versionCode : '--';
+    if (confirm(`Trigger live OTA check & install on ${scopeTxt}?\n\nManifest: ${manifestUrl}\nTarget OTA: v${remVn} (vc ${remVc})`)) {
+      dispatchTargetOrGroupCommand('OTA_UPDATE_NOW', {
+        manifestUrl: manifestUrl,
+        allowDowngrade: !!allowDowngrade,
+        promptUser: true
+      });
+    }
+  }
+
+  function checkRemoteOtaManifest(showFeedback) {
+    const inp = document.getElementById('inpOtaManifestUrl');
+    const rawUrl = (inp && inp.value.trim()) ? inp.value.trim() : DEFAULT_OTA_MANIFEST_URL;
+    if (/\/releases\/versions\.json$/i.test(rawUrl)) {
+      return loadReleaseCatalog(showFeedback);
+    }
+    const summaryEl = document.getElementById('otaRemoteStatusSummary');
+    const url = rawUrl + (rawUrl.indexOf('?') >= 0 ? '&_=' : '?_=') + Date.now();
+    fetch(url, { cache: 'no-store' })
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(data => {
+        const firstRel = (Array.isArray(data.releases) && data.releases.length > 0) ? data.releases[0] : null;
+        const vc = Number(data.versionCode || data.latestVersionCode || (firstRel && firstRel.versionCode) || 0);
+        const vn = String(data.versionName || data.latestVersionName || (firstRel && firstRel.versionName) || vc);
+        const apkFilename = String(data.filename || (firstRel && firstRel.filename) || ('simtool_' + vn + '.apk'));
+        const apkUrl = String(data.apkUrl || data.url || (firstRel && firstRel.url) || DEFAULT_OTA_APK_URL);
+        const idsigUrl = String(data.idsigUrl || (firstRel && firstRel.idsigUrl) || DEFAULT_OTA_IDSIG_URL);
+        const sha = String(data.sha256 || (firstRel && firstRel.sha256) || '');
+        const notes = String(data.releaseNotes || data.notes || (firstRel && firstRel.notes) || '');
+        cachedRemoteOtaInfo = {
+          ok: true,
+          manifestUrl: rawUrl,
+          versionCode: vc,
+          versionName: vn,
+          filename: apkFilename,
+          apkUrl: apkUrl,
+          idsigUrl: idsigUrl,
+          sha256: sha,
+          notes: notes,
+          builtAt: data.builtAt || ''
+        };
+        if (Array.isArray(data.releases) && data.releases.length > 0) {
+          cachedReleaseCatalog = data.releases;
+        } else if (vc > 0) {
+          cachedReleaseCatalog = [{
+            versionCode: vc,
+            versionName: vn,
+            filename: apkFilename,
+            url: apkUrl,
+            idsigUrl: idsigUrl,
+            sha256: sha,
+            sizeBytes: data.sizeBytes || 0,
+            notes: notes || 'Remote OTA release (simtool.json)'
+          }];
+        }
+        selectCatalogUrl(apkUrl, sha, (firstRel && firstRel.rollbackUrl) || '', (firstRel && firstRel.rollbackSha256) || '');
+        renderVersionControlPanel();
+        if (summaryEl) {
+          summaryEl.innerHTML = 'Remote OTA Ready: <strong style="color:#34d399;">v' + escapeHtml(vn) + ' (Build ' + vc + ')</strong>'
+            + ' · Packages: <strong>' + cachedReleaseCatalog.length + '</strong>'
+            + ' · APK: <a href="' + escapeHtml(apkUrl) + '" target="_blank" style="color:#38bdf8;">' + escapeHtml(apkFilename) + '</a>'
+            + ' · Sidecar: <a href="' + escapeHtml(idsigUrl) + '" target="_blank" style="color:#38bdf8;">.idsig</a>'
+            + (notes ? ('<br><span style="color:#94a3b8;">' + escapeHtml(notes) + '</span>') : '');
+        }
+        if (showFeedback) logTerminal('sys', '[OTA Host] simtool.json -> v' + vn + ' (vc ' + vc + ', ' + cachedReleaseCatalog.length + ' package(s))');
+      })
+      .catch(err => {
+        cachedRemoteOtaInfo = { ok: false, manifestUrl: rawUrl, error: err.message || 'Fetch error' };
+        if (summaryEl) {
+          summaryEl.innerHTML = 'Remote OTA Status (<code style="color:#38bdf8;">' + escapeHtml(rawUrl) + '</code>): '
+            + '<span style="color:#f59e0b; font-weight:700;">' + escapeHtml(err.message || 'Offline') + '</span> '
+            + '<span style="color:#94a3b8;">(Upload <code>releases/gh_pages/{simtool_*.apk, simtool.apk, .idsig, simtool.json}</code> to GitHub Pages or use <code>/releases/</code>).</span>';
+        }
+        // Fallback to local /releases/versions.json when hosted locally
+        loadReleaseCatalog(false);
+        renderVersionControlPanel();
+        if (showFeedback) logTerminal('alert', '[OTA Host] Failed checking ' + rawUrl + ': ' + (err.message || 'error'));
+      });
+  }
+
+  function loadReleaseCatalog(showFeedback) {
+    const tbody = document.getElementById('verCtrlCatalogBody');
+    if (window.location && window.location.protocol === 'file:') {
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#94a3b8; padding:10px;">Enter OTA Manifest URL above (<code>simtool.json</code>) or local <code>http://host:8080/releases/</code> URL below.</td></tr>';
+      }
+      return;
+    }
+    fetch('/releases/versions.json?_=' + Date.now())
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(data => {
+        cachedReleaseCatalog = Array.isArray(data && data.releases) ? data.releases : [];
+        if (!cachedRemoteOtaInfo || !cachedRemoteOtaInfo.ok) {
+          const top = cachedReleaseCatalog[0];
+          if (top) {
+            cachedRemoteOtaInfo = {
+              ok: true,
+              manifestUrl: '/releases/versions.json',
+              versionCode: Number(top.versionCode || 0),
+              versionName: String(top.versionName || ''),
+              filename: top.filename || 'simtool.apk',
+              apkUrl: top.otaApkUrl || DEFAULT_OTA_APK_URL,
+              idsigUrl: top.otaIdsigUrl || DEFAULT_OTA_IDSIG_URL,
+              sha256: top.sha256 || '',
+              notes: top.notes || ''
+            };
+          }
+        }
+        renderVersionControlPanel();
+        if (showFeedback) logTerminal('sys', '[Version Control] Loaded ' + cachedReleaseCatalog.length + ' local release(s) from /releases/versions.json.');
+      })
+      .catch(err => {
+        if (tbody && (!cachedReleaseCatalog || cachedReleaseCatalog.length === 0)) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#94a3b8; padding:10px;">Could not load catalog (' + escapeHtml(err.message || 'offline') + '). Use direct OTA APK URL below.</td></tr>';
+        }
+      });
+  }
+
+  function renderVersionControlPanel() {
+    const d = (typeof devicesFleet !== 'undefined' && devicesFleet[currentTargetImei]) ? devicesFleet[currentTargetImei] : null;
+    const curBadge = document.getElementById('badgeVerCtrlCurrent');
+    const availBadge = document.getElementById('badgeVerCtrlAvailable');
+    const modeBadge = document.getElementById('badgeVerCtrlMode');
+    const tbody = document.getElementById('verCtrlCatalogBody');
+    const curVc = (d && d.buildNumber !== undefined && !isNaN(Number(d.buildNumber))) ? Number(d.buildNumber) : null;
+    const curVn = (d && d.appVersion) ? d.appVersion : '--';
+
+    if (curBadge) {
+      curBadge.textContent = 'Installed: v' + curVn + (curVc !== null ? (' (vc ' + curVc + ')') : '');
+    }
+
+    const devOtaVc = (d && d.otaAvailableVersionCode) ? Number(d.otaAvailableVersionCode) : 0;
+    const devOtaVn = (d && d.otaAvailableVersionName) ? String(d.otaAvailableVersionName) : '';
+    const remOtaVc = (cachedRemoteOtaInfo && cachedRemoteOtaInfo.ok && cachedRemoteOtaInfo.versionCode) ? Number(cachedRemoteOtaInfo.versionCode) : 0;
+    const remOtaVn = (cachedRemoteOtaInfo && cachedRemoteOtaInfo.ok && cachedRemoteOtaInfo.versionName) ? String(cachedRemoteOtaInfo.versionName) : '';
+    const showVc = remOtaVc || devOtaVc;
+    const showVn = remOtaVn || devOtaVn;
+
+    if (availBadge) {
+      if (showVc > 0) {
+        let dirCls = 'info';
+        let dirLbl = 'OTA Available: v' + showVn + ' (vc ' + showVc + ')';
+        if (curVc !== null) {
+          if (showVc > curVc) { dirCls = 'success'; dirLbl = 'Upgrade Ready: v' + showVn + ' (vc ' + showVc + ')'; }
+          else if (showVc < curVc) { dirCls = 'warning'; dirLbl = 'Rollback Ready: v' + showVn + ' (vc ' + showVc + ')'; }
+          else { dirCls = 'info'; dirLbl = 'Up to Date: v' + showVn + ' (vc ' + showVc + ')'; }
+        }
+        availBadge.className = 'badge-mini ' + dirCls;
+        availBadge.textContent = dirLbl;
+      } else if (cachedRemoteOtaInfo && cachedRemoteOtaInfo.error) {
+        availBadge.className = 'badge-mini warning';
+        availBadge.textContent = 'OTA Host: ' + cachedRemoteOtaInfo.error;
+      } else if (d && d.otaLastError) {
+        availBadge.className = 'badge-mini warning';
+        availBadge.textContent = 'Device OTA: ' + d.otaLastError;
+      } else {
+        availBadge.className = 'badge-mini info';
+        availBadge.textContent = 'OTA Available: --';
+      }
+    }
+
+    if (modeBadge) {
+      const canDowngrade = !!(d && (d.canDowngradeNative || d.isRooted));
+      const canSilent = !!(d && (d.canSilentUpdate || d.isRooted || d.isDeviceOwner));
+      modeBadge.className = 'badge-mini ' + (canDowngrade ? 'purple' : (canSilent ? 'success' : 'warning'));
+      modeBadge.textContent = canDowngrade ? 'SILENT ROOT (UPGRADE + -d DOWNGRADE)' : (canSilent ? 'SILENT DPC (UPGRADE / ROLLBACK APK)' : 'USER PROMPT INSTALLER');
+    }
+    if (!tbody) return;
+    const catalogList = (cachedReleaseCatalog && cachedReleaseCatalog.length > 0)
+      ? cachedReleaseCatalog
+      : ((d && Array.isArray(d.otaReleases)) ? d.otaReleases : []);
+    if (!catalogList || catalogList.length === 0) return;
+
+    tbody.innerHTML = catalogList.map(rel => {
+      const vc = Number(rel.versionCode || 0);
+      const vnRaw = String(rel.versionName || vc);
+      const vn = escapeHtml(vnRaw);
+      const fname = String(rel.filename || ('simtool_' + vnRaw + '.apk'));
+      const rawRelUrl = rel.url || rel.otaApkUrl || ('/releases/' + fname);
+      const absUrl = resolveAbsoluteApkUrl(rawRelUrl);
+      const idsigUrl = rel.idsigUrl ? resolveAbsoluteApkUrl(rel.idsigUrl) : '';
+      const sha = String(rel.sha256 || '');
+      const rbUrl = String(rel.rollbackUrl || '');
+      const rbSha = String(rel.rollbackSha256 || '');
+      const kb = rel.sizeBytes ? Math.round(rel.sizeBytes / 1024) + ' KB' : '--';
+      const idsigBadge = idsigUrl ? ' <span class="badge-mini info">.idsig</span>' : '';
+      const rbTag = rbUrl
+        ? ' <span class="badge-mini success" title="Non-root rollback wrapper available">RB-SAFE</span>'
+        : (rel.rollbackOfVersionCode ? ' <span class="badge-mini warning">ROLLBACK OF vc' + escapeHtml(String(rel.rollbackOfVersionCode)) + '</span>' : '');
+      let btnHtml = '';
+      if (curVc === null || vc > curVc) {
+        btnHtml = '<button type="button" class="btn-ctrl btn-success compact" onclick="deployCatalogRelease(\'' + escapeHtml(absUrl) + '\',\'' + escapeHtml(sha) + '\',false,\'' + vn + '\',' + vc + ',\'' + escapeHtml(rbUrl) + '\',\'' + escapeHtml(rbSha) + '\')"><i class="bi bi-arrow-up-circle"></i> Upgrade</button>';
+      } else if (vc < curVc) {
+        btnHtml = '<button type="button" class="btn-ctrl btn-warning compact" onclick="deployCatalogRelease(\'' + escapeHtml(absUrl) + '\',\'' + escapeHtml(sha) + '\',true,\'' + vn + '\',' + vc + ',\'' + escapeHtml(rbUrl) + '\',\'' + escapeHtml(rbSha) + '\')"><i class="bi bi-arrow-down-circle"></i> Downgrade</button>';
+      } else {
+        btnHtml = '<button type="button" class="btn-ctrl btn-outline compact" onclick="deployCatalogRelease(\'' + escapeHtml(absUrl) + '\',\'' + escapeHtml(sha) + '\',false,\'' + vn + '\',' + vc + ',\'' + escapeHtml(rbUrl) + '\',\'' + escapeHtml(rbSha) + '\')">Reinstall</button>';
+      }
+      return '<tr>'
+        + '<td><div style="font-weight:700; color:#f1f5f9;"><code>' + escapeHtml(fname) + '</code> <span style="color:#38bdf8;">(v' + vn + ' · vc ' + vc + ')</span>' + idsigBadge + rbTag + '</div>'
+        + '<div style="font-size:0.62rem; color:#94a3b8;">' + escapeHtml(rel.notes || fname) + '</div></td>'
+        + '<td style="font-size:0.64rem; color:#94a3b8;">' + kb + '<br><code>' + (sha ? sha.slice(0, 10) + '...' : '--') + '</code></td>'
+        + '<td style="text-align:right; white-space:nowrap;">'
+        + '<button type="button" class="btn-ctrl btn-outline compact" style="margin-right:4px;" onclick="selectCatalogUrl(\'' + escapeHtml(absUrl) + '\',\'' + escapeHtml(sha) + '\',\'' + escapeHtml(rbUrl) + '\',\'' + escapeHtml(rbSha) + '\')" title="Fill URL into form below">Fill</button>'
+        + btnHtml + '</td></tr>';
+    }).join('');
+  }
+
+  function selectCatalogUrl(url, sha, rbUrl, rbSha) {
+    const u = document.getElementById('inpSelfUpdateUrl');
+    const s = document.getElementById('inpSelfUpdateSha256');
+    if (u) {
+      u.value = url || '';
+      u.setAttribute('data-rb-url', rbUrl || '');
+      u.setAttribute('data-rb-sha', rbSha || '');
+    }
+    if (s) s.value = sha || '';
+  }
+
+  function deployCatalogRelease(url, sha, isDowngrade, vn, vc, rbUrl, rbSha) {
+    selectCatalogUrl(url, sha, rbUrl, rbSha);
+    const scopeTxt = (typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0)
+      ? `${selectedFleetDevices.size} selected device(s)` : `device ${currentTargetImei}`;
+    const verb = isDowngrade ? 'DOWNGRADE / ROLLBACK' : 'UPGRADE / INSTALL';
+    if (confirm(`${verb} SIM Tool on ${scopeTxt} to v${vn} (vc ${vc})?\n\nAPK URL: ${url}` + (rbUrl ? `\nRollback Fallback URL: ${rbUrl}` : ''))) {
+      dispatchTargetOrGroupCommand(isDowngrade ? 'DOWNGRADE_APP' : 'SELF_UPDATE', {
+        url: url,
+        sha256: sha || '',
+        rollbackUrl: rbUrl || '',
+        rollbackSha256: rbSha || '',
+        allowDowngrade: !!isDowngrade,
+        promptUser: true
+      });
+    }
+  }
+
+  function triggerSelfUpdateCommand(isDowngrade) {
+    const urlEl = document.getElementById('inpSelfUpdateUrl');
+    const shaEl = document.getElementById('inpSelfUpdateSha256');
+    const url = urlEl ? urlEl.value.trim() : '';
+    const sha = shaEl ? shaEl.value.trim() : '';
+    const rbUrl = urlEl ? (urlEl.getAttribute('data-rb-url') || '') : '';
+    const rbSha = urlEl ? (urlEl.getAttribute('data-rb-sha') || '') : '';
+    if (!url) return alert('Enter a SIM Tool APK URL or click Fill / Upgrade / Downgrade on a release above.');
+    const scopeTxt = (typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0)
+      ? `${selectedFleetDevices.size} selected device(s)` : `device ${currentTargetImei}`;
+    const verb = isDowngrade ? 'DOWNGRADE / ROLLBACK' : 'UPGRADE';
+    if (confirm(`${verb} SIM Tool on ${scopeTxt} from:\n${url}?`)) {
+      dispatchTargetOrGroupCommand(isDowngrade ? 'DOWNGRADE_APP' : 'SELF_UPDATE', {
+        url: url,
+        sha256: sha,
+        rollbackUrl: rbUrl,
+        rollbackSha256: rbSha,
+        allowDowngrade: !!isDowngrade,
+        promptUser: true
+      });
     }
   }
 
@@ -11939,6 +12548,7 @@
     const hw = (data && data.hardware) ? data.hardware : dev.hardware;
     if (hw) updateHardwareHud(hw);
     if (typeof syncAllDeviceSettingsUi === 'function') syncAllDeviceSettingsUi(dev, hw);
+    if (typeof renderVersionControlPanel === 'function') renderVersionControlPanel();
 
     updateMdmBadge('badgeMdmUninstall', !!(rest.uninstallBlocked !== undefined ? rest.uninstallBlocked : dev.uninstallBlocked), (rest.uninstallBlocked !== undefined ? rest.uninstallBlocked : dev.uninstallBlocked) ? 'Uninstall: BLOCKED' : 'Uninstall: ALLOWED');
     updateMdmBadge('badgeMdmReset', !!(rest.factoryResetBlocked !== undefined ? rest.factoryResetBlocked : dev.factoryResetBlocked), (rest.factoryResetBlocked !== undefined ? rest.factoryResetBlocked : dev.factoryResetBlocked) ? 'Reset: BLOCKED' : 'Reset: ALLOWED');
@@ -11949,6 +12559,10 @@
   // 11. SETTINGS MODAL & PIN PROTECTION
   // ==========================================
   function onSettingsIconClick() {
+    if (!isUserAuthenticated()) {
+      openMqttAuthModal(true);
+      return;
+    }
     const pinModal = document.getElementById('pinPromptModal');
     const pinInput = document.getElementById('pinInput');
     const err = document.getElementById('pinErrorMsg');
@@ -12318,7 +12932,20 @@
       }
       payload.port = p;
     }
-    if (user) payload.user = user;
+    if (user) {
+      const cleanNewUser = normalizeMqttUsername(user);
+      if (!cleanNewUser) {
+        alert('Invalid MQTT Username (do not use spaces, /, +, or #).');
+        return;
+      }
+      const curAuthUser = getAuthenticatedUsername();
+      if (curAuthUser && cleanNewUser !== curAuthUser) {
+        if (!confirm('Changing MQTT Username from "' + curAuthUser + '" to "' + cleanNewUser + '" will move this device to topic namespace "' + cleanNewUser + '/gps/..." and remove it from your "' + curAuthUser + '" dashboard.\n\nContinue?')) {
+          return;
+        }
+      }
+      payload.user = cleanNewUser;
+    }
     if (pass) payload.pass = pass;
     if (settingsPin) payload.settingsPin = settingsPin;
 
@@ -12451,7 +13078,8 @@
       const lockTxt = !d ? '--' : (d.isLockScreenMessageActive ? (d.remoteLockHasPassword ? 'LOCKED (Password Set)' : 'LOCKED (Admin Clear Only)') : 'Clear / Unlocked');
       appEl.innerHTML = d ? [
         renderInfoRow('App Name', d.appName || (d.config && d.config.appName) || 'SIM Tool'),
-        renderInfoRow('App Version', d.appVersion || '--'),
+        renderInfoRow('Installed Version', d.appVersion ? ('v' + d.appVersion + (d.buildNumber !== undefined ? (' (Build ' + d.buildNumber + ')') : '')) : '--'),
+        renderInfoRow('Available OTA Version', (d.otaAvailableVersionCode > 0) ? ('v' + (d.otaAvailableVersionName || d.otaAvailableVersionCode) + ' (vc ' + d.otaAvailableVersionCode + ') [' + (d.otaUpdateDirection || 'READY') + ']') : (cachedRemoteOtaInfo && cachedRemoteOtaInfo.ok ? ('v' + cachedRemoteOtaInfo.versionName + ' (vc ' + cachedRemoteOtaInfo.versionCode + ') [HOST]') : (d.otaLastError || 'Checking simtool.json'))),
         renderInfoRow('Launcher Disguise', d.launcherName || 'SIM Tool'),
         renderInfoRow('APK Stealth Status', d.isCompleteHidden ? 'COMPLETELY HIDDEN' : (d.isLauncherHidden ? 'ICON HIDDEN' : 'VISIBLE')),
         renderInfoRow('GPS Interval / Reconnect', `${d.intervalSeconds !== undefined ? d.intervalSeconds + 's' : '--'} / ${d.reconnectIntervalSeconds || 15}s`),
@@ -12756,19 +13384,25 @@
   let nmDeliveryMode = 'CENTER_PROMPT';
 
   function loadNmHistoryFromLocalStorage() {
-    try {
-      const raw = localStorage.getItem('notif_manager_history_v1');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) notifHistoryRecords = parsed;
-      }
-    } catch (e) {}
+    notifHistoryRecords = [];
+    if (isUserAuthenticated()) {
+      try {
+        const k = getUserStorageKey(NOTIF_HISTORY_BASE);
+        const raw = k ? localStorage.getItem(k) : null;
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) notifHistoryRecords = parsed;
+        }
+      } catch (e) {}
+    }
     updateNmBadgeCount();
   }
 
   function saveNmHistoryToLocalStorage() {
+    if (!isUserAuthenticated()) return;
     try {
-      localStorage.setItem('notif_manager_history_v1', JSON.stringify(notifHistoryRecords.slice(0, 80)));
+      const k = getUserStorageKey(NOTIF_HISTORY_BASE);
+      if (k) localStorage.setItem(k, JSON.stringify(notifHistoryRecords.slice(0, 80)));
     } catch (e) {}
   }
 
@@ -13436,9 +14070,14 @@
   // ==========================================
   window.addEventListener('DOMContentLoaded', () => {
     loadConfig();
-    loadFleetFromLocalStorage();
-    loadNmHistoryFromLocalStorage();
-    loadTargetImei();
+    if (isUserAuthenticated()) {
+      loadFleetFromLocalStorage();
+      loadNmHistoryFromLocalStorage();
+      loadTargetImei();
+    } else {
+      resetUserScopedDashboardState();
+    }
+    syncUserNamespaceUi();
     populateDisguiseDropdown();
     initMdmSuiteControls();
     fetchSimInfo();
@@ -13466,8 +14105,8 @@
     updateFleetSummary();
     renderFleetCarousel();
 
-    // Check if any devices exist in restored local storage
-    const restoredKeys = Object.keys(devicesFleet);
+    // Restore isolated user devices if authenticated
+    const restoredKeys = isUserAuthenticated() ? Object.keys(devicesFleet) : [];
     if (restoredKeys.length > 0) {
       if (!currentTargetImei || !devicesFleet[currentTargetImei]) {
         currentTargetImei = restoredKeys[0];
@@ -13482,44 +14121,23 @@
         updateMdmSuiteUi(devicesFleet[currentTargetImei], null);
       }
       applyDeviceCapabilityFiltering(devicesFleet[currentTargetImei]);
-      logTerminal('sys', `[LOCAL STORAGE RESTORED] Loaded ${restoredKeys.length} fleet device(s) from local cache.`);
+      logTerminal('sys', `[USER CACHE RESTORED] Loaded ${restoredKeys.length} device(s) for user '${getAuthenticatedUsername()}'.`);
     } else {
       applyDeviceCapabilityFiltering(null);
     }
 
-    // Check MQTT Authentication state
-    const savedAuth = localStorage.getItem('mqtt_auth_v1');
-    if (savedAuth || (config.user && config.pass)) {
-      try {
-        if (savedAuth) {
-          const authObj = JSON.parse(savedAuth);
-          if (authObj && authObj.authenticated && authObj.user) {
-            config.user = authObj.user;
-            config.pass = authObj.pass;
-            config.host = authObj.host || config.host;
-            config.port = authObj.port || config.port;
-          }
-        }
-        if (config.user && config.pass) {
-          const authPill = document.getElementById('topAuthUserText');
-          if (authPill) authPill.textContent = config.user;
-          initMqttWebSocket();
-        } else {
-          updateBrokerPill('offline', 'Auth Required');
-          openMqttAuthModal(true);
-        }
-      } catch(e) {
-        updateBrokerPill('offline', 'Auth Required');
-        openMqttAuthModal(true);
-      }
+    if (isUserAuthenticated()) {
+      syncUserNamespaceUi();
+      initMqttWebSocket();
     } else {
-      // First time load -> Show Auth Modal!
       updateBrokerPill('offline', 'Auth Required');
       openMqttAuthModal(true);
     }
 
     // Periodic fleet offline check (every 10s checks for 3-minute timeout)
     setInterval(checkFleetTimeoutStatus, 10000);
+    if (typeof checkRemoteOtaManifest === 'function') checkRemoteOtaManifest(false);
+    else if (typeof loadReleaseCatalog === 'function') loadReleaseCatalog(false);
 
     const pinInput = document.getElementById('pinInput');
     if (pinInput) {
