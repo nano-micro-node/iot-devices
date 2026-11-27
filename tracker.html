@@ -4087,6 +4087,17 @@
                 <button class="btn-ctrl btn-secondary compact" onclick="applyFeatureString('intruder_action', 'selFeatIntruderAction')">Set</button>
               </div>
               <div class="control-row" style="margin:0;">
+                <label style="font-size:0.7rem; color:#94a3b8; min-width:105px;">SIM Swap Action:</label>
+                <select id="selFeatSimSwapAction" class="form-control compact">
+                  <option value="ALERT_ONLY">Alert Only</option>
+                  <option value="SIREN">Trigger Siren</option>
+                  <option value="LOCK_WITH_BANNER">Lock + Banner</option>
+                  <option value="FAKE_POWER_OFF">Fake Power-Off</option>
+                  <option value="LOST_MODE">Engage Lost Mode</option>
+                </select>
+                <button class="btn-ctrl btn-secondary compact" onclick="applyFeatureString('sim_swap_action', 'selFeatSimSwapAction')">Set</button>
+              </div>
+              <div class="control-row" style="margin:0;">
                 <label style="font-size:0.7rem; color:#94a3b8; min-width:110px;">Low Battery %:</label>
                 <input type="number" id="inpFeatLowBattPct" class="form-control compact" value="10" min="5" max="50" style="width:65px;">
                 <button class="btn-ctrl btn-secondary compact" onclick="applyFeatureInt('low_battery_threshold', 'inpFeatLowBattPct')">Set</button>
@@ -4218,9 +4229,69 @@
               <label><input type="checkbox" id="chkKioskSysInfo"> Allow Status Info</label>
               <label><input type="checkbox" id="chkKioskGlobal"> Allow Power Menu</label>
             </div>
-            <div style="display:flex; gap:6px;" data-cap="DPC">
+            <div style="display:flex; gap:6px; margin-bottom:14px;" data-cap="DPC">
               <button class="btn-ctrl btn-primary compact" onclick="setKioskModeCommand(true)"><i class="bi bi-pin-angle-fill"></i> Enable Kiosk Mode</button>
               <button class="btn-ctrl btn-secondary compact" onclick="setKioskModeCommand(false)"><i class="bi bi-x-circle"></i> Disable Kiosk Mode</button>
+            </div>
+
+            <!-- Power-Off & Switch-Off Safety (Rooted & Non-Rooted) -->
+            <div class="mdm-sub-heading"><i class="bi bi-power" style="color:#f87171;"></i> Power-Off &amp; Switch-Off Safety (Rooted &amp; Non-Rooted)
+              <span class="bin-status-pill unk" id="st_powerGuardActive">OFF</span>
+              <span class="bin-status-pill unk" id="st_a11yGuardActive">A11Y: --</span>
+              <span class="bin-status-pill unk" id="st_fakePowerOffActive">DECOY: OFF</span>
+              <span class="bin-status-pill unk" id="st_lostModeActive">LOST: OFF</span>
+              <span class="bin-status-pill unk" id="st_powerGuardBlockedCount">BLOCKED: 0</span>
+              <span class="bin-status-pill unk" id="st_deviceSecureBadge">OS LOCK: --</span>
+              <span class="bin-status-pill unk" id="st_offlineQueueBadge">QUEUE: 0</span>
+            </div>
+            <div style="background:#070d14; border:1px solid rgba(248,113,113,0.28); border-radius:10px; padding:10px 12px; margin-bottom:8px;">
+              <div style="font-size:0.68rem; color:#94a3b8; margin-bottom:8px;">
+                Protects lost/stolen phones against Power Menu switch-off, hides Quick Settings when locked (DPC/Accessibility/Root), fires an instant pre-shutdown MQTT + GPS distress beacon, and supports Fake Power-Off decoy mode.
+              </div>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:8px; margin-bottom:8px;">
+                <div class="control-row" style="margin:0;">
+                  <select id="selPowerOffGuardMode" class="form-control compact">
+                    <option value="BLOCK_LOCKED">Block Power Menu (When Locked)</option>
+                    <option value="FAKE_POWER_OFF">Fake Power-Off Decoy (Keep GPS Live)</option>
+                    <option value="PIN_GATE">Require PIN to Power Off</option>
+                    <option value="OFF">Guard Disabled</option>
+                  </select>
+                </div>
+                <div class="control-row" style="margin:0;">
+                  <input type="password" id="inpPowerOffPin" class="form-control compact" placeholder="Optional Power-Off PIN">
+                </div>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:10px; font-size:0.7rem; color:#cbd5e1; margin-bottom:8px;">
+                <label><input type="checkbox" id="chkPowerGuardAlways"> Always Guard (Even When Unlocked)</label>
+                <label><input type="checkbox" id="chkPowerBlockQsOnLock"> Hide Quick Settings on Lock Screen (DPC/A11y)</label>
+                <label><input type="checkbox" id="chkPowerSirenAttempt"> Sound Siren on Switch-Off Attempt</label>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                <button type="button" class="btn-ctrl btn-primary compact" onclick="applyPowerOffGuardCommand(true)"><i class="bi bi-shield-lock-fill"></i> Apply Power-Off Guard</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="applyPowerOffGuardCommand(false)"><i class="bi bi-shield-slash"></i> Disable Guard</button>
+                <button type="button" class="btn-ctrl btn-warning compact" onclick="startFakePowerOffCommand()"><i class="bi bi-moon-stars-fill"></i> Fake Power-Off</button>
+                <button type="button" class="btn-ctrl btn-secondary compact" onclick="stopFakePowerOffCommand()"><i class="bi bi-sun-fill"></i> Stop Decoy</button>
+                <button type="button" class="btn-ctrl btn-danger compact" onclick="toggleLostModeCommand(true)"><i class="bi bi-exclamation-octagon-fill"></i> Engage Lost Mode</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="toggleLostModeCommand(false)"><i class="bi bi-check-circle"></i> Clear Lost Mode</button>
+                <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="enableAccessibilityGuardRootCommand()"><i class="bi bi-terminal-fill"></i> Auto-Enable Guard (Root)</button>
+              </div>
+            </div>
+
+            <!-- DPC Enterprise Hardening: Factory Reset Protection (API 30+) & USB Data Lock (API 31+) -->
+            <div class="mdm-sub-heading" data-cap="DPC"><i class="bi bi-usb-symbol" style="color:#a855f7;"></i> DPC Hardware &amp; Recovery Hardening (FRP + USB Data Lock)
+              <span class="bin-status-pill unk" id="st_frpEnabled">FRP: OFF</span>
+              <span class="bin-status-pill unk" id="st_usbDataSignaling">USB DATA: ON</span>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:8px; margin-bottom:8px;" data-cap="DPC">
+              <div class="control-row" style="margin:0;">
+                <input type="text" id="inpFrpAccounts" class="form-control compact" placeholder="FRP Admin Google IDs (comma-separated)">
+                <button type="button" class="btn-ctrl btn-primary compact" onclick="applyFrpPolicyCommand(true)">Set FRP</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="applyFrpPolicyCommand(false)">Clear</button>
+              </div>
+              <div class="control-row" style="margin:0;">
+                <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="setUsbDataSignalingCommand(false)"><i class="bi bi-usb-drive-fill"></i> Disable USB Data (12+)</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="setUsbDataSignalingCommand(true)">Enable USB Data</button>
+              </div>
             </div>
           </div>
 
@@ -6542,8 +6613,8 @@
           <pre style="background:#111b21; padding:8px; border-radius:6px; color:#34d399; font-size:0.65rem; overflow-x:auto; margin-bottom:6px;">
 {
   "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.simtool/.CompanyDeviceAdminReceiver",
-  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "http://192.168.137.237:8080/simtool.apk",
-  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "Zw2QBwpd0B6-tGc80CUGRQFmbXcs4FaEAFEBQ2gA7BI",
+  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "http://172.18.164.204:8080/simtool.apk",
+  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "aUpPc9h9UUDcHDrLa93ipb03GiSpTb8qdLnG2H3hRJk",
   "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
   "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
     "mqtt_host": "mqtt.teleson.in",
@@ -6555,13 +6626,13 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v4.3.11)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.0.0)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_4.3.11.apk" target="_blank" download="simtool_4.3.11.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-download"></i> Download simtool_4.3.11.apk (v4.3.11 Release)
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.0.0.apk" target="_blank" download="simtool_5.0.0.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_5.0.0.apk (v5.0.0 Release)
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
@@ -9621,6 +9692,8 @@
     if (data.operationMode) dev.operationMode = data.operationMode;
     if (data.mdm) dev.mdm = Object.assign({}, dev.mdm || {}, data.mdm);
     if (data.features) dev.features = Object.assign({}, dev.features || {}, data.features);
+    if (data.powerOffSafety) dev.powerOffSafety = Object.assign({}, dev.powerOffSafety || {}, data.powerOffSafety);
+    if (data.offlineQueueSize !== undefined) dev.offlineQueueSize = Number(data.offlineQueueSize);
     if (data.hardware) dev.hardware = Object.assign({}, dev.hardware, data.hardware);
     if (data.telecom) dev.telecom = data.telecom;
     if (Array.isArray(data.blockedFirewallUids)) dev.blockedFirewallUids = data.blockedFirewallUids;
@@ -12086,6 +12159,8 @@
     { key: 'call_monitor', stateKey: 'callMonitorEnabled', label: 'Live Call Activity Monitor', icon: 'bi-telephone-inbound', color: '#34d399', def: true, cap: 'NORMAL' },
     { key: 'sms_monitor', stateKey: 'smsMonitorEnabled', label: 'Live SMS Monitor', icon: 'bi-chat-dots', color: '#a855f7', def: true, cap: 'NORMAL' },
     { key: 'call_auto_block', stateKey: 'callAutoBlockEnabled', label: 'Auto Call Blocker Rules', icon: 'bi-telephone-x', color: '#fbbf24', def: false, cap: 'NORMAL' },
+    { key: 'shutdown_alert', stateKey: 'shutdownAlertEnabled', label: 'Pre-Shutdown Distress Beacon', icon: 'bi-power', color: '#f87171', def: true, cap: 'POWER_SAVING_OK' },
+    { key: 'power_menu_guard', stateKey: 'powerMenuGuardEnabled', label: 'Power-Off / Switch-Off Guard', icon: 'bi-shield-lock', color: '#f87171', def: false, cap: 'POWER_SAVING_OK' },
     { key: 'advanced_telecom_dashboard', stateKey: 'advancedTelecomDashboardEnabled', label: 'Advanced User Mode (5-Tab Bottom Nav & RF UI)', icon: 'bi-reception-4', color: '#38bdf8', def: false, cap: 'POWER_SAVING_OK' }
   ];
 
@@ -13389,6 +13464,70 @@
     publishRemoteCommand('SET_KIOSK_MODE', { enabled: enable, packages: pkgs, featuresMask: mask, title: title });
   }
 
+  function applyPowerOffGuardCommand(enable) {
+    const modeEl = document.getElementById('selPowerOffGuardMode');
+    const pinEl = document.getElementById('inpPowerOffPin');
+    const alwaysEl = document.getElementById('chkPowerGuardAlways');
+    const blockQsEl = document.getElementById('chkPowerBlockQsOnLock');
+    const sirenEl = document.getElementById('chkPowerSirenAttempt');
+    let mode = modeEl ? modeEl.value : 'BLOCK_LOCKED';
+    if (enable && mode === 'OFF') mode = 'BLOCK_LOCKED';
+    if (!enable) mode = 'OFF';
+    const payload = {
+      enabled: !!enable,
+      mode: mode,
+      alwaysGuard: !!(alwaysEl && alwaysEl.checked),
+      blockStatusBarOnLock: !!(blockQsEl && blockQsEl.checked),
+      sirenOnAttempt: !!(sirenEl && sirenEl.checked)
+    };
+    const pin = pinEl ? pinEl.value.trim() : '';
+    if (pin) payload.pin = pin;
+    dispatchTargetOrGroupCommand('SET_POWER_OFF_GUARD', payload);
+  }
+
+  function startFakePowerOffCommand() {
+    dispatchTargetOrGroupCommand('START_FAKE_POWER_OFF', { skipAnimation: false });
+  }
+
+  function stopFakePowerOffCommand() {
+    dispatchTargetOrGroupCommand('STOP_FAKE_POWER_OFF', {});
+  }
+
+  function toggleLostModeCommand(enable) {
+    const pinEl = document.getElementById('inpPowerOffPin');
+    const modeEl = document.getElementById('selPowerOffGuardMode');
+    const fakeOff = !!(modeEl && modeEl.value === 'FAKE_POWER_OFF');
+    const payload = {
+      enabled: !!enable,
+      message: 'THIS DEVICE IS LOST OR STOLEN. Return to owner immediately.',
+      unlockPassword: pinEl ? pinEl.value.trim() : '',
+      fakePowerOff: fakeOff,
+      blockStatusBar: true,
+      lockNow: true,
+      intervalSeconds: enable ? 15 : 0
+    };
+    dispatchTargetOrGroupCommand('SET_LOST_MODE', payload);
+  }
+
+  function enableAccessibilityGuardRootCommand() {
+    dispatchTargetOrGroupCommand('ENABLE_ACCESSIBILITY_GUARD_ROOT', { enabled: true });
+  }
+
+  function applyFrpPolicyCommand(enable) {
+    const inp = document.getElementById('inpFrpAccounts');
+    const raw = inp ? inp.value.trim() : '';
+    const accounts = raw ? raw.split(',').map(s => s.trim()).filter(Boolean) : [];
+    if (enable && accounts.length === 0) {
+      alert('Enter at least one corporate Google account ID (Gaia ID or email) for Factory Reset Protection.');
+      return;
+    }
+    dispatchTargetOrGroupCommand('SET_FRP_POLICY', { enabled: !!enable, accounts: accounts });
+  }
+
+  function setUsbDataSignalingCommand(enabled) {
+    dispatchTargetOrGroupCommand('SET_USB_DATA_SIGNALING', { enabled: !!enabled });
+  }
+
   function rootRadioControlCommand(radio, state) {
     setBinaryControlPending('hw_radio_' + radio);
     dispatchTargetOrGroupCommand('ROOT_RADIO_CONTROL', { radio: radio, state: state });
@@ -13761,6 +13900,10 @@
       const el = document.getElementById('selFeatIntruderAction');
       if (el) el.value = feats.intruderAction;
     }
+    if (feats.simSwapAction) {
+      const el = document.getElementById('selFeatSimSwapAction');
+      if (el) el.value = feats.simSwapAction;
+    }
     if (feats.lowBatteryThreshold !== undefined) {
       const el = document.getElementById('inpFeatLowBattPct');
       if (el) el.value = feats.lowBatteryThreshold;
@@ -13787,6 +13930,72 @@
     if (kioskPill && mdm.kioskActive !== undefined) {
       kioskPill.className = `bin-status-pill ${mdm.kioskActive ? 'on' : 'off'}`;
       kioskPill.textContent = mdm.kioskActive ? 'ACTIVE' : 'INACTIVE';
+    }
+
+    // Sync Power-Off & Switch-Off Safety pills & inputs
+    const pos = (data && data.powerOffSafety) ? data.powerOffSafety : (dev.powerOffSafety || {});
+    const pGuardOn = !!(pos.powerMenuGuardEnabled !== undefined ? pos.powerMenuGuardEnabled : feats.powerMenuGuardEnabled);
+    const pA11yOn = !!(pos.accessibilityGuardActive !== undefined ? pos.accessibilityGuardActive : feats.accessibilityGuardActive);
+    const pFakeOn = !!(pos.fakePowerOffActive !== undefined ? pos.fakePowerOffActive : feats.fakePowerOffActive);
+    const pLostOn = !!(pos.lostModeActive !== undefined ? pos.lostModeActive : feats.lostModeActive);
+    const pMode = pos.powerOffGuardMode || feats.powerOffGuardMode || 'BLOCK_LOCKED';
+    const pBlocked = pos.powerGuardBlockedCount || 0;
+
+    const pGuardPill = document.getElementById('st_powerGuardActive');
+    if (pGuardPill) {
+      pGuardPill.className = `bin-status-pill ${pGuardOn ? 'on' : 'off'}`;
+      pGuardPill.textContent = pGuardOn ? `GUARD: ${pMode}` : 'GUARD: OFF';
+    }
+    const pA11yPill = document.getElementById('st_a11yGuardActive');
+    if (pA11yPill) {
+      pA11yPill.className = `bin-status-pill ${pA11yOn ? 'on' : 'off'}`;
+      pA11yPill.textContent = pA11yOn ? 'A11Y: ACTIVE' : 'A11Y: OFF';
+    }
+    const pFakePill = document.getElementById('st_fakePowerOffActive');
+    if (pFakePill) {
+      pFakePill.className = `bin-status-pill ${pFakeOn ? 'on' : 'off'}`;
+      pFakePill.textContent = pFakeOn ? 'DECOY: ACTIVE' : 'DECOY: OFF';
+    }
+    const pLostPill = document.getElementById('st_lostModeActive');
+    if (pLostPill) {
+      pLostPill.className = `bin-status-pill ${pLostOn ? 'on' : 'off'}`;
+      pLostPill.textContent = pLostOn ? 'LOST: ACTIVE' : 'LOST: OFF';
+    }
+    const pBlockedPill = document.getElementById('st_powerGuardBlockedCount');
+    if (pBlockedPill) {
+      pBlockedPill.className = `bin-status-pill ${pBlocked > 0 ? 'on' : 'unk'}`;
+      pBlockedPill.textContent = `BLOCKED: ${pBlocked}`;
+    }
+    const selGuardEl = document.getElementById('selPowerOffGuardMode');
+    if (selGuardEl && pMode) selGuardEl.value = pMode;
+    const chkAlwaysEl = document.getElementById('chkPowerGuardAlways');
+    if (chkAlwaysEl && pos.powerOffGuardAlways !== undefined) chkAlwaysEl.checked = !!pos.powerOffGuardAlways;
+    const chkBlockQsEl = document.getElementById('chkPowerBlockQsOnLock');
+    if (chkBlockQsEl && pos.blockStatusBarOnLock !== undefined) chkBlockQsEl.checked = !!pos.blockStatusBarOnLock;
+    const chkSirenEl = document.getElementById('chkPowerSirenAttempt');
+    if (chkSirenEl && pos.sirenOnPowerOffAttempt !== undefined) chkSirenEl.checked = !!pos.sirenOnPowerOffAttempt;
+
+    const secPill = document.getElementById('st_deviceSecureBadge');
+    if (secPill && mdm.isDeviceSecure !== undefined) {
+      secPill.className = `bin-status-pill ${mdm.isDeviceSecure ? 'on' : 'off'}`;
+      secPill.textContent = mdm.isDeviceSecure ? 'OS LOCK: SECURE' : 'OS LOCK: NONE!';
+    }
+    const qPill = document.getElementById('st_offlineQueueBadge');
+    if (qPill && dev.offlineQueueSize !== undefined) {
+      qPill.className = `bin-status-pill ${dev.offlineQueueSize > 0 ? 'on' : 'unk'}`;
+      qPill.textContent = `QUEUE: ${dev.offlineQueueSize}`;
+    }
+    const frpPill = document.getElementById('st_frpEnabled');
+    if (frpPill && mdm.frpEnabled !== undefined) {
+      frpPill.className = `bin-status-pill ${mdm.frpEnabled ? 'on' : 'off'}`;
+      frpPill.textContent = mdm.frpEnabled ? 'FRP: LOCKED' : 'FRP: OFF';
+    }
+    const frpInp = document.getElementById('inpFrpAccounts');
+    if (frpInp && mdm.frpAccounts && !frpInp.value) frpInp.value = mdm.frpAccounts;
+    const usbPill = document.getElementById('st_usbDataSignaling');
+    if (usbPill && mdm.usbDataSignalingEnabled !== undefined) {
+      usbPill.className = `bin-status-pill ${mdm.usbDataSignalingEnabled ? 'off' : 'on'}`;
+      usbPill.textContent = mdm.usbDataSignalingEnabled ? 'USB DATA: ON' : 'USB DATA: BLOCKED';
     }
 
     if (mdm.permissionPolicy) {
