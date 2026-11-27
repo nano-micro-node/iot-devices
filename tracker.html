@@ -3581,6 +3581,11 @@
           <span class="rail-tooltip">Calls &amp; Messages Control</span>
         </button>
 
+        <button type="button" class="rail-btn" id="railBtnTelecom" onclick="switchRailPage('telecom')" aria-label="Telecom RF Testing and Adaptive Band Lock">
+          <i class="bi bi-reception-4"></i>
+          <span class="rail-tooltip">Telecom RF &amp; Band Control</span>
+        </button>
+
         <button type="button" class="rail-btn" id="railBtnFeatures" onclick="switchRailPage('features')" aria-label="All Features Matrix">
           <i class="bi bi-toggles2"></i>
           <span class="rail-tooltip">All Features &amp; Live Status</span>
@@ -3748,6 +3753,10 @@
               <button type="button" class="spa-mode-btn" id="btnTopModePower" onclick="setDeviceAppModeCommand('POWER_SAVING')"><i class="bi bi-battery-half"></i> 1. Power Saving</button>
               <button type="button" class="spa-mode-btn" id="btnTopModeCommon" onclick="setDeviceAppModeCommand('COMMON')"><i class="bi bi-shield-check"></i> 2. Common (Admin/DRM)</button>
               <button type="button" class="spa-mode-btn" id="btnTopModeRoot" onclick="setDeviceAppModeCommand('ROOT_FULL')"><i class="bi bi-lightning-fill"></i> 3. Root Full</button>
+            </div>
+            <div class="spa-mode-pills" id="spaUserUiRoleBar" title="Switch phone Main Screen UI between Normal User (Default SIM Tool) and Advanced User (5-Tab Bottom Nav + RF)">
+              <button type="button" class="spa-mode-btn" id="btnTopUiNormal" onclick="setDeviceUserUiRole(false)"><i class="bi bi-person-fill"></i> Normal User</button>
+              <button type="button" class="spa-mode-btn" id="btnTopUiAdvanced" onclick="setDeviceUserUiRole(true)"><i class="bi bi-layout-wtf"></i> Advanced User (5-Tab)</button>
             </div>
             <button type="button" class="btn-ctrl btn-outline compact" id="btnToggleStrictCapFilter" onclick="toggleStrictCapabilityFilter()" style="font-size:0.65rem;" title="Automatically show only controls supported by selected device mode">
               <i class="bi bi-funnel-fill"></i> Mode Filter: ON
@@ -4816,6 +4825,8 @@
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('SET_INTERVAL', { seconds: 60 })">60s Standard</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('SET_INTERVAL', { seconds: 0 })">Sleep (0s)</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('RECONNECT_MQTT', {})">Reconnect MQTT</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('SET_FEATURE', { feature: 'advanced_telecom_dashboard', enabled: false })"><i class="bi bi-person"></i> Normal User UI</button>
+                <button type="button" class="btn-ctrl btn-success compact" onclick="dispatchCentralCommand('SET_FEATURE', { feature: 'advanced_telecom_dashboard', enabled: true })"><i class="bi bi-layout-wtf"></i> Advanced User (5-Tab)</button>
                 <button type="button" class="btn-ctrl btn-danger compact" data-cap="NORMAL" onclick="dispatchCentralCommand('TRIGGER_ALARM', { duration: 30 })"><i class="bi bi-volume-up-fill"></i> Siren 30s</button>
                 <button type="button" class="btn-ctrl btn-warning compact" data-cap="NORMAL" onclick="dispatchCentralCommand('STOP_ALARM', {})"><i class="bi bi-stop-circle"></i> Stop Siren</button>
               </div>
@@ -5125,6 +5136,7 @@
                 <option value="100">Top 100</option>
               </select>
               <button type="button" class="btn-ctrl btn-primary compact" onclick="fetchSmsMessagesFromComms()"><i class="bi bi-arrow-repeat"></i> Fetch SMS</button>
+              <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="clearSmsLogsFromComms()"><i class="bi bi-trash3"></i> Clear</button>
             </div>
             <div class="mdm-table-scroll" style="max-height:290px;">
               <table class="perm-table" style="margin:0;">
@@ -5133,6 +5145,135 @@
                   <tr><td colspan="5" style="text-align:center; color:#94a3b8;">Click "Fetch SMS" to load SMS inbox &amp; sent messages from target device.</td></tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           CUSTOM RAIL PAGE: TELECOM RF TESTING & ADAPTIVE BAND CONTROL
+           ============================================================ -->
+      <div id="panePageTelecom" class="rail-custom-page" style="display:none; margin-bottom:14px;">
+        <div class="control-card" style="border-color:rgba(56,189,248,0.35); margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+            <div>
+              <div style="font-size:1rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <i class="bi bi-reception-4" style="color:#38bdf8;"></i>
+                <span id="telecomPageHeaderTitle">Telecom RF &amp; Adaptive Band Control</span>
+                <span class="badge-mini info" id="telecomPageModeBadge">--</span>
+                <span class="badge-mini purple" id="telecomPagePrivBadge">--</span>
+              </div>
+              <div style="font-size:0.72rem; color:#94a3b8; margin-top:2px;" id="telecomPageSubTitle">2G / 4G / 5G RF Monitoring (PCI, RSRP, SINR, Decimal Cell ID, EARFCN) &amp; Root / Non-Root Band Controls</div>
+            </div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              <button type="button" class="btn-ctrl btn-primary compact" onclick="publishRemoteCommand('GET_TELECOM_STATUS')">
+                <i class="bi bi-arrow-repeat"></i> Poll RF Now
+              </button>
+              <button type="button" class="btn-ctrl btn-success compact" onclick="setDeviceUserUiRole(true)">
+                <i class="bi bi-layout-wtf"></i> Advanced User (5-Tab ON)
+              </button>
+              <button type="button" class="btn-ctrl btn-outline compact" onclick="setDeviceUserUiRole(false)">
+                <i class="bi bi-person"></i> Normal User (Default)
+              </button>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; background:#070d14; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; margin-bottom:10px;">
+            <div style="font-size:0.72rem; color:#cbd5e1;">
+              <strong>On-Device Main Screen Role:</strong> <span class="bin-status-pill unk" id="st_telecom_dash_pill">UNKNOWN</span>
+              <span style="color:#94a3b8; margin-left:8px;" id="telecomLockSummaryText">Lock State: AUTO (Unlocked)</span>
+            </div>
+            <div style="font-size:0.66rem; color:#94a3b8;">
+              Quality Standard:
+              <span style="color:#ef4444; font-weight:700;">RED</span> &gt;
+              <span style="color:#f97316; font-weight:700;">ORANGE</span> &gt;
+              <span style="color:#38bdf8; font-weight:700;">BLUE</span> &gt;
+              <span style="color:#facc15; font-weight:700;">YELLOW</span> &gt;
+              <span style="color:#22c55e; font-weight:700;">GREEN</span>
+            </div>
+          </div>
+
+          <!-- Simultaneous 5G NR + 4G LTE + 2G GSM RF Cards -->
+          <div id="telecomRfCardsGrid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px;"></div>
+        </div>
+
+        <!-- Adaptive Rooted vs Non-Rooted Band / RAT / PCI Controls -->
+        <div class="control-card" style="border-color:rgba(168,85,247,0.32);">
+          <div class="card-header-line">
+            <div class="card-title"><i class="bi bi-sliders2" style="color:#a855f7;"></i> Adaptive Band, RAT &amp; PCI Controls (Per Device)</div>
+            <button type="button" class="btn-ctrl btn-warning compact" onclick="unlockTelecomAllCommand()">
+              <i class="bi bi-unlock-fill"></i> Unlock All / Auto Mode
+            </button>
+          </div>
+
+          <div id="telecomCapBanner" style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.28); border-radius:8px; padding:9px 12px; font-size:0.73rem; color:#e2e8f0; margin-bottom:12px;">
+            Select a device to detect Rooted vs. Non-Rooted baseband controls.
+          </div>
+
+          <!-- ROOTED HARDWARE CONTROLS (Automatically shown on Rooted + ROOT_FULL; hidden on Non-Rooted) -->
+          <div id="telecomRootControlSection" data-cap="ROOT">
+            <div class="mdm-sub-heading" style="margin-top:0;"><i class="bi bi-lightning-fill"></i> Direct RAT Mode Lock (Root)</div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+              <button type="button" class="btn-ctrl btn-success compact" onclick="setTelecomRatCommand('AUTO')">Auto (5G/4G/3G/2G)</button>
+              <button type="button" class="btn-ctrl btn-outline compact" onclick="setTelecomRatCommand('NR_SA_ONLY')">5G SA Only</button>
+              <button type="button" class="btn-ctrl btn-outline compact" onclick="setTelecomRatCommand('NR_LTE')">5G + 4G (NSA/SA)</button>
+              <button type="button" class="btn-ctrl btn-outline compact" onclick="setTelecomRatCommand('LTE_ONLY')">4G LTE Only</button>
+              <button type="button" class="btn-ctrl btn-outline compact" onclick="setTelecomRatCommand('WCDMA_ONLY')">3G Only</button>
+              <button type="button" class="btn-ctrl btn-outline compact" onclick="setTelecomRatCommand('GSM_ONLY')">2G GSM Only</button>
+            </div>
+
+            <div class="mdm-sub-heading"><i class="bi bi-grid-3x3-gap-fill"></i> Single &amp; Multiple Band Lock (Root Bitmask / AT)</div>
+            <div style="display:flex; gap:6px; margin-bottom:8px;">
+              <button type="button" class="btn-ctrl compact active" id="btnTelecomGrpLte" onclick="setTelecomBandGroup('4G LTE')">4G LTE</button>
+              <button type="button" class="btn-ctrl compact" id="btnTelecomGrpNr" onclick="setTelecomBandGroup('5G NR')">5G NR</button>
+              <button type="button" class="btn-ctrl compact" id="btnTelecomGrpGsm" onclick="setTelecomBandGroup('2G GSM')">2G GSM</button>
+            </div>
+            <div id="telecomBandCheckboxes" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;"></div>
+            <div style="font-size:0.7rem; font-family:monospace; color:#94a3b8; margin-bottom:8px;" id="telecomBandMaskLabel">Selected: None • Mask: 0x0</div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+              <button type="button" class="btn-ctrl btn-primary compact" onclick="applyTelecomBandLockCommand()"><i class="bi bi-lock-fill"></i> Apply Selected Band Lock</button>
+              <button type="button" class="btn-ctrl btn-secondary compact" onclick="clearTelecomBandSelection()">Clear Selection</button>
+            </div>
+
+            <div class="mdm-sub-heading"><i class="bi bi-bullseye"></i> Cell / PCI + EARFCN Lock (Root AT+EMMCHLCK)</div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:12px;">
+              <input type="number" id="inpTelecomEarfcn" class="form-control compact" placeholder="EARFCN / NR-ARFCN" style="max-width:170px;">
+              <input type="number" id="inpTelecomPci" class="form-control compact" placeholder="Target PCI" style="max-width:130px;">
+              <button type="button" class="btn-ctrl btn-primary compact" onclick="applyTelecomPciLockCommand()">Lock PCI</button>
+              <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="unlockTelecomAllCommand()">Clear PCI Lock</button>
+            </div>
+          </div>
+
+          <!-- NON-ROOT / DEVICE-MATCHED CONTROLS -->
+          <div id="telecomNonRootControlSection">
+            <div class="mdm-sub-heading" style="margin-top:0;"><i class="bi bi-phone-flip"></i> Device Engineering Menus &amp; Non-Root Controls</div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+              <button type="button" class="btn-ctrl btn-outline compact" id="btnRemoteRadioInfo" onclick="openTelecomMenuCommand('RADIO_INFO')">
+                <i class="bi bi-broadcast"></i> Launch RadioInfo (*#*#4636#*#*)
+              </button>
+              <button type="button" class="btn-ctrl btn-purple compact" id="btnRemoteMtkMenu" onclick="openTelecomMenuCommand('MTK_BAND')">
+                <i class="bi bi-tools"></i> Launch MTK BandSelect
+              </button>
+              <button type="button" class="btn-ctrl btn-purple compact" id="btnRemoteSamsungMenu" onclick="openTelecomMenuCommand('SAMSUNG_BAND')">
+                <i class="bi bi-phone"></i> Launch Samsung *#2263#
+              </button>
+              <button type="button" class="btn-ctrl btn-secondary compact" onclick="openTelecomMenuCommand('MOBILE_NET')">
+                <i class="bi bi-gear"></i> Launch Mobile Network Settings
+              </button>
+            </div>
+
+            <div style="background:#070d14; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px;">
+              <div style="font-size:0.68rem; color:#94a3b8; margin-bottom:6px; font-weight:700;">NON-ROOT ADB SHELL RAT HELPER (COPY FOR USB / WIRELESS ADB):</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                <select id="selTelecomAdbRat" class="form-control compact" style="max-width:190px;" onchange="updateTelecomAdbPreview()">
+                  <option value="AUTO">Auto Mode (5G/4G/3G/2G)</option>
+                  <option value="NR_SA_ONLY">5G SA Only</option>
+                  <option value="LTE_ONLY">4G LTE Only</option>
+                  <option value="GSM_ONLY">2G GSM Only</option>
+                </select>
+                <code id="lblTelecomAdbCmd" style="flex:1; min-width:220px; font-size:0.68rem; color:#38bdf8; word-break:break-all;">adb shell cmd phone set-allowed-network-types-for-users -s 0 11111111111111111111</code>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="copyTelecomAdbCmd()"><i class="bi bi-clipboard"></i> Copy</button>
+              </div>
             </div>
           </div>
         </div>
@@ -5570,6 +5711,13 @@
               <button type="button" class="spa-mode-btn" id="btnSideModePower" onclick="setDeviceAppModeCommand('POWER_SAVING')">1. Power</button>
               <button type="button" class="spa-mode-btn" id="btnSideModeCommon" onclick="setDeviceAppModeCommand('COMMON')">2. Common</button>
               <button type="button" class="spa-mode-btn" id="btnSideModeRoot" onclick="setDeviceAppModeCommand('ROOT_FULL')">3. Root</button>
+            </div>
+          </div>
+          <div style="background:rgba(15,23,42,0.75); border:1px solid var(--border-color); border-radius:8px; padding:7px;">
+            <div style="font-size:0.62rem; font-weight:800; color:#94a3b8; margin-bottom:5px; letter-spacing:0.4px;">USER SCREEN ROLE (MAIN UI / 5-TAB NAV)</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+              <button type="button" class="spa-mode-btn" id="btnSideUiNormal" onclick="setDeviceUserUiRole(false)">Normal User</button>
+              <button type="button" class="spa-mode-btn" id="btnSideUiAdvanced" onclick="setDeviceUserUiRole(true)">Advanced (5-Tab)</button>
             </div>
           </div>
           <div style="display:flex; gap:6px; align-items:center;" data-cap="NORMAL">
@@ -6187,13 +6335,13 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v4.2.1)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v4.3.3)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_4.2.1.apk" target="_blank" download="simtool_4.2.1.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-download"></i> Download simtool_4.2.1.apk (v4.2.1 Release)
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_4.3.3.apk" target="_blank" download="simtool_4.3.3.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_4.3.3.apk (v4.3.3 Release)
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
@@ -7869,6 +8017,7 @@
     actions: { btnId: 'railBtnActions', navTab: 'control', customPane: 'panePageActions', panes: [], shortLabel: 'Actions & Mode', icon: 'bi-lightning-charge-fill', cap: 'POWER_SAVING_OK', title: 'Central Multi-Device Action Panel' },
     notifications: { btnId: 'railBtnNotifications', navTab: 'control', customPane: 'panePageNotifications', panes: [], shortLabel: 'Alerts & Lock', icon: 'bi-bell-fill', cap: 'NORMAL', title: 'Notification Manager & Isolated Remote Lock' },
     comms: { btnId: 'railBtnComms', navTab: 'control', customPane: 'panePageComms', panes: [], shortLabel: 'Calls & SMS', icon: 'bi-telephone-fill', cap: 'NORMAL', title: 'Device Calls & Messages (SMS) Control' },
+    telecom: { btnId: 'railBtnTelecom', navTab: 'control', customPane: 'panePageTelecom', panes: [], shortLabel: 'Telecom RF', icon: 'bi-reception-4', cap: 'POWER_SAVING_OK', title: '2G/4G/5G RF Testing & Adaptive User UI Mode' },
     features: { btnId: 'railBtnFeatures', navTab: 'control', panes: ['paneMdmFeatures'], showFeatCards: true, shortLabel: 'Features & Settings', icon: 'bi-toggles2', cap: 'NORMAL', title: 'App Features & Core Controls Live Matrix' },
     policies: { btnId: 'railBtnPolicies', navTab: 'control', panes: ['paneMdmPolicies'], shortLabel: 'Admin / DRM (DPC)', icon: 'bi-shield-lock-fill', cap: 'ADMIN', title: 'DPC Enterprise Policies (34+), Keyguard & Kiosk' },
     apps: { btnId: 'railBtnApps', navTab: 'control', panes: ['paneMdmPerms', 'paneMdmApps'], shortLabel: 'Apps & Perms', icon: 'bi-grid-3x3-gap-fill', cap: 'NORMAL', title: 'Apps Inventory, Permissions & UID Firewall' },
@@ -8008,6 +8157,31 @@
         el.disabled = false;
       }
     });
+
+    const isAdvUi = !!(hasDev && dev.features && dev.features.advancedTelecomDashboardEnabled);
+    const uiPairs = [
+      ['btnTopUiNormal', !isAdvUi, 'active-common'],
+      ['btnSideUiNormal', !isAdvUi, 'active-common'],
+      ['btnTopUiAdvanced', isAdvUi, 'active-root'],
+      ['btnSideUiAdvanced', isAdvUi, 'active-root']
+    ];
+    uiPairs.forEach(pair => {
+      const el = document.getElementById(pair[0]);
+      if (!el) return;
+      el.className = 'spa-mode-btn' + ((hasDev && pair[1]) ? (' ' + pair[2]) : '');
+      el.disabled = !hasDev;
+    });
+  }
+
+  function setDeviceUserUiRole(isAdvanced) {
+    if (!currentTargetImei && !(typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0)) {
+      alert('Select a target device (or checked fleet group) first.');
+      return;
+    }
+    setBinaryControlPending('feat_advancedTelecomDashboardEnabled');
+    setBinaryControlPending('rs_feat_advancedTelecomDashboardEnabled');
+    dispatchTargetOrGroupCommand('SET_FEATURE', { feature: 'advanced_telecom_dashboard', enabled: !!isAdvanced });
+    logTerminal('cmd', `[USER UI ROLE] Requested -> ${isAdvanced ? 'ADVANCED USER (5-Tab Nav Bar ON)' : 'NORMAL USER (Classic SIM Tool Screen)'}`);
   }
 
   function setDeviceAppModeCommand(mode) {
@@ -8126,6 +8300,8 @@
         renderNotificationManagerPage();
       } else if (meta.customPane === 'panePageComms' && typeof renderCommsControlPage === 'function') {
         renderCommsControlPage();
+      } else if (meta.customPane === 'panePageTelecom' && typeof renderTelecomControlPage === 'function') {
+        renderTelecomControlPage();
       }
     }
 
@@ -8519,6 +8695,8 @@
       renderNotificationManagerPage();
     } else if (activeRailPage === 'comms' && typeof renderCommsControlPage === 'function') {
       renderCommsControlPage();
+    } else if (activeRailPage === 'telecom' && typeof renderTelecomControlPage === 'function') {
+      renderTelecomControlPage();
     }
   }
 
@@ -8839,6 +9017,7 @@
     call_monitor: 'callMonitorEnabled',
     sms_monitor: 'smsMonitorEnabled',
     call_auto_block: 'callAutoBlockEnabled',
+    advanced_telecom_dashboard: 'advancedTelecomDashboardEnabled',
     max_failed_attempts: 'maxFailedAttempts',
     intruder_action: 'intruderAction',
     low_battery_threshold: 'lowBatteryThreshold'
@@ -8902,6 +9081,8 @@
       renderNotificationManagerPage();
     } else if (activeRailPage === 'comms' && typeof renderCommsControlPage === 'function') {
       renderCommsControlPage();
+    } else if (activeRailPage === 'telecom' && typeof renderTelecomControlPage === 'function') {
+      renderTelecomControlPage();
     }
   }
 
@@ -8958,6 +9139,7 @@
     if (data.mdm) dev.mdm = data.mdm;
     if (data.features) dev.features = data.features;
     if (data.hardware) dev.hardware = Object.assign({}, dev.hardware, data.hardware);
+    if (data.telecom) dev.telecom = data.telecom;
     if (Array.isArray(data.blockedFirewallUids)) dev.blockedFirewallUids = data.blockedFirewallUids;
     if (data.uninstallBlocked !== undefined) dev.uninstallBlocked = !!data.uninstallBlocked;
     if (data.factoryResetBlocked !== undefined) dev.factoryResetBlocked = !!data.factoryResetBlocked;
@@ -9362,6 +9544,22 @@
       if (dev.imei === currentTargetImei && typeof renderInstalledAppsTable === 'function') {
         renderInstalledAppsTable();
       }
+    } else if ((action === 'SET_TELECOM_RAT_MODE' || action === 'SET_TELECOM_BAND_LOCK' || action === 'SET_TELECOM_PCI_LOCK' || action === 'UNLOCK_TELECOM_BANDS') && isSuccess) {
+      if (!dev.telecom) dev.telecom = {};
+      if (!dev.telecom.lockProfile) dev.telecom.lockProfile = {};
+      if (action === 'UNLOCK_TELECOM_BANDS') {
+        dev.telecom.lockProfile.hasActiveLock = false;
+        dev.telecom.lockProfile.ratMode = 'AUTO';
+        dev.telecom.lockProfile.lockedBands = '';
+        dev.telecom.lockProfile.lockedPci = '';
+      } else if (data.ratMode) {
+        dev.telecom.lockProfile.ratMode = data.ratMode;
+        dev.telecom.lockProfile.hasActiveLock = data.ratMode !== 'AUTO';
+      }
+      if (data.message) dev.telecom.lockProfile.lastResult = data.message;
+      if (activeRailPage === 'telecom' && typeof renderTelecomControlPage === 'function') {
+        renderTelecomControlPage();
+      }
     }
   }
 
@@ -9477,6 +9675,53 @@
           renderCommsSmsLogsTable();
         }
       }
+    } else if (action === 'DELETE_CALL_LOG') {
+      if (isSuccess && typeof commsCachedCallLogs !== 'undefined' && Array.isArray(commsCachedCallLogs[imei])) {
+        const delId = Number(data.id);
+        const delTs = Number(data.timestamp);
+        const delNum = String(data.number || '').trim();
+        commsCachedCallLogs[imei] = commsCachedCallLogs[imei].filter(r => {
+          if (delId > 0 && Number(r.id) === delId) return false;
+          if (delTs > 0 && Number(r.timestamp) === delTs && (!delNum || String(r.number || '').trim() === delNum)) return false;
+          return true;
+        });
+      }
+      if (imei === currentTargetImei && typeof renderCommsCallLogsTable === 'function') {
+        renderCommsCallLogsTable();
+      }
+    } else if (action === 'CLEAR_CALL_LOGS') {
+      if (isSuccess && typeof commsCachedCallLogs !== 'undefined') {
+        commsCachedCallLogs[imei] = [];
+        if (imei === currentTargetImei && typeof renderCommsCallLogsTable === 'function') {
+          renderCommsCallLogsTable();
+        }
+      }
+    } else if (action === 'DELETE_SMS_MESSAGE') {
+      if (isSuccess && typeof commsCachedSmsLogs !== 'undefined' && Array.isArray(commsCachedSmsLogs[imei])) {
+        const delId = Number(data.id);
+        const delTs = Number(data.timestamp);
+        const delAddr = String(data.address || '').trim();
+        commsCachedSmsLogs[imei] = commsCachedSmsLogs[imei].filter(r => {
+          if (delId > 0 && Number(r.id) === delId) return false;
+          if (delTs > 0 && Number(r.timestamp) === delTs && (!delAddr || String(r.address || '').trim() === delAddr)) return false;
+          return true;
+        });
+      }
+      if (imei === currentTargetImei && typeof renderCommsSmsLogsTable === 'function') {
+        renderCommsSmsLogsTable();
+      }
+    } else if (action === 'CLEAR_SMS_LOGS') {
+      if (isSuccess && typeof commsCachedSmsLogs !== 'undefined') {
+        const boxU = String(data.box || 'ALL').toUpperCase();
+        if ((boxU === 'INBOX' || boxU === 'SENT') && Array.isArray(commsCachedSmsLogs[imei])) {
+          commsCachedSmsLogs[imei] = commsCachedSmsLogs[imei].filter(r => String(r.type || '').toUpperCase() !== boxU);
+        } else {
+          commsCachedSmsLogs[imei] = [];
+        }
+        if (imei === currentTargetImei && typeof renderCommsSmsLogsTable === 'function') {
+          renderCommsSmsLogsTable();
+        }
+      }
     } else if (action === 'CALL_EVENT') {
       if (data.callState) dev.callState = data.callState;
       if (data.blocked) dev.callState = 'BLOCKED';
@@ -9506,6 +9751,8 @@
       renderNotificationManagerPage();
     } else if (activeRailPage === 'comms' && typeof renderCommsControlPage === 'function') {
       renderCommsControlPage();
+    } else if (activeRailPage === 'telecom' && typeof renderTelecomControlPage === 'function') {
+      renderTelecomControlPage();
     }
   }
 
@@ -10174,6 +10421,8 @@
       renderNotificationManagerPage();
     } else if (activeRailPage === 'comms' && typeof renderCommsControlPage === 'function') {
       renderCommsControlPage();
+    } else if (activeRailPage === 'telecom' && typeof renderTelecomControlPage === 'function') {
+      renderTelecomControlPage();
     }
   }
 
@@ -11057,7 +11306,8 @@
     { key: 'root_watchdog', stateKey: 'rootWatchdogEnabled', label: 'Root Anti-Kill Watchdog', icon: 'bi-shield-lock-fill', color: '#f87171', def: true, cap: 'ROOT' },
     { key: 'call_monitor', stateKey: 'callMonitorEnabled', label: 'Live Call Activity Monitor', icon: 'bi-telephone-inbound', color: '#34d399', def: true, cap: 'NORMAL' },
     { key: 'sms_monitor', stateKey: 'smsMonitorEnabled', label: 'Live SMS Monitor', icon: 'bi-chat-dots', color: '#a855f7', def: true, cap: 'NORMAL' },
-    { key: 'call_auto_block', stateKey: 'callAutoBlockEnabled', label: 'Auto Call Blocker Rules', icon: 'bi-telephone-x', color: '#fbbf24', def: false, cap: 'NORMAL' }
+    { key: 'call_auto_block', stateKey: 'callAutoBlockEnabled', label: 'Auto Call Blocker Rules', icon: 'bi-telephone-x', color: '#fbbf24', def: false, cap: 'NORMAL' },
+    { key: 'advanced_telecom_dashboard', stateKey: 'advancedTelecomDashboardEnabled', label: 'Advanced User Mode (5-Tab Bottom Nav & RF UI)', icon: 'bi-reception-4', color: '#38bdf8', def: false, cap: 'POWER_SAVING_OK' }
   ];
 
   const DPC_POLICY_GROUPS = [
@@ -13062,12 +13312,17 @@
     const netEl = document.getElementById('infoCardNetworkSim');
     if (netEl) {
       const coords = (d && d.lat !== undefined && d.lon !== undefined) ? `${Number(d.lat).toFixed(6)}, ${Number(d.lon).toFixed(6)}` : 'No GPS Fix';
+      const tc = (d && d.telecom) ? d.telecom : null;
+      const lp = (tc && tc.lockProfile) ? tc.lockProfile : null;
+      const lockInfo = lp ? (lp.hasActiveLock ? `${lp.ratMode}${lp.lockedBands ? ' • ' + lp.lockedBands : ''}${lp.lockedPci ? ' • PCI ' + lp.lockedPci : ''}` : 'AUTO (Unlocked)') : '--';
       netEl.innerHTML = d ? [
         renderInfoRow('Carrier', d.carrier || '--'),
         renderInfoRow('SIM State', d.simState || '--'),
         renderInfoRow('SIM Operator', d.simOperator || '--'),
         renderInfoRow('ICCID', d.iccid || '--'),
         renderInfoRow('Network State', d.networkState || d.networkType || '--'),
+        renderInfoRow('Telecom RF Mode', tc ? `${tc.activeMode || '--'} (${tc.primaryDbm || '--'})` : '--'),
+        renderInfoRow('Band Lock Profile', lockInfo),
         renderInfoRow('GPS Coordinates', coords),
         renderInfoRow('Speed / Accuracy', d.accuracy !== undefined ? `${(d.speed || 0).toFixed(1)} km/h (±${d.accuracy}m)` : '--')
       ].join('') : '<div style="color:#94a3b8;">--</div>';
@@ -13109,7 +13364,8 @@
           { label: 'SIM Swap Alert', on: feats.simSwapAlertEnabled !== false },
           { label: 'Auto Boot', on: feats.autoStartBootEnabled !== false },
           { label: 'WakeLock 24/7', on: feats.wakeLockEnabled !== false },
-          { label: 'Root Watchdog', on: !!feats.rootWatchdogEnabled }
+          { label: 'Root Watchdog', on: !!feats.rootWatchdogEnabled },
+          { label: 'Advanced User (5-Tab Nav)', on: !!feats.advancedTelecomDashboardEnabled }
         ];
         mdmEl.innerHTML = pills.map(p => `<span class="badge-mini ${p.on ? 'success' : 'warning'}">${p.label}: ${p.on ? 'ON' : 'OFF'}</span>`).join('');
       }
@@ -13731,11 +13987,14 @@
     const commsActions = {
       GET_CALL_LOGS: true,
       CLEAR_CALL_LOGS: true,
+      DELETE_CALL_LOG: true,
       CALL_NUMBER: true,
       END_CALL: true,
       ANSWER_CALL: true,
       SET_CALL_BLOCK_RULES: true,
       GET_SMS_MESSAGES: true,
+      DELETE_SMS_MESSAGE: true,
+      CLEAR_SMS_LOGS: true,
       SEND_SMS: true,
       GRANT_PERMISSIONS: true
     };
@@ -13745,6 +14004,8 @@
       text = `[GET_CALL_LOGS] Loaded ${data.calls.length} call record(s) from device.`;
     } else if (action === 'GET_SMS_MESSAGES' && isSuccess && data && Array.isArray(data.messages)) {
       text = `[GET_SMS_MESSAGES] Loaded ${data.messages.length} SMS message(s) (${data.box || 'ALL'}).`;
+    } else if ((action === 'DELETE_SMS_MESSAGE' || action === 'CLEAR_SMS_LOGS') && !isSuccess && String(msg || '').toUpperCase().includes('REQUIRES_ROOT_OR_DEFAULT_SMS')) {
+      text = `[${action}] Android OS requires Root (su + WRITE_SMS) or setting SIM Tool as Default SMS app to delete system SMS messages.`;
     }
     const needPerm = !isSuccess && String(msg || '').toUpperCase().includes('PERMISSION_DENIED');
     const imei = (data && (data.imei || data.deviceId)) || currentTargetImei || 'DEFAULT';
@@ -13943,10 +14204,27 @@
 
   function clearCallLogsFromComms() {
     if (!currentTargetImei) { alert('Select a target device first.'); return; }
-    if (!confirm('Clear call history on device ' + currentTargetImei + '?')) return;
+    if (!confirm('Clear ALL call history on device ' + currentTargetImei + '?')) return;
     publishRemoteCommand('CLEAR_CALL_LOGS', { number: 'ALL' });
-    commsCachedCallLogs[currentTargetImei] = [];
-    renderCommsCallLogsTable();
+  }
+
+  function deleteCallLogItem(btn) {
+    if (!currentTargetImei) { alert('Select a target device first.'); return; }
+    const id = btn ? Number(btn.getAttribute('data-id') || 0) : 0;
+    const ts = btn ? Number(btn.getAttribute('data-ts') || 0) : 0;
+    const number = btn ? String(btn.getAttribute('data-num') || '').trim() : '';
+    const desc = number || (id > 0 ? ('#' + id) : 'this call');
+    if (!confirm('Delete call log entry for ' + desc + ' from device ' + currentTargetImei + '?')) return;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '...';
+    }
+    publishRemoteCommand('DELETE_CALL_LOG', {
+      id: id,
+      number: number,
+      timestamp: ts,
+      requestId: 'delcl_' + Date.now()
+    });
   }
 
   function fetchSmsMessagesFromComms() {
@@ -13959,6 +14237,40 @@
       limit: limEl ? parseInt(limEl.value, 10) : 50,
       query: qEl ? qEl.value.trim() : '',
       requestId: 'smslog_' + Date.now()
+    });
+  }
+
+  function clearSmsLogsFromComms() {
+    if (!currentTargetImei) { alert('Select a target device first.'); return; }
+    const boxEl = document.getElementById('selSmsBoxType');
+    const box = boxEl ? boxEl.value : 'ALL';
+    if (!confirm('Clear ' + box + ' SMS messages on device ' + currentTargetImei + '?')) return;
+    publishRemoteCommand('CLEAR_SMS_LOGS', {
+      box: box,
+      requestId: 'clrsms_' + Date.now()
+    });
+  }
+
+  function deleteSmsLogItem(btn) {
+    if (!currentTargetImei) { alert('Select a target device first.'); return; }
+    const id = btn ? Number(btn.getAttribute('data-id') || 0) : 0;
+    const ts = btn ? Number(btn.getAttribute('data-ts') || 0) : 0;
+    const address = btn ? String(btn.getAttribute('data-addr') || '').trim() : '';
+    const cached = commsCachedSmsLogs[currentTargetImei] || [];
+    const match = cached.find(r => (id > 0 && Number(r.id) === id) || (ts > 0 && Number(r.timestamp) === ts && String(r.address || '').trim() === address));
+    const body = match ? String(match.body || '') : '';
+    const preview = body ? ('\n"' + body.slice(0, 60) + (body.length > 60 ? '...' : '') + '"') : '';
+    if (!confirm('Delete SMS message (' + (address || 'Unknown') + ')' + preview + '\nfrom device ' + currentTargetImei + '?')) return;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '...';
+    }
+    publishRemoteCommand('DELETE_SMS_MESSAGE', {
+      id: id,
+      address: address,
+      timestamp: ts,
+      body: body,
+      requestId: 'delsms_' + Date.now()
     });
   }
 
@@ -14020,6 +14332,7 @@
           <button type="button" class="bin-btn" style="padding:2px 6px; font-size:0.62rem;" onclick="prefillCommsQuickAction('CALL', '${numSafe}')">Call</button>
           <button type="button" class="bin-btn" style="padding:2px 6px; font-size:0.62rem;" onclick="prefillCommsQuickAction('SMS', '${numSafe}')">SMS</button>
           <button type="button" class="bin-btn" style="padding:2px 6px; font-size:0.62rem; color:#f87171;" onclick="prefillCommsQuickAction('BLOCK', '${numSafe}')">Block</button>
+          <button type="button" class="bin-btn" style="padding:2px 6px; font-size:0.62rem; color:#ef4444; border-color:rgba(239,68,68,0.45);" data-id="${Number(row.id) || 0}" data-ts="${Number(row.timestamp) || 0}" data-num="${numSafe}" onclick="deleteCallLogItem(this)" title="Delete call from device"><i class="bi bi-trash"></i> Delete</button>
         </td>
       </tr>`;
     }).join('');
@@ -14060,9 +14373,534 @@
           <button type="button" class="bin-btn" style="padding:2px 6px; font-size:0.62rem;" onclick="prefillCommsQuickAction('SMS', '${addrSafe}')">Reply</button>
           <button type="button" class="bin-btn" style="padding:2px 6px; font-size:0.62rem;" onclick="prefillCommsQuickAction('CALL', '${addrSafe}')">Call</button>
           <button type="button" class="bin-btn" style="padding:2px 6px; font-size:0.62rem; color:#f87171;" onclick="prefillCommsQuickAction('BLOCK', '${addrSafe}')">Block</button>
+          <button type="button" class="bin-btn" style="padding:2px 6px; font-size:0.62rem; color:#ef4444; border-color:rgba(239,68,68,0.45);" data-id="${Number(row.id) || 0}" data-ts="${Number(row.timestamp) || 0}" data-addr="${addrSafe}" onclick="deleteSmsLogItem(this)" title="Delete message from device"><i class="bi bi-trash"></i> Delete</button>
         </td>
       </tr>`;
     }).join('');
+  }
+
+  // ==========================================
+  // 11B. TELECOM RF METRICS & ADAPTIVE BAND LOCK UI
+  // ==========================================
+  const TELECOM_BAND_CATALOG = {
+    '4G LTE': [1, 3, 5, 7, 8, 20, 28, 38, 40, 41, 42, 66],
+    '5G NR': [1, 3, 5, 8, 28, 40, 41, 77, 78, 258],
+    '2G GSM': [900, 1800, 850, 1900]
+  };
+
+  // Strict quality hierarchy: Red > Orange > Blue > Yellow > Green
+  const TELECOM_TIER_META = {
+    0: { key: 'UNKNOWN', label: 'STANDBY', color: '#64748B' },
+    1: { key: 'RED',     label: 'CRITICAL (RED)', color: '#EF4444' },
+    2: { key: 'ORANGE',  label: 'POOR (ORANGE)', color: '#F97316' },
+    3: { key: 'BLUE',    label: 'FAIR (BLUE)', color: '#38BDF8' },
+    4: { key: 'YELLOW',  label: 'GOOD (YELLOW)', color: '#FACC15' },
+    5: { key: 'GREEN',   label: 'EXCELLENT (GREEN)', color: '#22C55E' }
+  };
+
+  let selectedTelecomBandGroup = '4G LTE';
+  let selectedTelecomBands = [];
+
+  function formatTelecomMetricVal(val, unit = '') {
+    if (val === null || val === undefined) return '--';
+    if (typeof val === 'number') {
+      if (!Number.isFinite(val) || Math.abs(val) >= 2147483640) return '--';
+      return unit ? `${val} ${unit}` : `${val}`;
+    }
+    const s = String(val).trim();
+    if (!s || s === '--' || s === 'N/A' || s === 'null') return '--';
+    if (/^-?\d+$/.test(s)) {
+      const n = Number(s);
+      if (!Number.isFinite(n) || Math.abs(n) >= 2147483640) return '--';
+      return unit ? `${s} ${unit}` : s;
+    }
+    return escapeHtml(s);
+  }
+
+  function formatTelecomDecimalCellId(val) {
+    if (val === null || val === undefined) return '--';
+    const s = String(val).trim();
+    if (!s || s === '--' || s === 'N/A' || s === 'null') return '--';
+    if (/^\d+$/.test(s)) {
+      const num = Number(s);
+      if (!Number.isFinite(num) || num < 0 || Math.abs(num) >= 2147483640) return '--';
+      return s;
+    }
+    return escapeHtml(s);
+  }
+
+  function getTelecomTierInfo(tier, explicitColor) {
+    let idx = 0;
+    if (typeof tier === 'number') {
+      idx = (tier >= 0 && tier <= 5) ? tier : 0;
+    } else if (tier !== null && tier !== undefined) {
+      const s = String(tier).trim().toUpperCase();
+      if (s === '1' || s === 'RED' || s === 'CRITICAL') idx = 1;
+      else if (s === '2' || s === 'ORANGE' || s === 'POOR') idx = 2;
+      else if (s === '3' || s === 'BLUE' || s === 'FAIR') idx = 3;
+      else if (s === '4' || s === 'YELLOW' || s === 'GOOD') idx = 4;
+      else if (s === '5' || s === 'GREEN' || s === 'EXCELLENT') idx = 5;
+      else idx = 0;
+    }
+    const t = TELECOM_TIER_META[idx] || TELECOM_TIER_META[0];
+    return {
+      key: t.key,
+      label: t.label,
+      color: (explicitColor && String(explicitColor).startsWith('#')) ? explicitColor : t.color
+    };
+  }
+
+  function buildTelecomRatCardHtml(title, techTag, node, showSimultaneousTag = false) {
+    const present = !!(node && node.present);
+    const tierInfo = present ? getTelecomTierInfo(node.tier, node.tierColor) : TELECOM_TIER_META[0];
+    const borderCol = present ? tierInfo.color : 'rgba(255,255,255,0.09)';
+    const roleLabel = present
+      ? (node.role || (node.isServing ? 'SERVING' : 'NEIGHBOR'))
+      : 'INACTIVE';
+
+    if (!present) {
+      return `
+        <div style="background:#070d14; border:1px solid rgba(255,255,255,0.08); border-top:3px solid #334155; border-radius:10px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="font-size:0.84rem; font-weight:800; color:#cbd5e1;">${escapeHtml(title)}</div>
+            <span class="badge-mini" style="background:rgba(148,163,184,0.14); color:#94a3b8;">NO CELL</span>
+          </div>
+          <div style="font-size:0.72rem; color:#64748b; padding:14px 0; text-align:center;">
+            No active ${escapeHtml(techTag)} serving or neighbor cell detected on primary slot.
+          </div>
+        </div>
+      `;
+    }
+
+    const pciLabel = (techTag === '2G') ? 'BSIC' : 'PCI';
+    const rsrpLabel = (techTag === '2G') ? 'RxLev / RSSI' : (techTag === '5G' ? 'SS-RSRP' : 'RSRP');
+    const sinrLabel = (techTag === '2G') ? 'RXQUAL / SNR' : (techTag === '5G' ? 'SS-SINR' : 'SINR / SNR');
+    const arfcnLabel = (techTag === '5G') ? 'NR-ARFCN' : (techTag === '2G' ? 'ARFCN' : 'EARFCN');
+
+    return `
+      <div style="background:#070d14; border:1px solid ${borderCol}55; border-top:3px solid ${borderCol}; border-radius:10px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
+          <div style="font-size:0.84rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:6px;">
+            <span style="width:9px; height:9px; border-radius:50%; background:${borderCol}; display:inline-block; box-shadow:0 0 8px ${borderCol};"></span>
+            ${escapeHtml(title)}
+            ${showSimultaneousTag ? '<span class="badge-mini purple" style="font-size:0.58rem;">EN-DC 5G+4G</span>' : ''}
+          </div>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <span class="badge-mini" style="background:${borderCol}22; color:${borderCol}; border:1px solid ${borderCol}55;">${escapeHtml(tierInfo.label)}</span>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:#94a3b8; margin-bottom:8px;">
+          <span>Role: <strong style="color:#e2e8f0;">${escapeHtml(roleLabel)}</strong></span>
+          <span>Band: <strong style="color:#38bdf8;">${escapeHtml(node.band || '--')}</strong></span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:6px;">
+          <div style="background:#0b131e; border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px;">
+            <div style="font-size:0.6rem; color:#64748b; text-transform:uppercase;">${pciLabel}</div>
+            <div style="font-size:0.85rem; font-weight:800; color:#f8fafc; font-family:monospace;">${formatTelecomMetricVal(node.pci)}</div>
+          </div>
+          <div style="background:#0b131e; border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px;">
+            <div style="font-size:0.6rem; color:#64748b; text-transform:uppercase;">${rsrpLabel}</div>
+            <div style="font-size:0.85rem; font-weight:800; color:${borderCol}; font-family:monospace;">${formatTelecomMetricVal(node.rsrp, 'dBm')}</div>
+          </div>
+          <div style="background:#0b131e; border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px;">
+            <div style="font-size:0.6rem; color:#64748b; text-transform:uppercase;">${sinrLabel}</div>
+            <div style="font-size:0.85rem; font-weight:800; color:#e2e8f0; font-family:monospace;">${formatTelecomMetricVal(node.sinr, 'dB')}</div>
+          </div>
+          <div style="background:#0b131e; border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px;">
+            <div style="font-size:0.6rem; color:#64748b; text-transform:uppercase;">${arfcnLabel}</div>
+            <div style="font-size:0.85rem; font-weight:800; color:#e2e8f0; font-family:monospace;">${formatTelecomMetricVal(node.earfcn)}</div>
+          </div>
+        </div>
+
+        <div style="margin-top:6px; background:#0b131e; border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 8px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:0.62rem; color:#64748b; text-transform:uppercase;">Cell ID (Decimal)</span>
+          <span style="font-size:0.82rem; font-weight:700; color:#38bdf8; font-family:monospace;">${formatTelecomDecimalCellId(node.cellId)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderTelecomControlPage() {
+    const dev = (currentTargetImei && devicesFleet[currentTargetImei]) ? devicesFleet[currentTargetImei] : null;
+    const grid = document.getElementById('telecomRfCardsGrid');
+    const modeBadge = document.getElementById('telecomPageModeBadge');
+    const privBadge = document.getElementById('telecomPagePrivBadge');
+    const subTitle = document.getElementById('telecomPageSubTitle');
+    const lockSummary = document.getElementById('telecomLockSummaryText');
+    const capBanner = document.getElementById('telecomCapBanner');
+    const rootSec = document.getElementById('telecomRootControlSection');
+    const nonRootSec = document.getElementById('telecomNonRootControlSection');
+
+    if (!dev) {
+      if (modeBadge) modeBadge.textContent = '--';
+      if (privBadge) privBadge.textContent = 'NO DEVICE';
+      if (lockSummary) lockSummary.textContent = 'Lock State: Select a target device';
+      if (grid) {
+        grid.innerHTML = '<div style="grid-column:1/-1; padding:20px; text-align:center; color:#94a3b8; font-size:0.78rem; background:#070d14; border-radius:8px; border:1px dashed rgba(255,255,255,0.1);">Select a device from the fleet bar above to inspect live 2G / 4G / 5G RF KPIs and adaptive Band Lock controls.</div>';
+      }
+      renderTelecomBandCheckboxes();
+      updateTelecomAdbPreview();
+      return;
+    }
+
+    const cap = resolveDeviceCapabilityProfile(dev);
+    const tele = dev.telecom || {};
+    const hw = dev.hardware || {};
+    const feats = dev.features || {};
+    const isRoot = (tele.isRooted !== undefined) ? !!tele.isRooted : !!cap.isRoot;
+    const appMode = cap.appMode || dev.appMode || 'COMMON';
+    const canDirectRoot = isRoot && appMode === 'ROOT_FULL';
+
+    const vendorRaw = String(tele.chipsetVendor || 'Standard Android Modem').trim();
+    const vendor = vendorRaw.toUpperCase();
+    const mfg = String(hw.manufacturer || dev.manufacturer || dev.model || '').toLowerCase();
+    const isMtk = (tele.hasMtkEngineerMode !== undefined)
+      ? (!!tele.hasMtkEngineerMode || vendor.includes('MEDIATEK') || vendor.includes('MTK'))
+      : (vendor.includes('MEDIATEK') || vendor.includes('MTK'));
+    const isSamsung = (tele.hasSamsungServiceMode !== undefined)
+      ? (!!tele.hasSamsungServiceMode || vendor.includes('EXYNOS') || vendor.includes('SAMSUNG') || mfg.includes('samsung'))
+      : (vendor.includes('EXYNOS') || vendor.includes('SAMSUNG') || mfg.includes('samsung'));
+    const hasRadio = (tele.hasRadioInfo !== undefined) ? !!tele.hasRadioInfo : true;
+
+    if (modeBadge) {
+      const activeText = tele.activeMode || (tele.activeGen ? `${tele.activeGen} ACTIVE` : 'RF TELEMETRY READY');
+      modeBadge.textContent = activeText;
+      const tierInfo = getTelecomTierInfo(tele.primaryTier);
+      modeBadge.style.color = tele.primaryTier ? tierInfo.color : '#38bdf8';
+    }
+
+    if (privBadge) {
+      if (canDirectRoot) {
+        privBadge.className = 'badge-mini success';
+        privBadge.textContent = `ROOTED (${vendorRaw}) • DIRECT MODEM LOCK`;
+      } else if (isRoot) {
+        privBadge.className = 'badge-mini warning';
+        privBadge.textContent = `ROOTED (${appMode}) • SAFE MENUS`;
+      } else {
+        privBadge.className = 'badge-mini info';
+        privBadge.textContent = `NON-ROOTED (${vendorRaw})`;
+      }
+    }
+
+    if (subTitle) {
+      const carrierTxt = tele.carrier ? `${tele.carrier}${tele.plmn ? ' (' + tele.plmn + ')' : ''}` : (dev.networkOperator || '--');
+      const bbTxt = tele.baseband || hw.baseband || '--';
+      subTitle.textContent = `Carrier: ${carrierTxt} • Chipset: ${tele.chipsetPlatform || vendorRaw} • Baseband: ${bbTxt} • Slot ${(tele.slotIndex !== undefined ? tele.slotIndex : 0) + 1}`;
+    }
+
+    syncBinaryControlState('telecom_dash_pill', feats.advancedTelecomDashboardEnabled, { on: 'ADVANCED USER (5-TAB)', off: 'NORMAL USER (DEFAULT)' });
+
+    const lp = tele.lockProfile || {};
+    if (lockSummary) {
+      const parts = [];
+      parts.push(`RAT: ${lp.ratMode || 'AUTO'}`);
+      if (lp.lockedBands && String(lp.lockedBands).trim()) parts.push(`Bands: ${lp.lockedBands}`);
+      const pciStr = String(lp.lockedPci !== undefined && lp.lockedPci !== null ? lp.lockedPci : '').trim();
+      const arfcnStr = String(lp.lockedEarfcn !== undefined && lp.lockedEarfcn !== null ? lp.lockedEarfcn : '').trim();
+      if (pciStr && pciStr !== '-1') {
+        parts.push(`PCI: ${pciStr}${arfcnStr ? '@' + arfcnStr : ''}`);
+      }
+      if (lp.backend) parts.push(`Via: ${lp.backend}`);
+      if (lp.lastResult) parts.push(`(${lp.lastResult})`);
+      lockSummary.textContent = (lp.hasActiveLock ? 'Lock Active — ' : 'Unlocked — ') + parts.join(' • ');
+    }
+
+    if (grid) {
+      const endc = !!(tele.nr5g && tele.nr5g.present && tele.lte4g && tele.lte4g.present);
+      grid.innerHTML = [
+        buildTelecomRatCardHtml('5G NR Cell', '5G', tele.nr5g, endc),
+        buildTelecomRatCardHtml('4G LTE Cell', '4G', tele.lte4g, endc),
+        buildTelecomRatCardHtml('2G GSM Cell', '2G', tele.gsm2g, false)
+      ].join('');
+    }
+
+    if (capBanner) {
+      if (appMode === 'POWER_SAVING') {
+        capBanner.style.background = 'rgba(245, 158, 11, 0.1)';
+        capBanner.style.borderColor = 'rgba(245, 158, 11, 0.35)';
+        capBanner.style.color = '#fbbf24';
+        capBanner.innerHTML = `<i class="bi bi-battery-half"></i> <strong>Mode 1 (Power Saving) Active:</strong> You can switch <strong>Normal User</strong> &harr; <strong>Advanced User (5-Tab Nav)</strong> above anytime. Switch App Mode to <strong>2. Common</strong> or <strong>3. Root Full</strong> to stream live 2G/4G/5G RF KPIs.`;
+      } else if (canDirectRoot) {
+        capBanner.style.background = 'rgba(16, 185, 129, 0.1)';
+        capBanner.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+        capBanner.style.color = '#34d399';
+        capBanner.innerHTML = `<i class="bi bi-check-circle-fill"></i> <strong>Rooted Hardware Lock Active (${escapeHtml(vendor)}):</strong> Direct RAT Mode, Multi-Band Bitmask / AT, and PCI + EARFCN locks execute on modem.`;
+      } else if (isRoot) {
+        capBanner.style.background = 'rgba(245, 158, 11, 0.1)';
+        capBanner.style.borderColor = 'rgba(245, 158, 11, 0.35)';
+        capBanner.style.color = '#fbbf24';
+        capBanner.innerHTML = `<i class="bi bi-shield-exclamation"></i> <strong>Rooted Device in ${escapeHtml(appMode)} Mode:</strong> Direct root modem writes require Mode 3 (<code>ROOT_FULL</code>). Switch App Mode to <code>ROOT_FULL</code> in Access Control or use the safe Non-Root controls below.`;
+      } else {
+        capBanner.style.background = 'rgba(56, 189, 248, 0.08)';
+        capBanner.style.borderColor = 'rgba(56, 189, 248, 0.32)';
+        capBanner.style.color = '#93c5fd';
+        capBanner.innerHTML = `<i class="bi bi-phone-fill"></i> <strong>Non-Rooted Device (${escapeHtml(vendor)}):</strong> Root-only NV/AT band &amp; PCI lock controls are hidden. Matched engineering menus (<code>*#*#4636#*#*</code>${isMtk ? ', MTK BandSelect' : ''}${isSamsung ? ', Samsung *#2263#' : ''}) and copyable ADB commands are enabled below.`;
+      }
+    }
+
+    if (rootSec) {
+      rootSec.style.display = canDirectRoot ? '' : 'none';
+    }
+    if (nonRootSec) {
+      nonRootSec.style.display = '';
+    }
+
+    const btnRadio = document.getElementById('btnRemoteRadioInfo');
+    const btnMtk = document.getElementById('btnRemoteMtkMenu');
+    const btnSamsung = document.getElementById('btnRemoteSamsungMenu');
+    if (btnRadio) btnRadio.style.display = hasRadio ? '' : 'none';
+    if (btnMtk) btnMtk.style.display = isMtk ? '' : 'none';
+    if (btnSamsung) btnSamsung.style.display = isSamsung ? '' : 'none';
+
+    renderTelecomBandCheckboxes();
+    updateTelecomAdbPreview();
+  }
+
+  function computeTelecomBandMaskHexJs(bands, group) {
+    if (!bands || bands.length === 0) return '0x0';
+    if (group === '2G GSM') {
+      let mask = 0;
+      bands.forEach(b => {
+        if (b === 900) mask |= 0x0A;
+        else if (b === 1800) mask |= 0x80;
+        else if (b === 850) mask |= 0x10;
+        else if (b === 1900) mask |= 0x20;
+      });
+      return '0x' + (mask === 0 ? 255 : mask).toString(16).toUpperCase().padStart(2, '0');
+    }
+    let maxBand = 0;
+    bands.forEach(b => {
+      const n = Number(b);
+      if (n >= 1 && n <= 512 && n > maxBand) maxBand = n;
+    });
+    if (maxBand <= 0) return '0x0';
+    const byteCount = Math.max(8, Math.floor((maxBand - 1) / 8) + 1);
+    const bytes = new Array(byteCount).fill(0);
+    bands.forEach(b => {
+      const n = Number(b);
+      if (n >= 1 && n <= 512) {
+        const bitIdx = n - 1;
+        bytes[Math.floor(bitIdx / 8)] |= (1 << (bitIdx % 8));
+      }
+    });
+    let hex = '0x';
+    let started = false;
+    for (let i = byteCount - 1; i >= 0; i--) {
+      const val = bytes[i] & 0xFF;
+      if (val !== 0) started = true;
+      if (started || i === 0) {
+        hex += val.toString(16).toUpperCase().padStart(2, '0');
+      }
+    }
+    return hex;
+  }
+
+  function setTelecomBandGroup(group) {
+    if (!TELECOM_BAND_CATALOG[group]) return;
+    selectedTelecomBandGroup = group;
+    selectedTelecomBands = [];
+    const btnLte = document.getElementById('btnTelecomGrpLte');
+    const btnNr = document.getElementById('btnTelecomGrpNr');
+    const btnGsm = document.getElementById('btnTelecomGrpGsm');
+    if (btnLte) btnLte.classList.toggle('active', group === '4G LTE');
+    if (btnNr) btnNr.classList.toggle('active', group === '5G NR');
+    if (btnGsm) btnGsm.classList.toggle('active', group === '2G GSM');
+    renderTelecomBandCheckboxes();
+  }
+
+  function renderTelecomBandCheckboxes() {
+    const container = document.getElementById('telecomBandCheckboxes');
+    const label = document.getElementById('telecomBandMaskLabel');
+    if (!container) return;
+
+    const catalog = TELECOM_BAND_CATALOG[selectedTelecomBandGroup] || [];
+    const prefix = selectedTelecomBandGroup === '5G NR' ? 'n' : (selectedTelecomBandGroup === '4G LTE' ? 'B' : 'GSM ');
+    container.innerHTML = catalog.map(b => {
+      const checked = selectedTelecomBands.includes(b);
+      return `<button type="button" class="btn-ctrl compact ${checked ? 'btn-primary' : 'btn-outline'}" onclick="toggleTelecomBandChip(${b})" style="min-width:58px;">${escapeHtml(prefix + b)}</button>`;
+    }).join('');
+
+    if (label) {
+      const sorted = [...selectedTelecomBands].sort((a, b) => a - b);
+      const selectedTxt = sorted.length ? sorted.map(b => prefix + b).join(', ') : 'None (Auto / All)';
+      const maskHex = computeTelecomBandMaskHexJs(sorted, selectedTelecomBandGroup);
+      label.textContent = `Group: ${selectedTelecomBandGroup} • Selected: ${selectedTxt} • Mask: ${maskHex}`;
+    }
+  }
+
+  function toggleTelecomBandChip(band) {
+    const b = Number(band);
+    if (!Number.isFinite(b)) return;
+    if (selectedTelecomBands.includes(b)) {
+      selectedTelecomBands = selectedTelecomBands.filter(x => x !== b);
+    } else {
+      selectedTelecomBands.push(b);
+    }
+    renderTelecomBandCheckboxes();
+  }
+
+  function clearTelecomBandSelection() {
+    selectedTelecomBands = [];
+    renderTelecomBandCheckboxes();
+  }
+
+  function ensureCanDispatchDirectRootTelecom() {
+    const dev = (currentTargetImei && devicesFleet[currentTargetImei]) ? devicesFleet[currentTargetImei] : null;
+    if (!dev) {
+      alert('Select a target device first.');
+      return false;
+    }
+    const cap = resolveDeviceCapabilityProfile(dev);
+    const tele = dev.telecom || {};
+    const isRoot = (tele.isRooted !== undefined) ? !!tele.isRooted : !!cap.isRoot;
+    const appMode = cap.appMode || dev.appMode || 'COMMON';
+    if (!isRoot || appMode !== 'ROOT_FULL') {
+      const reason = !isRoot
+        ? 'Target device is NON-ROOTED. Use RadioInfo (*#*#4636#*#*), vendor engineering menu, or the ADB Shell command helper below.'
+        : `Device is rooted but running in ${appMode} mode. Switch App Mode to ROOT_FULL before dispatching direct hardware band/PCI locks.`;
+      logTerminal('err', `[TELECOM GUARD] ${reason}`);
+      alert(reason);
+      return false;
+    }
+    return true;
+  }
+
+  function setTelecomRatCommand(mode) {
+    if (!ensureCanDispatchDirectRootTelecom()) return;
+    const dev = devicesFleet[currentTargetImei] || {};
+    const tele = dev.telecom || {};
+    dispatchTargetOrGroupCommand('SET_TELECOM_RAT_MODE', {
+      mode: mode,
+      slotIndex: tele.slotIndex !== undefined ? tele.slotIndex : 0,
+      subId: tele.subId !== undefined ? tele.subId : -1
+    });
+    logTerminal('cmd', `[TELECOM RAT] Locking RAT -> ${mode}`);
+  }
+
+  function applyTelecomBandLockCommand() {
+    if (!ensureCanDispatchDirectRootTelecom()) return;
+    if (!selectedTelecomBands.length) {
+      alert('Select at least one band first, or click Unlock All / Auto Mode to clear band restrictions.');
+      return;
+    }
+    const dev = devicesFleet[currentTargetImei] || {};
+    const tele = dev.telecom || {};
+    const sorted = [...selectedTelecomBands].sort((a, b) => a - b);
+    dispatchTargetOrGroupCommand('SET_TELECOM_BAND_LOCK', {
+      techGroup: selectedTelecomBandGroup,
+      bands: sorted,
+      slotIndex: tele.slotIndex !== undefined ? tele.slotIndex : 0
+    });
+    logTerminal('cmd', `[TELECOM BAND LOCK] ${selectedTelecomBandGroup} -> [${sorted.join(', ')}]`);
+  }
+
+  function applyTelecomPciLockCommand() {
+    if (!ensureCanDispatchDirectRootTelecom()) return;
+    const earfcnEl = document.getElementById('inpTelecomEarfcn');
+    const pciEl = document.getElementById('inpTelecomPci');
+    const earfcn = earfcnEl ? parseInt(earfcnEl.value, 10) : NaN;
+    const pci = pciEl ? parseInt(pciEl.value, 10) : NaN;
+    if (!Number.isFinite(earfcn) || earfcn < 0 || !Number.isFinite(pci) || pci < 0) {
+      alert('Enter valid non-negative numeric EARFCN / NR-ARFCN and PCI values.');
+      return;
+    }
+    const techGroup = (selectedTelecomBandGroup === '5G NR') ? '5G NR' : '4G LTE';
+    dispatchTargetOrGroupCommand('SET_TELECOM_PCI_LOCK', {
+      techGroup: techGroup,
+      earfcn: earfcn,
+      pci: pci
+    });
+    logTerminal('cmd', `[TELECOM PCI LOCK] ${techGroup} PCI=${pci}, ARFCN=${earfcn}`);
+  }
+
+  function unlockTelecomAllCommand() {
+    const dev = (currentTargetImei && devicesFleet[currentTargetImei]) ? devicesFleet[currentTargetImei] : null;
+    if (!dev) {
+      alert('Select a target device first.');
+      return;
+    }
+    const cap = resolveDeviceCapabilityProfile(dev);
+    const tele = dev.telecom || {};
+    const isRoot = (tele.isRooted !== undefined) ? !!tele.isRooted : !!cap.isRoot;
+    const appMode = cap.appMode || dev.appMode || 'COMMON';
+    if (isRoot && appMode === 'ROOT_FULL') {
+      dispatchTargetOrGroupCommand('UNLOCK_TELECOM_BANDS', {
+        slotIndex: tele.slotIndex !== undefined ? tele.slotIndex : 0,
+        subId: tele.subId !== undefined ? tele.subId : -1
+      });
+      logTerminal('cmd', `[TELECOM UNLOCK] Restoring Auto Mode & clearing Band/PCI locks`);
+      return;
+    }
+    const adbSel = document.getElementById('selTelecomAdbRat');
+    if (adbSel) adbSel.value = 'AUTO';
+    updateTelecomAdbPreview();
+    logTerminal('info', `[TELECOM NON-ROOT UNLOCK] Device is non-rooted or not in ROOT_FULL. Prepared AUTO ADB command; opening RadioInfo / Network menu or run ADB.`);
+    if (confirm('This device is Non-Rooted (or not in ROOT_FULL). Open device RadioInfo (*#*#4636#*#*) to switch Preferred Network Type back to Auto?')) {
+      openTelecomMenuCommand('RADIO_INFO');
+    }
+  }
+
+  function openTelecomMenuCommand(menu) {
+    if (!currentTargetImei) {
+      alert('Select a target device first.');
+      return;
+    }
+    publishRemoteCommand('OPEN_TELECOM_MENU', { menu: menu });
+    logTerminal('cmd', `[TELECOM MENU] Requesting device launch: ${menu}`);
+  }
+
+  function updateTelecomAdbPreview() {
+    const sel = document.getElementById('selTelecomAdbRat');
+    const lbl = document.getElementById('lblTelecomAdbCmd');
+    if (!lbl) return;
+    const rat = sel ? sel.value : 'AUTO';
+    const dev = (currentTargetImei && devicesFleet[currentTargetImei]) ? devicesFleet[currentTargetImei] : {};
+    const tele = dev.telecom || {};
+    const hw = dev.hardware || {};
+    const sdkInt = Number(hw.sdkInt || tele.sdkInt || 33);
+    const slot = Math.max(0, Number(tele.slotIndex !== undefined ? tele.slotIndex : 0));
+
+    let cmd = '';
+    if (sdkInt >= 31) {
+      const bitmasks = {
+        AUTO: '11111111111111111111',
+        NR_SA_ONLY: '10000000000000000000',
+        NR_LTE: '11000001000000000000',
+        LTE_ONLY: '01000001000000000000',
+        WCDMA_ONLY: '00000000000000001110',
+        GSM_ONLY: '00000000000000000011'
+      };
+      cmd = `adb shell cmd phone set-allowed-network-types-for-users -s ${slot} ${bitmasks[rat] || bitmasks.AUTO}`;
+    } else {
+      const legacyModes = {
+        AUTO: sdkInt >= 29 ? 33 : 9,
+        NR_SA_ONLY: 23,
+        NR_LTE: 26,
+        LTE_ONLY: 11,
+        WCDMA_ONLY: 2,
+        GSM_ONLY: 1
+      };
+      const legacyMode = (legacyModes[rat] !== undefined) ? legacyModes[rat] : 33;
+      cmd = `adb shell settings put global preferred_network_mode ${legacyMode}`;
+    }
+    lbl.textContent = cmd;
+  }
+
+  function copyTelecomAdbCmd() {
+    const lbl = document.getElementById('lblTelecomAdbCmd');
+    const cmd = lbl ? lbl.textContent.trim() : '';
+    if (!cmd) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(cmd).then(() => {
+        logTerminal('sys', `[CLIPBOARD] Copied ADB command: ${cmd}`);
+      }).catch(() => {
+        prompt('Copy ADB command:', cmd);
+      });
+    } else {
+      prompt('Copy ADB command:', cmd);
+    }
   }
 
   // ==========================================
