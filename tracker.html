@@ -6555,13 +6555,13 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v4.3.9)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v4.3.11)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_4.3.9.apk" target="_blank" download="simtool_4.3.9.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-download"></i> Download simtool_4.3.9.apk (v4.3.9 Release)
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_4.3.11.apk" target="_blank" download="simtool_4.3.11.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_4.3.11.apk (v4.3.11 Release)
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
@@ -7471,7 +7471,7 @@
     } else if (op === 'SILENT') {
       publishRemoteCommand('SILENCE_CALL', { ringerMode: 'SILENT' }, imei);
       if (dev && Number(dev.buildNumber || 0) > 0 && Number(dev.buildNumber || 0) < 53) {
-        publishRemoteCommand('APPLY_DEVICE_SETTING', { key: 'RINGER_MODE', mode: 'SILENT', locked: false }, imei);
+        publishRemoteCommand('SET_DEVICE_SETTING', { setting: 'RINGER_MODE', mode: 'SILENT', locked: false }, imei);
       }
       setFeed('Silent command sent -> muting incoming ringer...', '#fbbf24');
     }
@@ -8506,7 +8506,7 @@
     if (!dev) return 'POWER_SAVING';
     const raw = String(dev.appMode || (dev.features && dev.features.appMode) || '').toUpperCase();
     if (raw === 'POWER_SAVING' || raw === 'COMMON' || raw === 'ROOT_FULL') {
-      if (raw === 'ROOT_FULL' && !dev.isRooted) return 'POWER_SAVING';
+      if (raw === 'ROOT_FULL' && !dev.isRooted) return (dev.isDeviceOwner || dev.isDeviceAdmin) ? 'COMMON' : 'POWER_SAVING';
       return raw;
     }
     return dev.isRooted ? 'ROOT_FULL' : 'COMMON';
@@ -9619,8 +9619,8 @@
     if (data.appMode) dev.appMode = data.appMode;
     else if (data.features && data.features.appMode) dev.appMode = data.features.appMode;
     if (data.operationMode) dev.operationMode = data.operationMode;
-    if (data.mdm) dev.mdm = data.mdm;
-    if (data.features) dev.features = data.features;
+    if (data.mdm) dev.mdm = Object.assign({}, dev.mdm || {}, data.mdm);
+    if (data.features) dev.features = Object.assign({}, dev.features || {}, data.features);
     if (data.hardware) dev.hardware = Object.assign({}, dev.hardware, data.hardware);
     if (data.telecom) dev.telecom = data.telecom;
     if (Array.isArray(data.blockedFirewallUids)) dev.blockedFirewallUids = data.blockedFirewallUids;
@@ -9767,9 +9767,11 @@
   }
 
   function handleStatusMessage(imei, data) {
-    if (data.isDeviceOwner !== undefined || data.uninstallBlocked !== undefined) {
+    if (data.isDeviceOwner !== undefined || data.uninstallBlocked !== undefined || data.isDeviceAdmin !== undefined || data.isRooted !== undefined || data.operationMode !== undefined || data.appMode !== undefined) {
       handleConfigMessage(imei, data);
-      return;
+      if (data.status === undefined && data.online === undefined) {
+        return;
+      }
     }
     if (!devicesFleet[imei]) {
       devicesFleet[imei] = {
@@ -9819,13 +9821,55 @@
   /** Apply ACK confirmation payloads directly into device state so UI flips cleanly on every change. */
   function applyAckToDeviceState(dev, action, status, msg, data, isSuccess) {
     ensureDeviceChannels(dev);
-    const isOwner = data.isDeviceOwner !== undefined ? data.isDeviceOwner : null;
-    if (isOwner !== null) dev.isDeviceOwner = isOwner;
+    if (!dev.mdm || typeof dev.mdm !== 'object') dev.mdm = {};
+    if (data.deviceName && (!dev.deviceName || dev.deviceName.indexOf('Asset ') === 0)) {
+      dev.deviceName = data.deviceName;
+    }
+    if (data.tagName !== undefined) dev.tagName = data.tagName;
+    const isOwner = data.isDeviceOwner !== undefined ? !!data.isDeviceOwner : null;
+    if (isOwner !== null) {
+      dev.isDeviceOwner = isOwner;
+      dev.mdm.isDeviceOwner = isOwner;
+    }
+    if (data.isDeviceAdmin !== undefined) {
+      dev.isDeviceAdmin = !!data.isDeviceAdmin;
+      dev.mdm.isDeviceAdmin = !!data.isDeviceAdmin;
+    }
+    if (data.isRooted !== undefined) {
+      dev.isRooted = !!data.isRooted;
+      dev.mdm.isRooted = !!data.isRooted;
+    }
+    if (data.operationMode) {
+      dev.operationMode = data.operationMode;
+    }
+    if (data.appMode) {
+      dev.appMode = data.appMode;
+      if (!dev.features || typeof dev.features !== 'object') dev.features = {};
+      dev.features.appMode = data.appMode;
+    }
 
     if (action === 'BLOCK_UNINSTALL' || status === 'UNINSTALL_BLOCKED') {
-      if (isSuccess) dev.uninstallBlocked = dev.mdm.restrictions.uninstallBlocked = true;
+      if (isSuccess) {
+        const uPkg = data.package || (String(msg).startsWith('UNINSTALL_BLOCKED_') ? String(msg).slice('UNINSTALL_BLOCKED_'.length) : '');
+        if (!uPkg || uPkg === 'com.simtool') {
+          dev.uninstallBlocked = dev.mdm.restrictions.uninstallBlocked = true;
+        }
+        if (uPkg && Array.isArray(cachedInstalledApps)) {
+          const hit = cachedInstalledApps.find(a => a.packageName === uPkg);
+          if (hit) { hit.uninstallBlocked = true; if (dev.imei === currentTargetImei && typeof renderInstalledAppsTable === 'function') renderInstalledAppsTable(); }
+        }
+      }
     } else if (action === 'UNBLOCK_UNINSTALL' || status === 'UNINSTALL_UNBLOCKED') {
-      if (isSuccess) dev.uninstallBlocked = dev.mdm.restrictions.uninstallBlocked = false;
+      if (isSuccess) {
+        const uPkg = data.package || (String(msg).startsWith('UNINSTALL_UNBLOCKED_') ? String(msg).slice('UNINSTALL_UNBLOCKED_'.length) : '');
+        if (!uPkg || uPkg === 'com.simtool') {
+          dev.uninstallBlocked = dev.mdm.restrictions.uninstallBlocked = false;
+        }
+        if (uPkg && Array.isArray(cachedInstalledApps)) {
+          const hit = cachedInstalledApps.find(a => a.packageName === uPkg);
+          if (hit) { hit.uninstallBlocked = false; if (dev.imei === currentTargetImei && typeof renderInstalledAppsTable === 'function') renderInstalledAppsTable(); }
+        }
+      }
     } else if (action === 'BLOCK_FACTORY_RESET' || status === 'RESET_AND_SAFE_BOOT_BLOCKED') {
       if (isSuccess) dev.factoryResetBlocked = dev.mdm.restrictions.factoryResetBlocked = true;
     } else if (action === 'UNBLOCK_FACTORY_RESET') {
@@ -9849,24 +9893,24 @@
       dev.factoryResetBlocked = dev.mdm.restrictions.factoryResetBlocked = false;
       dev.gpsLockedOn = dev.mdm.restrictions.gpsLockedOn = false;
     } else if (action === 'GET_VERSION_INFO' || action === 'CHECK_APP_VERSION' || action === 'CHECK_OTA_UPDATE' || action === 'CHECK_OTA' || action === 'GET_OTA_STATUS' || action === 'SET_OTA_MANIFEST_URL') {
-      if (ack.appVersion) dev.appVersion = ack.appVersion;
-      if (ack.currentVersionName) dev.appVersion = ack.currentVersionName;
-      if (ack.buildNumber !== undefined) dev.buildNumber = Number(ack.buildNumber);
-      if (ack.currentVersionCode !== undefined) dev.buildNumber = Number(ack.currentVersionCode);
-      if (ack.canSilentUpdate !== undefined) dev.canSilentUpdate = !!ack.canSilentUpdate;
-      if (ack.canDowngradeNative !== undefined) dev.canDowngradeNative = !!ack.canDowngradeNative;
-      if (ack.availableVersionCode !== undefined) dev.otaAvailableVersionCode = Number(ack.availableVersionCode);
-      if (ack.availableVersionName !== undefined) dev.otaAvailableVersionName = ack.availableVersionName;
-      if (ack.apkUrl) dev.otaAvailableApkUrl = ack.apkUrl;
-      if (ack.idsigUrl) dev.otaAvailableIdsigUrl = ack.idsigUrl;
-      if (ack.direction) dev.otaUpdateDirection = ack.direction;
-      if (ack.updateAvailable !== undefined) dev.otaUpdateAvailable = !!ack.updateAvailable;
-      if (ack.idsigAvailable !== undefined) dev.otaIdsigAvailable = !!ack.idsigAvailable;
-      if (ack.error !== undefined) dev.otaLastError = ack.error;
+      if (data.appVersion) dev.appVersion = data.appVersion;
+      if (data.currentVersionName) dev.appVersion = data.currentVersionName;
+      if (data.buildNumber !== undefined) dev.buildNumber = Number(data.buildNumber);
+      if (data.currentVersionCode !== undefined) dev.buildNumber = Number(data.currentVersionCode);
+      if (data.canSilentUpdate !== undefined) dev.canSilentUpdate = !!data.canSilentUpdate;
+      if (data.canDowngradeNative !== undefined) dev.canDowngradeNative = !!data.canDowngradeNative;
+      if (data.availableVersionCode !== undefined) dev.otaAvailableVersionCode = Number(data.availableVersionCode);
+      if (data.availableVersionName !== undefined) dev.otaAvailableVersionName = data.availableVersionName;
+      if (data.apkUrl) dev.otaAvailableApkUrl = data.apkUrl;
+      if (data.idsigUrl) dev.otaAvailableIdsigUrl = data.idsigUrl;
+      if (data.direction) dev.otaUpdateDirection = data.direction;
+      if (data.updateAvailable !== undefined) dev.otaUpdateAvailable = !!data.updateAvailable;
+      if (data.idsigAvailable !== undefined) dev.otaIdsigAvailable = !!data.idsigAvailable;
+      if (data.error !== undefined) dev.otaLastError = data.error;
       if (typeof renderVersionControlPanel === 'function') renderVersionControlPanel();
     } else if (action === 'OTA_UPDATE_NOW' || action === 'SELF_UPDATE' || action === 'UPGRADE_APP' || action === 'DOWNGRADE_APP' || action === 'ROLLBACK_APP') {
-      if (ack.appVersion) dev.appVersion = ack.appVersion;
-      if (ack.buildNumber !== undefined) dev.buildNumber = Number(ack.buildNumber);
+      if (data.appVersion) dev.appVersion = data.appVersion;
+      if (data.buildNumber !== undefined) dev.buildNumber = Number(data.buildNumber);
       if (typeof renderVersionControlPanel === 'function') renderVersionControlPanel();
     } else if ((action === 'CLEAR_DEVICE_OWNER' || action === 'RELEASE_DEVICE_OWNER' || action === 'UNPROVISION_DPC') && isSuccess) {
       dev.isDeviceOwner = false;
@@ -9906,10 +9950,17 @@
       if (!dev.mdm) dev.mdm = {};
       if (data.isDeviceOwner !== undefined) dev.mdm.isDeviceOwner = !!data.isDeviceOwner;
       if (data.isDeviceAdmin !== undefined) dev.mdm.isDeviceAdmin = !!data.isDeviceAdmin;
-    } else if (action === 'SET_LOCK_SCREEN_MESSAGE' && isSuccess) {
-      dev.isLockScreenMessageActive = true;
-    } else if (action === 'CLEAR_LOCK_SCREEN_MESSAGE' && isSuccess) {
+    } else if ((action === 'SET_LOCK_SCREEN_MESSAGE' || action === 'REMOTE_LOCK' || action === 'ADMIN_LOCK' || action === 'LOCK_SCREEN_MESSAGE' || action === 'UPDATE_LOCK_SCREEN') && isSuccess) {
+      dev.isLockScreenMessageActive = data.lockScreenActive !== undefined ? !!data.lockScreenActive : true;
+      if (data.lockScreenMessage !== undefined) dev.lockScreenMessage = data.lockScreenMessage;
+      if (data.remoteLockMode !== undefined) dev.remoteLockMode = !!data.remoteLockMode;
+      else if (action === 'REMOTE_LOCK' || action === 'ADMIN_LOCK' || String(msg).startsWith('REMOTE_LOCKED')) dev.remoteLockMode = true;
+      if (data.remoteLockHasPassword !== undefined) dev.remoteLockHasPassword = !!data.remoteLockHasPassword;
+      else if (String(msg) === 'REMOTE_LOCKED_WITH_PWD') dev.remoteLockHasPassword = true;
+    } else if ((action === 'CLEAR_LOCK_SCREEN_MESSAGE' || action === 'REMOVE_LOCK_SCREEN_MESSAGE' || action === 'REMOTE_UNLOCK') && isSuccess) {
       dev.isLockScreenMessageActive = false;
+      dev.remoteLockMode = false;
+      dev.remoteLockHasPassword = false;
       dev.lockScreenMessage = '';
     } else if (action === 'TRIGGER_ALARM' || String(status).startsWith('ALARM_ACTIVE')) {
       dev.sirenActive = true;
@@ -10026,14 +10077,17 @@
     } else if (action === 'SET_CAMERA_DISABLED' && isSuccess) {
       const val = data.disabled !== undefined ? !!data.disabled : String(msg).includes('DISABLED');
       dev.cameraDisabled = dev.mdm.restrictions.cameraDisabled = val;
+      dev.hardware.hardwareCameraEnabled = !val;
     } else if (action === 'SET_SCREEN_CAPTURE_DISABLED' && isSuccess) {
-      dev.mdm.restrictions.screenCaptureBlocked = data.disabled !== undefined ? !!data.disabled : String(msg).includes('DISABLED');
+      dev.mdm.restrictions.screenCaptureBlocked = data.disabled !== undefined ? !!data.disabled : (!String(msg).includes('ENABLED') && String(msg).includes('DISABLED'));
     } else if (action === 'SET_STATUS_BAR_DISABLED' && isSuccess) {
-      dev.mdm.restrictions.statusBarDisabled = data.disabled !== undefined ? !!data.disabled : String(msg).includes('true');
+      dev.mdm.restrictions.statusBarDisabled = data.disabled !== undefined ? !!data.disabled : (!String(msg).includes('ENABLED') && (String(msg).includes('DISABLED') || String(msg).includes('true')));
     } else if (action === 'SET_MASTER_VOLUME_MUTED' && isSuccess) {
-      dev.mdm.restrictions.masterVolumeMuted = data.muted !== undefined ? !!data.muted : String(msg).includes('true');
+      const mVal = data.muted !== undefined ? !!data.muted : (!String(msg).includes('UNMUTED') && (String(msg).includes('MUTED') || String(msg).includes('true')));
+      dev.mdm.restrictions.masterVolumeMuted = mVal;
+      dev.hardware.masterVolumeMuted = mVal;
     } else if (action === 'SET_USER_CONTROL_DISABLED' && isSuccess) {
-      dev.mdm.restrictions.userControlDisabled = data.disabled !== undefined ? !!data.disabled : String(msg).includes('true');
+      dev.mdm.restrictions.userControlDisabled = data.disabled !== undefined ? !!data.disabled : (!String(msg).includes('UNLOCKED') && (String(msg).includes('LOCKED') || String(msg).includes('DISABLED') || String(msg).includes('true')));
     } else if (action === 'SET_KEYGUARD_FEATURE' && isSuccess) {
       if (data.keyguardDisabledMask !== undefined) {
         dev.mdm.keyguardDisabledMask = data.keyguardDisabledMask;
@@ -10046,20 +10100,81 @@
         }
       }
     } else if (action === 'SET_KIOSK_MODE' && isSuccess) {
-      dev.mdm.kioskActive = data.enabled !== undefined ? !!data.enabled : String(msg).includes('ACTIVE');
+      dev.mdm.kioskActive = data.enabled !== undefined ? !!data.enabled : (String(msg).includes('ENABLED') || String(msg).includes('ACTIVE'));
     } else if (action === 'SET_PERMISSION_POLICY' && isSuccess) {
       dev.mdm.permissionPolicy = data.policy || msg;
-    } else if (action === 'SET_PERMISSION' && isSuccess && data.permission && data.state) {
+    } else if (action === 'SET_PERMISSION' && isSuccess) {
       if (!dev.mdm.permissions) dev.mdm.permissions = {};
-      dev.mdm.permissions[data.permission] = data.state;
+      let pKey = data.permission || '';
+      let pState = data.state || '';
+      let pPkg = data.package || '';
+      if ((!pKey || !pState) && String(msg).includes(':')) {
+        const colonIdx = String(msg).indexOf(':');
+        pPkg = pPkg || String(msg).slice(0, colonIdx);
+        const restStr = String(msg).slice(colonIdx + 1);
+        const uIdx = restStr.lastIndexOf('_');
+        if (uIdx > 0) {
+          pKey = pKey || restStr.slice(0, uIdx);
+          pState = pState || restStr.slice(uIdx + 1);
+        }
+      }
+      if (pKey && pState) {
+        if (!pPkg || pPkg === 'com.simtool') {
+          dev.mdm.permissions[pKey] = pState;
+        }
+        if (dev.imei === currentTargetImei && (!pPkg || getPermTargetPackage() === pPkg) && typeof updatePermissionMatrixBadges === 'function') {
+          const badgeMap = {};
+          badgeMap[pKey] = pState;
+          updatePermissionMatrixBadges(badgeMap, pPkg || getPermTargetPackage());
+        }
+      }
+    } else if ((action === 'GRANT_PERMISSIONS' || action === 'AUTO_GRANT_PERMS') && isSuccess) {
+      if (data.permissions && typeof data.permissions === 'object') {
+        dev.mdm.permissions = Object.assign({}, dev.mdm.permissions || {}, data.permissions);
+        if (dev.imei === currentTargetImei && getPermTargetPackage() === 'com.simtool' && typeof updatePermissionMatrixBadges === 'function') {
+          updatePermissionMatrixBadges(dev.mdm.permissions, 'com.simtool');
+        }
+      }
+    } else if (action === 'SUSPEND_PACKAGE' && isSuccess) {
+      const sPkg = data.package || '';
+      const sVal = data.suspended !== undefined ? !!data.suspended : (!String(msg).includes('UNSUSPENDED') && String(msg).includes('SUSPENDED'));
+      if (sPkg && Array.isArray(cachedInstalledApps)) {
+        const hit = cachedInstalledApps.find(a => a.packageName === sPkg);
+        if (hit) { hit.suspended = sVal; if (dev.imei === currentTargetImei && typeof renderInstalledAppsTable === 'function') renderInstalledAppsTable(); }
+      }
+    } else if (action === 'HIDE_PACKAGE' && isSuccess) {
+      const hPkg = data.package || '';
+      const hVal = data.hidden !== undefined ? !!data.hidden : String(msg).includes('_HIDDEN');
+      if (hPkg && Array.isArray(cachedInstalledApps)) {
+        const hit = cachedInstalledApps.find(a => a.packageName === hPkg);
+        if (hit) { hit.hidden = hVal; if (dev.imei === currentTargetImei && typeof renderInstalledAppsTable === 'function') renderInstalledAppsTable(); }
+      }
+    } else if (action === 'ROOT_DISPLAY_AUDIO' && isSuccess) {
+      const sub = String(data.subAction || msg || '').toUpperCase();
+      if (sub === 'BRIGHTNESS') {
+        if (data.level !== undefined) dev.hardware.screenBrightness = Number(data.level);
+        if (data.auto !== undefined) dev.hardware.brightnessAuto = !!data.auto;
+      } else if (sub === 'TIMEOUT' && data.timeoutMs !== undefined) {
+        dev.hardware.screenTimeoutMs = Number(data.timeoutMs);
+      } else if (sub === 'ROTATION_LOCK' && data.locked !== undefined) {
+        dev.hardware.rotationLocked = !!data.locked;
+        dev.hardware.autoRotateOn = !data.locked;
+      } else if (sub === 'RINGER_MODE' && data.mode) {
+        dev.hardware.ringerMode = String(data.mode).toUpperCase();
+      } else if (sub === 'STREAM_VOLUME' && data.percent !== undefined) {
+        const st = Number(data.streamType);
+        if (st === 3) dev.hardware.mediaVolumePct = Number(data.percent);
+        else if (st === 2) dev.hardware.ringVolumePct = Number(data.percent);
+        else if (st === 4) dev.hardware.alarmVolumePct = Number(data.percent);
+      }
     } else if (action === 'ROOT_RADIO_CONTROL' && isSuccess) {
       const txt = `${data.radio || ''}_${data.state !== undefined ? (data.state ? 'ON' : 'OFF') : ''}` || String(msg);
       const upper = (String(msg) || txt).toUpperCase();
       ROOT_RADIO_DEFS.forEach(r => {
-        if (upper.startsWith(r.radio + '_')) {
-          dev.hardware[r.hwKey] = upper.endsWith('_ON') || upper.endsWith('_TRUE');
-        } else if (data.radio === r.radio && data.state !== undefined) {
+        if (data.radio === r.radio && data.state !== undefined) {
           dev.hardware[r.hwKey] = !!data.state;
+        } else if (upper.startsWith(r.radio + '_')) {
+          dev.hardware[r.hwKey] = upper.endsWith('_ON') || upper.endsWith('_TRUE');
         }
       });
     } else if (action === 'ROOT_FIREWALL' && isSuccess) {
@@ -10083,10 +10198,22 @@
         dev.telecom.lockProfile.hasActiveLock = false;
         dev.telecom.lockProfile.ratMode = 'AUTO';
         dev.telecom.lockProfile.lockedBands = '';
+        dev.telecom.lockProfile.lockedEarfcn = '';
         dev.telecom.lockProfile.lockedPci = '';
-      } else if (data.ratMode) {
-        dev.telecom.lockProfile.ratMode = data.ratMode;
-        dev.telecom.lockProfile.hasActiveLock = data.ratMode !== 'AUTO';
+      } else {
+        if (data.ratMode) {
+          dev.telecom.lockProfile.ratMode = data.ratMode;
+          dev.telecom.lockProfile.hasActiveLock = data.ratMode !== 'AUTO';
+        }
+        if (action === 'SET_TELECOM_BAND_LOCK') {
+          dev.telecom.lockProfile.hasActiveLock = true;
+          if (data.lockedBands !== undefined) dev.telecom.lockProfile.lockedBands = data.lockedBands;
+        }
+        if (action === 'SET_TELECOM_PCI_LOCK') {
+          dev.telecom.lockProfile.hasActiveLock = true;
+          if (data.lockedEarfcn !== undefined) dev.telecom.lockProfile.lockedEarfcn = data.lockedEarfcn;
+          if (data.lockedPci !== undefined) dev.telecom.lockProfile.lockedPci = data.lockedPci;
+        }
       }
       if (data.message) dev.telecom.lockProfile.lastResult = data.message;
       if (activeRailPage === 'telecom' && typeof renderTelecomControlPage === 'function') {
@@ -10355,7 +10482,11 @@
       recordCommsAckBanner(action, isSuccess, msg || status, data);
     }
 
-    applyAckToDeviceState(dev, action, status, msg, data, isSuccess);
+    try {
+      applyAckToDeviceState(dev, action, status, msg, data, isSuccess);
+    } catch (ackApplyErr) {
+      console.warn('[ACK APPLY WARN]', action, ackApplyErr);
+    }
     syncDashboardStateUi(imei, null);
     if (activeRailPage === 'info' && typeof renderInfoPage === 'function') {
       renderInfoPage();
@@ -10446,15 +10577,46 @@
     const ver = data.appVersion ? ` (v${data.appVersion})` : '';
     logTerminal('sys', `[CONFIG] [Device: ${imei}] App: '${data.appName}'${ver} | Fix Interval: ${data.intervalSeconds}s | Auto-Reconnect: ${reconn}s | MDM Owner: ${data.isDeviceOwner}`);
 
+    if (!devicesFleet[imei]) {
+      devicesFleet[imei] = { imei: imei, deviceName: data.deviceName || ('Asset ' + imei.slice(-4)) };
+    }
     if (devicesFleet[imei]) {
-      devicesFleet[imei].config = data;
-      if (data.uninstallBlocked !== undefined) devicesFleet[imei].uninstallBlocked = !!data.uninstallBlocked;
-      if (data.factoryResetBlocked !== undefined) devicesFleet[imei].factoryResetBlocked = !!data.factoryResetBlocked;
-      if (data.gpsLockedOn !== undefined) devicesFleet[imei].gpsLockedOn = !!data.gpsLockedOn;
-      if (data.isDeviceOwner !== undefined) devicesFleet[imei].isDeviceOwner = !!data.isDeviceOwner;
+      const fDev = devicesFleet[imei];
+      ensureDeviceChannels(fDev);
+      if (!fDev.mdm || typeof fDev.mdm !== 'object') fDev.mdm = {};
+      fDev.config = data;
+      if (data.deviceName && (!fDev.deviceName || fDev.deviceName.indexOf('Asset ') === 0)) fDev.deviceName = data.deviceName;
+      if (data.tagName !== undefined) fDev.tagName = data.tagName;
+      if (data.uninstallBlocked !== undefined) fDev.uninstallBlocked = !!data.uninstallBlocked;
+      if (data.factoryResetBlocked !== undefined) fDev.factoryResetBlocked = !!data.factoryResetBlocked;
+      if (data.gpsLockedOn !== undefined) fDev.gpsLockedOn = !!data.gpsLockedOn;
+      if (data.adbBlocked !== undefined) fDev.adbBlocked = !!data.adbBlocked;
+      if (data.cameraDisabled !== undefined) fDev.cameraDisabled = !!data.cameraDisabled;
+      if (data.isDeviceOwner !== undefined) {
+        fDev.isDeviceOwner = !!data.isDeviceOwner;
+        fDev.mdm.isDeviceOwner = !!data.isDeviceOwner;
+      }
+      if (data.isDeviceAdmin !== undefined) {
+        fDev.isDeviceAdmin = !!data.isDeviceAdmin;
+        fDev.mdm.isDeviceAdmin = !!data.isDeviceAdmin;
+      }
+      if (data.isRooted !== undefined) {
+        fDev.isRooted = !!data.isRooted;
+        fDev.mdm.isRooted = !!data.isRooted;
+      }
+      if (data.operationMode) fDev.operationMode = data.operationMode;
+      if (data.appMode) {
+        fDev.appMode = data.appMode;
+        if (!fDev.features || typeof fDev.features !== 'object') fDev.features = {};
+        fDev.features.appMode = data.appMode;
+      }
       if (data.lockScreenMessage !== undefined) {
-        devicesFleet[imei].lockScreenMessage = data.lockScreenMessage;
-        devicesFleet[imei].isLockScreenMessageActive = !!data.isLockScreenMessageActive;
+        fDev.lockScreenMessage = data.lockScreenMessage;
+        fDev.isLockScreenMessageActive = !!data.isLockScreenMessageActive;
+      }
+      if (typeof renderFleetSidebar === 'function') renderFleetSidebar();
+      if (imei === currentTargetImei && typeof syncDashboardStateUi === 'function') {
+        syncDashboardStateUi(imei, null);
       }
     }
 
