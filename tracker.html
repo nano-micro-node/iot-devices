@@ -2987,7 +2987,7 @@
     }
     .right-sidebar-tabs {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       background: #0d151b;
       border-bottom: 1px solid var(--border-color);
       flex-shrink: 0;
@@ -2997,8 +2997,8 @@
       border: none;
       border-bottom: 2px solid transparent;
       color: var(--text-muted);
-      padding: 8px 4px;
-      font-size: 0.67rem;
+      padding: 8px 2px;
+      font-size: 0.63rem;
       font-weight: 700;
       cursor: pointer;
       display: flex;
@@ -3006,12 +3006,41 @@
       align-items: center;
       gap: 2px;
       transition: all 0.16s;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .right-tab-btn.active {
       color: var(--accent-blue);
       border-bottom-color: var(--accent-blue);
       background: rgba(56, 189, 248, 0.08);
     }
+    .history-entry-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-left: 3px solid var(--accent-blue);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 0.71rem;
+      transition: all 0.15s ease;
+    }
+    .history-entry-card.has-coords {
+      cursor: pointer;
+    }
+    .history-entry-card.has-coords:hover {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+    }
+    .history-entry-card.cat-LOCATION { border-left-color: #10b981; }
+    .history-entry-card.cat-EVENT { border-left-color: #f59e0b; }
+    .history-entry-card.cat-STATUS { border-left-color: #a855f7; }
+    .history-entry-card.cat-COMMAND { border-left-color: #38bdf8; }
+    .history-entry-card.cat-ACK { border-left-color: #34d399; }
+    .history-entry-card.cat-CONNECT { border-left-color: #22d3ee; }
     .right-sidebar-body {
       flex: 1;
       overflow-y: auto;
@@ -4112,6 +4141,12 @@
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:4px;">
+            <button type="button" class="btn-ctrl btn-outline compact" id="btnShowActiveHistoryLeft" onclick="openDeviceHistory(currentTargetImei)" title="Show selected device IndexedDB history" style="padding:3px 7px; font-size:0.65rem; border-color:rgba(56,189,248,0.4); color:#38bdf8;">
+              <i class="bi bi-clock-history"></i> Hist
+            </button>
+            <button type="button" class="btn-ctrl btn-danger-outline compact" id="btnDeleteAllIdbData" onclick="deleteAllIndexedDbData()" title="Delete ALL saved IndexedDB device history &amp; cached data" style="padding:3px 7px; font-size:0.65rem;">
+              <i class="bi bi-database-x"></i> Del All
+            </button>
             <button type="button" class="btn-ctrl btn-danger compact" id="btnPurgeOffline" onclick="purgeAllOfflineDevices()" title="Purge offline devices (&gt;3m) from MQTT" style="padding:3px 7px; font-size:0.65rem;">
               <i class="bi bi-trash"></i> (<span id="fleetOfflineCount">0</span>)
             </button>
@@ -6072,6 +6107,9 @@
                 <button type="button" class="hud-mini-btn" onclick="promptSetDeviceTag(currentTargetImei)" title="Edit Device Tag">
                   <i class="bi bi-pencil-fill"></i>
                 </button>
+                <button type="button" class="hud-mini-btn" id="btnHudDeviceHistory" onclick="openDeviceHistory(currentTargetImei)" title="Show saved device history (IndexedDB)" style="gap:3px; padding:2px 7px; color:#38bdf8; border-color:rgba(56,189,248,0.35);">
+                  <i class="bi bi-clock-history"></i> <span id="fullMapHistoryCount">0</span>
+                </button>
               </div>
             </div>
             <div style="min-width:0;">
@@ -6245,13 +6283,16 @@
         <button type="button" class="btn-ctrl compact" style="background:rgba(16,185,129,0.16); border:1px solid rgba(16,185,129,0.4); color:#34d399; font-weight:700; flex:1; font-size:0.66rem;" onclick="requestFreshDataNow(currentTargetImei)" title="Request instant on-demand GPS &amp; state snapshot">
           <i class="bi bi-arrow-repeat"></i> Request Data
         </button>
+        <button type="button" class="btn-ctrl btn-outline compact" style="font-size:0.66rem; color:#38bdf8; border-color:rgba(56,189,248,0.4);" onclick="openDeviceHistory(currentTargetImei)" title="Show IndexedDB Device History">
+          <i class="bi bi-clock-history"></i> History
+        </button>
         <button type="button" class="btn-ctrl btn-outline compact" style="font-size:0.66rem;" onclick="promptSetDeviceTag(currentTargetImei)" title="Set Tag Name">
-          <i class="bi bi-tag-fill"></i> Tag
+          <i class="bi bi-tag-fill"></i>
         </button>
         <button type="button" class="btn-ctrl btn-outline compact" style="font-size:0.66rem;" onclick="openAdminMessageModal([currentTargetImei], 'NOTIFICATION')" title="Send Alert Notification">
           <i class="bi bi-bell-fill"></i>
         </button>
-        <button type="button" class="btn-ctrl btn-danger compact" style="font-size:0.66rem;" onclick="purgeDeviceFromMqtt(currentTargetImei)" title="Purge device retained topics">
+        <button type="button" class="btn-ctrl btn-danger compact" style="font-size:0.66rem;" onclick="purgeDeviceFromMqtt(currentTargetImei)" title="Purge device retained topics &amp; IndexedDB">
           <i class="bi bi-trash"></i>
         </button>
       </div>
@@ -6259,6 +6300,9 @@
       <div class="right-sidebar-tabs">
         <button type="button" class="right-tab-btn active" id="btnRightTabTelemetry" onclick="switchRightSidebarTab('telemetry')">
           <i class="bi bi-activity"></i><span>Dual Data</span>
+        </button>
+        <button type="button" class="right-tab-btn" id="btnRightTabHistory" onclick="switchRightSidebarTab('history')">
+          <i class="bi bi-database-fill"></i><span>History (<span id="sidePanelHistoryCount">0</span>)</span>
         </button>
         <button type="button" class="right-tab-btn" id="btnRightTabControls" onclick="switchRightSidebarTab('controls')">
           <i class="bi bi-toggles"></i><span>Controls</span>
@@ -6274,6 +6318,29 @@
       <div class="right-sidebar-body" id="rightControlSidebarBody">
         <!-- TAB 1: DUAL CHANNEL TELEMETRY (LIVE STREAM vs DATA ON REQUEST) -->
         <div id="rightPaneTelemetry" style="display:flex; flex-direction:column; gap:10px;">
+          <!-- Saved Device History Quick Preview (IndexedDB) -->
+          <div class="telemetry-channel-card" id="rightTelemetryHistoryCard" style="border-top:2px solid #38bdf8;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+              <span style="font-size:0.72rem; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:5px;">
+                <i class="bi bi-database-fill-check"></i> Saved Device History (IndexedDB)
+              </span>
+              <span class="badge-mini info" id="rightPreviewHistBadge">0 saved</span>
+            </div>
+            <div id="rightTelemetryHistoryPreview" style="display:flex; flex-direction:column; gap:4px; font-size:0.68rem; color:#94a3b8;">
+              Select a device to inspect its saved history.
+            </div>
+            <div style="display:flex; gap:5px; flex-wrap:wrap;">
+              <button type="button" class="btn-ctrl btn-primary compact" style="flex:1; font-size:0.64rem;" onclick="openDeviceHistory(currentTargetImei)">
+                <i class="bi bi-clock-history"></i> Full History
+              </button>
+              <button type="button" class="btn-ctrl btn-outline compact" style="font-size:0.64rem;" onclick="toggleHistoryRouteReplay(currentTargetImei)" title="Replay saved GPS coordinates on map">
+                <i class="bi bi-play-fill"></i> Replay
+              </button>
+              <button type="button" class="btn-ctrl btn-danger-outline compact" style="font-size:0.64rem;" onclick="clearDeviceHistoryFromIdb(currentTargetImei)" title="Clear this device's IndexedDB history">
+                <i class="bi bi-eraser-fill"></i> Clear
+              </button>
+            </div>
+          </div>
           <!-- Channel 1: Continuous Live Telemetry -->
           <div class="telemetry-channel-card live-channel">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
@@ -6480,6 +6547,74 @@
           <div class="action-timeline" id="sideActionTimeline">
             <div style="color:var(--text-muted); font-size:0.74rem; font-style:italic; text-align:center; padding:18px 0;">
               No actions logged yet on this device.
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3b: INDEPENDENT DEVICE HISTORY (INDEXED BY DEVICE ID IN INDEXEDDB) -->
+        <div id="rightPaneHistory" style="display:none; flex-direction:column; gap:8px;">
+          <div class="telemetry-channel-card" style="border-top:2px solid #38bdf8; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+              <div style="min-width:0;">
+                <div style="font-size:0.74rem; font-weight:800; color:#f8fafc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  <i class="bi bi-database-fill-check" style="color:#38bdf8;"></i> IndexedDB Device History
+                </div>
+                <div style="font-size:0.64rem; color:#94a3b8; font-family:monospace;" id="histPanelDeviceMeta">Device: --</div>
+              </div>
+              <span class="badge-mini info" id="histPanelStatsBadge">0 entries</span>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; text-align:center;">
+              <div style="background:rgba(255,255,255,0.03); border-radius:6px; padding:4px;">
+                <div style="font-size:0.58rem; color:#94a3b8;">TOTAL</div>
+                <div style="font-size:0.78rem; font-weight:800; color:#38bdf8;" id="histStatTotal">0</div>
+              </div>
+              <div style="background:rgba(16,185,129,0.08); border-radius:6px; padding:4px;">
+                <div style="font-size:0.58rem; color:#94a3b8;">GPS FIXES</div>
+                <div style="font-size:0.78rem; font-weight:800; color:#34d399;" id="histStatGps">0</div>
+              </div>
+              <div style="background:rgba(168,85,247,0.08); border-radius:6px; padding:4px;">
+                <div style="font-size:0.58rem; color:#94a3b8;">EVENTS/CMD</div>
+                <div style="font-size:0.78rem; font-weight:800; color:#c084fc;" id="histStatOther">0</div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+              <button type="button" class="btn-ctrl btn-primary compact" id="btnHistReplay" onclick="toggleHistoryRouteReplay(currentTargetImei)" style="flex:1; font-size:0.64rem;">
+                <i class="bi bi-play-fill"></i> Replay Route
+              </button>
+              <button type="button" class="btn-ctrl btn-outline compact" onclick="exportDeviceHistoryJson(currentTargetImei)" title="Export this device's IndexedDB history as JSON" style="font-size:0.64rem;">
+                <i class="bi bi-download"></i> Export
+              </button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+              <button type="button" class="btn-ctrl btn-warning compact" onclick="clearDeviceHistoryFromIdb(currentTargetImei)" title="Delete only this device's saved history from IndexedDB" style="font-size:0.63rem;">
+                <i class="bi bi-eraser-fill"></i> Clear Device History
+              </button>
+              <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="removeDeviceAndHistoryFromIdb(currentTargetImei)" title="Remove this specific device and its IndexedDB history" style="font-size:0.63rem;">
+                <i class="bi bi-x-circle-fill"></i> Remove Device
+              </button>
+            </div>
+            <button type="button" class="btn-ctrl btn-danger compact" onclick="deleteAllIndexedDbData()" title="Wipe ALL saved IndexedDB data for ALL devices" style="font-size:0.63rem; width:100%;">
+              <i class="bi bi-trash3-fill"></i> Delete All IndexedDB Data (All Devices)
+            </button>
+          </div>
+
+          <input type="text" id="inpHistorySearch" class="form-control compact" placeholder="Filter history by action, coords, msg..." oninput="onHistorySearchInput(this.value)" style="font-size:0.7rem;">
+
+          <div class="left-filter-pills" id="rightHistoryFilterPills">
+            <button type="button" class="left-filter-pill active" id="histFltAll" onclick="setDeviceHistoryFilter('ALL')">All</button>
+            <button type="button" class="left-filter-pill" id="histFltLoc" onclick="setDeviceHistoryFilter('LOCATION')">GPS</button>
+            <button type="button" class="left-filter-pill" id="histFltData" onclick="setDeviceHistoryFilter('DATA')">Data</button>
+            <button type="button" class="left-filter-pill" id="histFltStatus" onclick="setDeviceHistoryFilter('STATUS')">Status</button>
+            <button type="button" class="left-filter-pill" id="histFltEvent" onclick="setDeviceHistoryFilter('EVENT')">Alerts</button>
+            <button type="button" class="left-filter-pill" id="histFltCmd" onclick="setDeviceHistoryFilter('COMMAND')">Cmd/Ack</button>
+          </div>
+
+          <div id="rightHistoryList" style="display:flex; flex-direction:column; gap:6px;">
+            <div style="color:var(--text-muted); font-size:0.74rem; font-style:italic; text-align:center; padding:18px 0;">
+              Select a device to load its independent IndexedDB history.
             </div>
           </div>
         </div>
@@ -7090,13 +7225,13 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.1.1)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.2.0)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.1.1.apk" target="_blank" download="simtool_5.1.1.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-download"></i> Download simtool_5.1.1.apk (v5.1.1 Release)
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.2.0.apk" target="_blank" download="simtool_5.2.0.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_5.2.0.apk (v5.2.0 Release)
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
@@ -7107,8 +7242,8 @@
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.json" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(148,163,184,0.14); border:1px solid rgba(148,163,184,0.35); color: #e2e8f0; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-archive"></i> simtool.json
             </a>
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_magisk_privapp_5.1.1.zip" target="_blank" download="simtool_magisk_privapp_5.1.1.zip" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.16); border:1px solid rgba(168,85,247,0.45); color: #d8b4fe; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-file-earmark-zip"></i> simtool_magisk_privapp_5.1.1.zip
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_magisk_privapp_5.2.0.zip" target="_blank" download="simtool_magisk_privapp_5.2.0.zip" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.16); border:1px solid rgba(168,85,247,0.45); color: #d8b4fe; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-file-earmark-zip"></i> simtool_magisk_privapp_5.2.0.zip
             </a>
           </div>
         </div>
@@ -7257,6 +7392,13 @@
     if (typeof commsLastStatusByDevice !== 'undefined') Object.keys(commsLastStatusByDevice).forEach(k => delete commsLastStatusByDevice[k]);
     if (typeof cachedDeviceAccounts !== 'undefined') cachedDeviceAccounts = {};
     if (typeof rootProvBannerState !== 'undefined') rootProvBannerState = {};
+    if (typeof stopHistoryRouteReplay === 'function') stopHistoryRouteReplay();
+    if (historyInspectMarker && fullMap) {
+      try { fullMap.removeLayer(historyInspectMarker); } catch (e) {}
+    }
+    historyInspectMarker = null;
+    deviceHistoryCache = {};
+    deviceHistoryCounts = {};
     currentTargetImei = '';
     lastCoords = null;
     if (typeof appCfgDirtyFields !== 'undefined') appCfgDirtyFields.clear();
@@ -7311,6 +7453,660 @@
     if (typeof updateNmBadgeCount === 'function') updateNmBadgeCount();
     if (typeof applyDeviceCapabilityFiltering === 'function') applyDeviceCapabilityFiltering(null);
     updateTargetUiDisplays();
+  }
+
+  // ==========================================
+  // INDEXEDDB INDEPENDENT PER-DEVICE HISTORY STORE
+  // ==========================================
+  const IDB_HISTORY_DB_NAME = 'sim_tool_fleet_history_db_v1';
+  const IDB_HISTORY_DB_VERSION = 1;
+  const IDB_STORE_DEVICES = 'devices';
+  const IDB_STORE_HISTORY = 'history';
+  const IDB_MAX_HISTORY_PER_DEVICE = 5000;
+
+  let deviceHistoryCache = {}; // devId -> Array<HistoryEntry> (newest first)
+  let deviceHistoryCounts = {}; // devId -> { total: number, gps: number }
+  let idbDbInstance = null;
+  let idbOpenPromise = null;
+  let activeHistoryFilter = 'ALL';
+  let activeHistorySearch = '';
+  let historyDisplayLimit = 100;
+  let historyInspectMarker = null;
+  let historyReplayTimer = null;
+  let historyReplayState = null;
+  let historyUiRefreshTimers = {};
+  let mqttConnectSyncDoneForUser = '';
+
+  function idbGetUserScope() {
+    return getAuthenticatedUsername() || '';
+  }
+
+  function openFleetHistoryDb() {
+    if (idbDbInstance) return Promise.resolve(idbDbInstance);
+    if (typeof indexedDB === 'undefined') return Promise.resolve(null);
+    if (idbOpenPromise) return idbOpenPromise;
+
+    idbOpenPromise = new Promise((resolve) => {
+      try {
+        const req = indexedDB.open(IDB_HISTORY_DB_NAME, IDB_HISTORY_DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(IDB_STORE_DEVICES)) {
+            const devStore = db.createObjectStore(IDB_STORE_DEVICES, { keyPath: 'id' });
+            devStore.createIndex('by_user', 'user', { unique: false });
+            devStore.createIndex('by_deviceId', 'deviceId', { unique: false });
+            devStore.createIndex('by_user_device', ['user', 'deviceId'], { unique: false });
+          }
+          if (!db.objectStoreNames.contains(IDB_STORE_HISTORY)) {
+            const histStore = db.createObjectStore(IDB_STORE_HISTORY, { keyPath: 'id', autoIncrement: true });
+            histStore.createIndex('by_deviceId', 'deviceId', { unique: false });
+            histStore.createIndex('by_user', 'user', { unique: false });
+            histStore.createIndex('by_user_device', ['user', 'deviceId'], { unique: false });
+            histStore.createIndex('by_user_device_ts', ['user', 'deviceId', 'timestamp'], { unique: false });
+            histStore.createIndex('by_timestamp', 'timestamp', { unique: false });
+          }
+        };
+        req.onsuccess = (e) => {
+          idbDbInstance = e.target.result;
+          idbDbInstance.onclose = () => {
+            idbDbInstance = null;
+            idbOpenPromise = null;
+          };
+          resolve(idbDbInstance);
+        };
+        req.onerror = () => {
+          idbOpenPromise = null;
+          resolve(null);
+        };
+      } catch (err) {
+        idbOpenPromise = null;
+        resolve(null);
+      }
+    });
+    return idbOpenPromise;
+  }
+
+  function cloneLightDeviceSnapshot(dev) {
+    if (!dev || typeof dev !== 'object') return {};
+    return {
+      imei: dev.imei || dev.deviceId || '',
+      deviceId: dev.deviceId || dev.imei || '',
+      deviceName: dev.deviceName || '',
+      tagName: dev.tagName || '',
+      username: dev.username || '',
+      status: dev.status || 'CONNECTED',
+      battery: dev.battery || '--',
+      isCharging: !!dev.isCharging,
+      carrier: dev.carrier || 'Cellular',
+      networkState: dev.networkState || '',
+      networkType: dev.networkType || '',
+      lat: Number.isFinite(dev.lat) ? dev.lat : undefined,
+      lon: Number.isFinite(dev.lon) ? dev.lon : undefined,
+      speed: Number.isFinite(dev.speed) ? dev.speed : undefined,
+      accuracy: Number.isFinite(dev.accuracy) ? dev.accuracy : undefined,
+      heading: Number.isFinite(dev.heading) ? dev.heading : undefined,
+      altitude: Number.isFinite(dev.altitude) ? dev.altitude : undefined,
+      timeStr: dev.timeStr || '',
+      lastSeenTime: dev.lastSeenTime || 0,
+      lastLocationTime: dev.lastLocationTime || 0,
+      intervalSeconds: dev.intervalSeconds,
+      appMode: dev.appMode || '',
+      operationMode: dev.operationMode || '',
+      isDeviceOwner: !!dev.isDeviceOwner,
+      isDeviceAdmin: !!dev.isDeviceAdmin,
+      isRooted: !!dev.isRooted,
+      isSystemPrivApp: !!dev.isSystemPrivApp
+    };
+  }
+
+  function scheduleHistoryUiRefresh(devId) {
+    if (!devId) return;
+    if (historyUiRefreshTimers[devId]) return;
+    historyUiRefreshTimers[devId] = setTimeout(() => {
+      delete historyUiRefreshTimers[devId];
+      if (typeof renderLeftDeviceSidebar === 'function') renderLeftDeviceSidebar();
+      if (devId === currentTargetImei) {
+        if (typeof updateMapHistoryHudCount === 'function') updateMapHistoryHudCount();
+        if (typeof renderTelemetryHistoryPreview === 'function') renderTelemetryHistoryPreview();
+        if (typeof renderDeviceHistoryPanel === 'function') renderDeviceHistoryPanel();
+      }
+    }, 120);
+  }
+
+  async function upsertDeviceInIndexedDb(devId) {
+    const user = idbGetUserScope();
+    if (!user || !devId || !devicesFleet[devId]) return false;
+    const db = await openFleetHistoryDb();
+    if (!db) return false;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction([IDB_STORE_DEVICES], 'readwrite');
+        const store = tx.objectStore(IDB_STORE_DEVICES);
+        const rec = {
+          id: `${user}::${devId}`,
+          user: user,
+          deviceId: devId,
+          tagName: getDeviceTagName(devId) || '',
+          updatedAt: Date.now(),
+          data: cloneLightDeviceSnapshot(devicesFleet[devId])
+        };
+        store.put(rec);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  }
+
+  async function trimDeviceHistoryInIdb(user, devId) {
+    const db = await openFleetHistoryDb();
+    if (!db) return;
+    try {
+      const tx = db.transaction([IDB_STORE_HISTORY], 'readwrite');
+      const store = tx.objectStore(IDB_STORE_HISTORY);
+      const idx = store.index('by_user_device_ts');
+      const range = IDBKeyRange.bound([user, devId, 0], [user, devId, Number.MAX_SAFE_INTEGER]);
+      const countReq = idx.count(range);
+      countReq.onsuccess = () => {
+        const excess = (countReq.result || 0) - IDB_MAX_HISTORY_PER_DEVICE;
+        if (excess <= 0) return;
+        let removed = 0;
+        idx.openCursor(range, 'next').onsuccess = (ev) => {
+          const cursor = ev.target.result;
+          if (cursor && removed < excess) {
+            cursor.delete();
+            removed++;
+            cursor.continue();
+          }
+        };
+      };
+    } catch (e) {}
+  }
+
+  async function saveDeviceHistoryToIdb(devId, entry) {
+    const user = idbGetUserScope();
+    if (!user || !devId || !entry) return false;
+
+    const category = String(entry.category || 'DATA').toUpperCase();
+    const action = String(entry.action || category).toUpperCase();
+    const status = String(entry.status || 'INFO').toUpperCase();
+    const ts = Number.isFinite(Number(entry.timestamp)) && Number(entry.timestamp) > 0 ? Number(entry.timestamp) : Date.now();
+    const lat = (entry.lat !== undefined && entry.lat !== null && Number.isFinite(Number(entry.lat))) ? Number(entry.lat) : null;
+    const lon = (entry.lon !== undefined && entry.lon !== null && Number.isFinite(Number(entry.lon))) ? Number(entry.lon) : null;
+    const pktTs = entry.packetTimestamp ? Number(entry.packetTimestamp) : 0;
+    const msg = String(entry.message || '');
+
+    const dedupeSig = [
+      category,
+      action,
+      status,
+      lat !== null ? lat.toFixed(6) : '',
+      lon !== null ? lon.toFixed(6) : '',
+      pktTs || '',
+      msg.slice(0, 120)
+    ].join('|');
+
+    if (!deviceHistoryCache[devId]) deviceHistoryCache[devId] = [];
+    if (!deviceHistoryCounts[devId]) deviceHistoryCounts[devId] = { total: 0, gps: 0 };
+
+    const recent = deviceHistoryCache[devId];
+    if (recent.length > 0) {
+      if (recent[0].dedupeSig === dedupeSig && (pktTs || (ts - recent[0].timestamp) < 1500)) {
+        return false;
+      }
+      if (pktTs && recent.slice(0, 25).some(x => x.dedupeSig === dedupeSig)) {
+        return false;
+      }
+    }
+
+    const record = {
+      user: user,
+      deviceId: devId,
+      category: category,
+      action: action,
+      status: status,
+      timestamp: ts,
+      timeStr: entry.timeStr || new Date(ts).toLocaleTimeString(),
+      lat: lat,
+      lon: lon,
+      speed: (entry.speed !== undefined && entry.speed !== null && Number.isFinite(Number(entry.speed))) ? Number(entry.speed) : null,
+      accuracy: (entry.accuracy !== undefined && entry.accuracy !== null && Number.isFinite(Number(entry.accuracy))) ? Math.round(Number(entry.accuracy)) : null,
+      heading: (entry.heading !== undefined && entry.heading !== null && Number.isFinite(Number(entry.heading))) ? Number(entry.heading) : null,
+      altitude: (entry.altitude !== undefined && entry.altitude !== null && Number.isFinite(Number(entry.altitude))) ? Number(entry.altitude) : null,
+      battery: entry.battery || (devicesFleet[devId] && devicesFleet[devId].battery) || '',
+      carrier: entry.carrier || (devicesFleet[devId] && devicesFleet[devId].carrier) || '',
+      networkState: entry.networkState || '',
+      trigger: entry.trigger || '',
+      message: msg,
+      dedupeSig: dedupeSig
+    };
+
+    recent.unshift(record);
+    if (recent.length > 2000) recent.pop();
+    deviceHistoryCounts[devId].total += 1;
+    if (lat !== null && lon !== null) {
+      deviceHistoryCounts[devId].gps += 1;
+    }
+    scheduleHistoryUiRefresh(devId);
+
+    const db = await openFleetHistoryDb();
+    if (!db) return true;
+
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction([IDB_STORE_HISTORY], 'readwrite');
+        const store = tx.objectStore(IDB_STORE_HISTORY);
+        const addReq = store.add(record);
+        addReq.onsuccess = (ev) => {
+          record.id = ev.target.result;
+        };
+        tx.oncomplete = () => {
+          if (deviceHistoryCounts[devId].total > IDB_MAX_HISTORY_PER_DEVICE + 100 && deviceHistoryCounts[devId].total % 100 === 1) {
+            trimDeviceHistoryInIdb(user, devId);
+          }
+          resolve(true);
+        };
+        tx.onerror = () => resolve(false);
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  }
+
+  async function loadDeviceHistoryFromIdb(devId, limit = 1000) {
+    const user = idbGetUserScope();
+    if (!user || !devId) return [];
+    const db = await openFleetHistoryDb();
+    if (!db) return deviceHistoryCache[devId] || [];
+
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction([IDB_STORE_HISTORY], 'readonly');
+        const store = tx.objectStore(IDB_STORE_HISTORY);
+        const idx = store.index('by_user_device_ts');
+        const range = IDBKeyRange.bound([user, devId, 0], [user, devId, Number.MAX_SAFE_INTEGER]);
+        const items = [];
+        let gpsCount = 0;
+
+        idx.openCursor(range, 'prev').onsuccess = (ev) => {
+          const cursor = ev.target.result;
+          if (cursor && items.length < limit) {
+            const val = cursor.value;
+            items.push(val);
+            if (Number.isFinite(val.lat) && Number.isFinite(val.lon)) gpsCount++;
+            cursor.continue();
+          }
+        };
+
+        const countReq = store.index('by_user_device').count(IDBKeyRange.only([user, devId]));
+        tx.oncomplete = () => {
+          const total = Math.max(countReq.result || 0, items.length);
+          deviceHistoryCache[devId] = items;
+          deviceHistoryCounts[devId] = {
+            total: total,
+            gps: total > items.length ? Math.max(gpsCount, (deviceHistoryCounts[devId] && deviceHistoryCounts[devId].gps) || 0) : gpsCount
+          };
+
+          // Hydrate map trail points chronologically from IndexedDB GPS history
+          const gpsAsc = items
+            .filter(it => Number.isFinite(it.lat) && Number.isFinite(it.lon))
+            .slice()
+            .reverse();
+          if (gpsAsc.length > 0) {
+            const trail = [];
+            gpsAsc.forEach(it => {
+              const last = trail.length > 0 ? trail[trail.length - 1] : null;
+              if (!last || haversineMeters(last[0], last[1], it.lat, it.lon) >= 2) {
+                trail.push([it.lat, it.lon]);
+              }
+            });
+            if (trail.length > 0) {
+              deviceTrailPoints[devId] = trail.slice(-150);
+              if (typeof updateFleetTrail === 'function') updateFleetTrail(devId);
+            }
+          }
+
+          scheduleHistoryUiRefresh(devId);
+          resolve(items);
+        };
+        tx.onerror = () => resolve(deviceHistoryCache[devId] || []);
+      } catch (e) {
+        resolve(deviceHistoryCache[devId] || []);
+      }
+    });
+  }
+
+  async function hydrateFleetFromIndexedDb() {
+    const user = idbGetUserScope();
+    if (!user) return;
+    const db = await openFleetHistoryDb();
+    if (!db) return;
+
+    await new Promise((resolve) => {
+      try {
+        const tx = db.transaction([IDB_STORE_DEVICES, IDB_STORE_HISTORY], 'readonly');
+        const devIdx = tx.objectStore(IDB_STORE_DEVICES).index('by_user');
+        const histIdx = tx.objectStore(IDB_STORE_HISTORY).index('by_user');
+
+        const devReq = devIdx.getAll(IDBKeyRange.only(user));
+        const histReq = histIdx.getAll(IDBKeyRange.only(user));
+
+        tx.oncomplete = () => {
+          const devRows = Array.isArray(devReq.result) ? devReq.result : [];
+          devRows.forEach(row => {
+            if (!row || !row.deviceId) return;
+            const dId = row.deviceId;
+            const snap = row.data || {};
+            if (!devicesFleet[dId]) {
+              devicesFleet[dId] = Object.assign({ imei: dId, deviceId: dId, status: 'OFFLINE', battery: '--', carrier: 'Cellular' }, snap);
+            } else if ((snap.lastSeenTime || 0) > (devicesFleet[dId].lastSeenTime || 0)) {
+              devicesFleet[dId] = Object.assign({}, devicesFleet[dId], snap);
+            }
+            if (row.tagName && !deviceTags[dId]) {
+              deviceTags[dId] = row.tagName;
+            }
+          });
+
+          const histRows = Array.isArray(histReq.result) ? histReq.result : [];
+          const grouped = {};
+          histRows.forEach(r => {
+            if (!r || !r.deviceId) return;
+            if (!grouped[r.deviceId]) grouped[r.deviceId] = [];
+            grouped[r.deviceId].push(r);
+          });
+
+          Object.keys(grouped).forEach(dId => {
+            const listAsc = grouped[dId].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            const gpsAsc = listAsc.filter(it => Number.isFinite(it.lat) && Number.isFinite(it.lon));
+            const trail = [];
+            gpsAsc.forEach(it => {
+              const last = trail.length > 0 ? trail[trail.length - 1] : null;
+              if (!last || haversineMeters(last[0], last[1], it.lat, it.lon) >= 2) {
+                trail.push([it.lat, it.lon]);
+              }
+            });
+            if (trail.length > 0) {
+              deviceTrailPoints[dId] = trail.slice(-150);
+            }
+            // Ensure device exists in fleet if only history records were present
+            if (!devicesFleet[dId] && listAsc.length > 0) {
+              const latest = listAsc[listAsc.length - 1];
+              const latestGps = gpsAsc.length > 0 ? gpsAsc[gpsAsc.length - 1] : null;
+              devicesFleet[dId] = {
+                imei: dId,
+                deviceId: dId,
+                username: user,
+                status: 'OFFLINE',
+                battery: latest.battery || '--',
+                carrier: latest.carrier || 'Cellular',
+                lat: latestGps ? latestGps.lat : undefined,
+                lon: latestGps ? latestGps.lon : undefined,
+                speed: latestGps && latestGps.speed !== null ? latestGps.speed : 0,
+                accuracy: latestGps && latestGps.accuracy !== null ? latestGps.accuracy : 0,
+                heading: latestGps && latestGps.heading !== null ? latestGps.heading : undefined,
+                altitude: latestGps && latestGps.altitude !== null ? latestGps.altitude : undefined,
+                lastSeenTime: latest.timestamp || 0,
+                lastLocationTime: latestGps ? latestGps.timestamp : 0,
+                timeStr: latestGps ? latestGps.timeStr : ''
+              };
+            }
+            deviceHistoryCache[dId] = listAsc.slice(-500).reverse();
+            deviceHistoryCounts[dId] = { total: listAsc.length, gps: gpsAsc.length };
+          });
+
+          if (!currentTargetImei) {
+            const keys = Object.keys(devicesFleet);
+            if (keys.length > 0) currentTargetImei = keys[0];
+          }
+
+          if (typeof updateFleetSummary === 'function') updateFleetSummary();
+          if (typeof renderLeftDeviceSidebar === 'function') renderLeftDeviceSidebar();
+          if (typeof updateAllFleetMarkers === 'function') updateAllFleetMarkers();
+          if (typeof renderCurrentDeviceStatus === 'function') renderCurrentDeviceStatus();
+          if (typeof renderRightPanelInfo === 'function') renderRightPanelInfo();
+          if (typeof updateMapHistoryHudCount === 'function') updateMapHistoryHudCount();
+          if (typeof renderTelemetryHistoryPreview === 'function') renderTelemetryHistoryPreview();
+          if (typeof renderDeviceHistoryPanel === 'function') renderDeviceHistoryPanel();
+          if (!hasAutoCenteredInitialFleet && !userMovedMapManually && typeof scheduleInitialFleetFit === 'function') {
+            scheduleInitialFleetFit();
+          }
+          resolve();
+        };
+        tx.onerror = () => resolve();
+      } catch (e) {
+        resolve();
+      }
+    });
+  }
+
+  async function onMqttConnectedSaveIndexedDb() {
+    const user = idbGetUserScope();
+    if (!user) return;
+    await openFleetHistoryDb();
+    const keys = Object.keys(devicesFleet);
+    for (const devId of keys) {
+      await upsertDeviceInIndexedDb(devId);
+    }
+    if (mqttConnectSyncDoneForUser !== user) {
+      mqttConnectSyncDoneForUser = user;
+      for (const devId of keys) {
+        const d = devicesFleet[devId];
+        const hasPos = !!(d && Number.isFinite(d.lat) && Number.isFinite(d.lon));
+        await saveDeviceHistoryToIdb(devId, {
+          category: 'CONNECT',
+          action: 'MQTT_CONNECTED',
+          status: d && isDeviceOnline(d) ? 'ONLINE' : 'SYNCED',
+          timestamp: Date.now(),
+          battery: d ? d.battery : '',
+          carrier: d ? d.carrier : '',
+          message: `Connected to MQTT broker (${user}/gps/${devId}/#)` + (hasPos ? ` • Last Fix: ${d.lat.toFixed(5)}, ${d.lon.toFixed(5)}` : '')
+        });
+      }
+    }
+    if (typeof logTerminal === 'function') {
+      logTerminal('sys', `[INDEXEDDB] Connected & ready — independent per-device history active (${keys.length} device(s) indexed).`);
+    }
+  }
+
+  async function removeDeviceFromIndexedDbOnly(devId, deleteDeviceProfile = true) {
+    const user = idbGetUserScope();
+    if (!user || !devId) return false;
+    const db = await openFleetHistoryDb();
+    if (!db) return false;
+
+    return new Promise((resolve) => {
+      try {
+        const stores = deleteDeviceProfile ? [IDB_STORE_HISTORY, IDB_STORE_DEVICES] : [IDB_STORE_HISTORY];
+        const tx = db.transaction(stores, 'readwrite');
+        const histIdx = tx.objectStore(IDB_STORE_HISTORY).index('by_user_device');
+        histIdx.openCursor(IDBKeyRange.only([user, devId])).onsuccess = (ev) => {
+          const cursor = ev.target.result;
+          if (cursor) {
+            cursor.delete();
+            cursor.continue();
+          }
+        };
+        if (deleteDeviceProfile) {
+          tx.objectStore(IDB_STORE_DEVICES).delete(`${user}::${devId}`);
+        }
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  }
+
+  async function migrateDeviceHistoryInIdb(oldId, newId) {
+    const user = idbGetUserScope();
+    if (!user || !oldId || !newId || oldId === newId) return;
+    const db = await openFleetHistoryDb();
+    if (!db) return;
+    try {
+      const tx = db.transaction([IDB_STORE_HISTORY, IDB_STORE_DEVICES], 'readwrite');
+      const histStore = tx.objectStore(IDB_STORE_HISTORY);
+      const histIdx = histStore.index('by_user_device');
+      histIdx.openCursor(IDBKeyRange.only([user, oldId])).onsuccess = (ev) => {
+        const cursor = ev.target.result;
+        if (cursor) {
+          const val = cursor.value;
+          val.deviceId = newId;
+          cursor.update(val);
+          cursor.continue();
+        }
+      };
+      tx.objectStore(IDB_STORE_DEVICES).delete(`${user}::${oldId}`);
+      tx.oncomplete = () => {
+        upsertDeviceInIndexedDb(newId);
+        loadDeviceHistoryFromIdb(newId);
+      };
+    } catch (e) {}
+  }
+
+  async function clearDeviceHistoryFromIdb(devId, skipConfirm = false) {
+    const targetId = devId || currentTargetImei;
+    if (!targetId) {
+      alert('Please select a device first.');
+      return false;
+    }
+    const label = getDeviceDisplayName(targetId);
+    if (!skipConfirm && !confirm(`🧹 Clear ALL saved IndexedDB history & GPS route trail for device:\n\n${label}\n\nThis removes only this device's saved history.`)) {
+      return false;
+    }
+
+    if (historyReplayState && historyReplayState.devId === targetId) {
+      stopHistoryRouteReplay();
+    }
+    if (historyInspectMarker && fullMap) {
+      try { fullMap.removeLayer(historyInspectMarker); } catch (e) {}
+      historyInspectMarker = null;
+    }
+
+    await removeDeviceFromIndexedDbOnly(targetId, false);
+
+    deviceHistoryCache[targetId] = [];
+    deviceHistoryCounts[targetId] = { total: 0, gps: 0 };
+    deviceActionsHistory[targetId] = [];
+    const d = devicesFleet[targetId];
+    if (d && Number.isFinite(d.lat) && Number.isFinite(d.lon)) {
+      deviceTrailPoints[targetId] = [[d.lat, d.lon]];
+    } else {
+      delete deviceTrailPoints[targetId];
+    }
+    if (fleetTrails[targetId] && fullMap) {
+      fullMap.removeLayer(fleetTrails[targetId]);
+      delete fleetTrails[targetId];
+    }
+
+    persistFleetToLocalStorage();
+    updateFleetMarker(targetId, false);
+    renderLeftDeviceSidebar();
+    renderRightPanelActions();
+    updateMapHistoryHudCount();
+    renderTelemetryHistoryPreview();
+    renderDeviceHistoryPanel();
+    if (typeof logTerminal === 'function') {
+      logTerminal('alert', `[INDEXEDDB] Cleared history for device ${label}.`);
+    }
+    return true;
+  }
+
+  async function removeDeviceAndHistoryFromIdb(devId, skipConfirm = false) {
+    const targetId = devId || currentTargetImei;
+    if (!targetId) {
+      alert('Please select a device first.');
+      return false;
+    }
+    const label = getDeviceDisplayName(targetId);
+    if (!skipConfirm && !confirm(`🗑️ Remove device ${label} and ALL its saved IndexedDB history from this dashboard?\n\n(Note: Use the Trash purge button if you also want to clear retained messages from the MQTT broker.)`)) {
+      return false;
+    }
+
+    if (historyReplayState && historyReplayState.devId === targetId) {
+      stopHistoryRouteReplay();
+    }
+    if (historyInspectMarker && fullMap) {
+      try { fullMap.removeLayer(historyInspectMarker); } catch (e) {}
+      historyInspectMarker = null;
+    }
+
+    await removeDeviceFromIndexedDbOnly(targetId, true);
+
+    if (fleetMarkers[targetId] && fullMap) { fullMap.removeLayer(fleetMarkers[targetId]); delete fleetMarkers[targetId]; }
+    if (fleetCircles[targetId] && fullMap) { fullMap.removeLayer(fleetCircles[targetId]); delete fleetCircles[targetId]; }
+    if (fleetTrails[targetId] && fullMap) { fullMap.removeLayer(fleetTrails[targetId]); delete fleetTrails[targetId]; }
+
+    delete devicesFleet[targetId];
+    delete deviceActionsHistory[targetId];
+    delete deviceTags[targetId];
+    delete deviceTrailPoints[targetId];
+    delete deviceHistoryCache[targetId];
+    delete deviceHistoryCounts[targetId];
+    selectedFleetDevices.delete(targetId);
+    persistFleetToLocalStorage();
+
+    if (currentTargetImei === targetId) {
+      const remaining = Object.keys(devicesFleet);
+      if (remaining.length > 0) {
+        selectDevice(remaining[0], true);
+      } else {
+        currentTargetImei = '';
+        renderRightPanelInfo();
+        renderCurrentDeviceStatus();
+        updateTargetUiDisplays();
+        renderDeviceHistoryPanel();
+        renderTelemetryHistoryPreview();
+        updateMapHistoryHudCount();
+      }
+    }
+
+    renderFleetCarousel();
+    updateFleetSummary();
+    updateMapDeviceCount();
+    if (typeof logTerminal === 'function') {
+      logTerminal('alert', `[INDEXEDDB] Removed device ${label} and its independent history.`);
+    }
+    return true;
+  }
+
+  async function deleteAllIndexedDbData(skipConfirm = false) {
+    if (!skipConfirm && !confirm('⚠️ Delete ALL saved IndexedDB history, GPS trails, and cached device records across ALL devices?\n\nThis clears all stored IndexedDB data and local fleet cache.')) {
+      return false;
+    }
+
+    stopHistoryRouteReplay();
+    const db = await openFleetHistoryDb();
+    if (db) {
+      await new Promise((resolve) => {
+        try {
+          const tx = db.transaction([IDB_STORE_HISTORY, IDB_STORE_DEVICES], 'readwrite');
+          tx.objectStore(IDB_STORE_HISTORY).clear();
+          tx.objectStore(IDB_STORE_DEVICES).clear();
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        } catch (e) {
+          resolve(false);
+        }
+      });
+    }
+
+    try {
+      [FLEET_STORAGE_BASE, ACTIONS_STORAGE_BASE, TAGS_STORAGE_BASE, TARGET_IMEI_BASE].forEach(base => {
+        const k = getUserStorageKey(base);
+        if (k) localStorage.removeItem(k);
+      });
+    } catch (e) {}
+
+    resetUserScopedDashboardState();
+    mqttConnectSyncDoneForUser = '';
+    updateMapHistoryHudCount();
+    renderTelemetryHistoryPreview();
+    renderDeviceHistoryPanel();
+    if (typeof logTerminal === 'function') {
+      logTerminal('alert', '[INDEXEDDB] Deleted ALL device history and cached data from IndexedDB.');
+    }
+    return true;
   }
 
   // ==========================================
@@ -7522,6 +8318,7 @@
     loadFleetFromLocalStorage();
     loadNmHistoryFromLocalStorage();
     loadTargetImei();
+    hydrateFleetFromIndexedDb();
     updateFleetSummary();
     renderLeftDeviceSidebar();
     renderFleetCarousel();
@@ -7774,6 +8571,7 @@
       loadFleetFromLocalStorage();
       loadNmHistoryFromLocalStorage();
       loadTargetImei();
+      hydrateFleetFromIndexedDb();
       updateFleetSummary();
       renderLeftDeviceSidebar();
       renderFleetCarousel();
@@ -8094,6 +8892,16 @@
     }
 
     persistFleetToLocalStorage();
+    if (typeof upsertDeviceInIndexedDb === 'function') upsertDeviceInIndexedDb(devId);
+    if (shouldPublishMqtt && typeof saveDeviceHistoryToIdb === 'function') {
+      saveDeviceHistoryToIdb(devId, {
+        category: 'TAG',
+        action: 'SET_DEVICE_NAME',
+        status: 'UPDATED',
+        timestamp: Date.now(),
+        message: 'Tag updated -> "' + (tag || '(cleared)') + '"'
+      });
+    }
 
     // Broadcast tag to MQTT with retain: true AND push SET_DEVICE_NAME command so SettingsActivity stays in sync
     if (shouldPublishMqtt && mqttWsClient && mqttWsClient.connected && isUserAuthenticated()) {
@@ -8168,6 +8976,21 @@
       const mergedHist = (deviceActionsHistory[newId] || []).concat(deviceActionsHistory[oldId]);
       deviceActionsHistory[newId] = mergedHist.slice(0, 100);
       delete deviceActionsHistory[oldId];
+    }
+    if (deviceHistoryCache[oldId]) {
+      deviceHistoryCache[newId] = (deviceHistoryCache[newId] || []).concat(deviceHistoryCache[oldId]).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 2000);
+      delete deviceHistoryCache[oldId];
+    }
+    if (deviceHistoryCounts[oldId]) {
+      const curCnt = deviceHistoryCounts[newId] || { total: 0, gps: 0 };
+      deviceHistoryCounts[newId] = {
+        total: curCnt.total + (deviceHistoryCounts[oldId].total || 0),
+        gps: curCnt.gps + (deviceHistoryCounts[oldId].gps || 0)
+      };
+      delete deviceHistoryCounts[oldId];
+    }
+    if (typeof migrateDeviceHistoryInIdb === 'function') {
+      migrateDeviceHistoryInIdb(oldId, newId);
     }
     if (selectedFleetDevices.has(oldId)) {
       selectedFleetDevices.delete(oldId);
@@ -8269,11 +9092,16 @@
       delete fleetTrails[devId];
     }
 
-    // 3. Remove from memory and persist to LocalStorage
+    // 3. Remove from memory, IndexedDB, and LocalStorage
+    if (typeof removeDeviceFromIndexedDbOnly === 'function') {
+      removeDeviceFromIndexedDbOnly(devId, true);
+    }
     delete devicesFleet[devId];
     delete deviceActionsHistory[devId];
     delete deviceTags[devId];
     delete deviceTrailPoints[devId];
+    delete deviceHistoryCache[devId];
+    delete deviceHistoryCounts[devId];
     selectedFleetDevices.delete(devId);
     persistFleetToLocalStorage();
 
@@ -8484,6 +9312,11 @@
     renderRightPanelActions();
     updateFleetSummary();
     syncHeaderScopeChip();
+    historyDisplayLimit = 100;
+    if (typeof updateMapHistoryHudCount === 'function') updateMapHistoryHudCount();
+    if (typeof renderTelemetryHistoryPreview === 'function') renderTelemetryHistoryPreview();
+    if (typeof renderDeviceHistoryPanel === 'function') renderDeviceHistoryPanel();
+    if (typeof loadDeviceHistoryFromIdb === 'function') loadDeviceHistoryFromIdb(devId);
     if (typeof appCfgDirtyFields !== 'undefined') {
       appCfgDirtyFields.clear();
     }
@@ -8510,10 +9343,11 @@
     if (!deviceActionsHistory[devId]) {
       deviceActionsHistory[devId] = [];
     }
+    const ts = item.timestamp || Date.now();
     const act = {
       id: 'act_' + Math.random().toString(36).substr(2, 9),
-      timestamp: Date.now(),
-      timeStr: new Date().toLocaleTimeString(),
+      timestamp: ts,
+      timeStr: new Date(ts).toLocaleTimeString(),
       type: item.type || 'INFO',
       action: item.action || 'ACTION',
       status: item.status || 'SUCCESS',
@@ -8524,6 +9358,28 @@
       deviceActionsHistory[devId].pop();
     }
     persistFleetToLocalStorage();
+    if (!item.skipIdb && typeof saveDeviceHistoryToIdb === 'function') {
+      const catMap = {
+        LOCATION: 'LOCATION',
+        COMMAND: 'COMMAND',
+        ACK: 'ACK',
+        ALERT: 'EVENT',
+        STATUS: 'STATUS',
+        DIAG: 'DIAGNOSTICS',
+        CONFIG: 'CONFIG',
+        ACTIVITY: 'DATA',
+        INFO: 'DATA'
+      };
+      saveDeviceHistoryToIdb(devId, {
+        category: catMap[act.type] || 'DATA',
+        action: act.action,
+        status: act.status,
+        timestamp: ts,
+        timeStr: act.timeStr,
+        packetTimestamp: item.packetTimestamp || null,
+        message: act.message
+      });
+    }
     if (devId === currentTargetImei) {
       renderRightPanelActions();
     }
@@ -8629,6 +9485,374 @@
     });
 
     listEl.innerHTML = html;
+  }
+
+  // ==========================================
+  // 3B. INDEPENDENT DEVICE HISTORY UI & REPLAY
+  // ==========================================
+  function getDeviceHistoryCounts(devId) {
+    if (!devId) return { total: 0, gps: 0 };
+    if (deviceHistoryCounts[devId]) return deviceHistoryCounts[devId];
+    const cached = deviceHistoryCache[devId] || [];
+    const gps = cached.filter(it => Number.isFinite(it.lat) && Number.isFinite(it.lon)).length;
+    return { total: cached.length, gps: gps };
+  }
+
+  function updateMapHistoryHudCount() {
+    const cnt = getDeviceHistoryCounts(currentTargetImei);
+    const hudEl = document.getElementById('fullMapHistoryCount');
+    if (hudEl) hudEl.textContent = String(cnt.total || 0);
+    const tabCnt = document.getElementById('sidePanelHistoryCount');
+    if (tabCnt) tabCnt.textContent = String(cnt.total || 0);
+  }
+
+  function openDeviceHistory(devId) {
+    const targetId = devId || currentTargetImei;
+    if (!targetId) {
+      alert('Please select or click a device first to view its IndexedDB history.');
+      return;
+    }
+    if (targetId !== currentTargetImei) {
+      selectDevice(targetId, false);
+    }
+    const shell = document.getElementById('commandShell');
+    const rightPanel = document.getElementById('rightControlSidebar');
+    if (isDrawerViewport(1280)) {
+      if (rightPanel && !rightPanel.classList.contains('drawer-open')) {
+        toggleRightSidebar(true);
+      }
+    } else if (shell && shell.classList.contains('right-collapsed')) {
+      toggleRightSidebar(true);
+    }
+    switchRightSidebarTab('history');
+    loadDeviceHistoryFromIdb(targetId, 1000);
+  }
+
+  function setDeviceHistoryFilter(flt) {
+    activeHistoryFilter = flt || 'ALL';
+    historyDisplayLimit = 100;
+    const map = {
+      ALL: 'histFltAll',
+      LOCATION: 'histFltLoc',
+      DATA: 'histFltData',
+      STATUS: 'histFltStatus',
+      EVENT: 'histFltEvent',
+      COMMAND: 'histFltCmd'
+    };
+    Object.keys(map).forEach(k => {
+      const btn = document.getElementById(map[k]);
+      if (btn) btn.classList.toggle('active', k === activeHistoryFilter);
+    });
+    renderDeviceHistoryPanel();
+  }
+
+  function onHistorySearchInput(val) {
+    activeHistorySearch = String(val || '').trim().toLowerCase();
+    historyDisplayLimit = 100;
+    renderDeviceHistoryPanel();
+  }
+
+  function loadMoreDeviceHistory() {
+    historyDisplayLimit += 100;
+    renderDeviceHistoryPanel();
+  }
+
+  function formatHistoryTimestamp(ts) {
+    if (!ts) return '--';
+    const d = new Date(ts);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString();
+  }
+
+  function renderTelemetryHistoryPreview() {
+    const previewEl = document.getElementById('rightTelemetryHistoryPreview');
+    const badgeEl = document.getElementById('rightPreviewHistBadge');
+    if (!previewEl) return;
+
+    if (!currentTargetImei) {
+      if (badgeEl) badgeEl.textContent = '0 saved';
+      previewEl.innerHTML = '<div style="font-style:italic; color:#94a3b8;">Select a device to inspect its saved IndexedDB history.</div>';
+      return;
+    }
+
+    const items = deviceHistoryCache[currentTargetImei] || [];
+    const cnt = getDeviceHistoryCounts(currentTargetImei);
+    if (badgeEl) badgeEl.textContent = `${cnt.total} saved (${cnt.gps} GPS)`;
+
+    if (items.length === 0) {
+      previewEl.innerHTML = `<div style="font-style:italic; color:#94a3b8;">No history saved yet in IndexedDB for <strong>${escapeHtml(currentTargetImei)}</strong>. Incoming updates save automatically.</div>`;
+      return;
+    }
+
+    previewEl.innerHTML = items.slice(0, 4).map(it => {
+      const hasCoords = Number.isFinite(it.lat) && Number.isFinite(it.lon);
+      const clickAttr = hasCoords
+        ? `onclick="jumpToHistoryPointOnMap(${it.lat}, ${it.lon}, '${escapeHtml(formatHistoryTimestamp(it.timestamp))}', ${Number(it.speed || 0)}, ${Number(it.accuracy || 0)}, '${escapeHtml(currentTargetImei)}')" title="Click to locate this historical point on map"`
+        : '';
+      return `
+        <div class="history-entry-card cat-${escapeHtml(it.category || 'DATA')} ${hasCoords ? 'has-coords' : ''}" ${clickAttr} style="padding:5px 8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+            <strong style="color:#f8fafc; font-size:0.66rem;">${escapeHtml(it.action || it.category)}</strong>
+            <span style="font-size:0.6rem; color:#94a3b8;">${escapeHtml(formatHistoryTimestamp(it.timestamp))}</span>
+          </div>
+          <div style="font-size:0.64rem; color:#cbd5e1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            ${hasCoords ? `📍 ${it.lat.toFixed(5)}, ${it.lon.toFixed(5)} • ` : ''}${escapeHtml(it.message || it.status || '')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderDeviceHistoryPanel() {
+    const listEl = document.getElementById('rightHistoryList');
+    const metaEl = document.getElementById('histPanelDeviceMeta');
+    const badgeEl = document.getElementById('histPanelStatsBadge');
+    const statTotalEl = document.getElementById('histStatTotal');
+    const statGpsEl = document.getElementById('histStatGps');
+    const statOtherEl = document.getElementById('histStatOther');
+
+    updateMapHistoryHudCount();
+    if (!listEl) return;
+
+    if (!currentTargetImei) {
+      if (metaEl) metaEl.textContent = 'Device: --';
+      if (badgeEl) badgeEl.textContent = '0 entries';
+      if (statTotalEl) statTotalEl.textContent = '0';
+      if (statGpsEl) statGpsEl.textContent = '0';
+      if (statOtherEl) statOtherEl.textContent = '0';
+      listEl.innerHTML = '<div style="color:var(--text-muted); font-size:0.74rem; font-style:italic; text-align:center; padding:18px 0;">Select a device to load its independent IndexedDB history.</div>';
+      return;
+    }
+
+    const tagName = getDeviceTagName(currentTargetImei);
+    if (metaEl) metaEl.textContent = tagName ? `${tagName} (ID: ${currentTargetImei})` : `ID: ${currentTargetImei}`;
+
+    const allItems = deviceHistoryCache[currentTargetImei] || [];
+    const cnt = getDeviceHistoryCounts(currentTargetImei);
+    const gpsCnt = cnt.gps || allItems.filter(it => Number.isFinite(it.lat) && Number.isFinite(it.lon)).length;
+    const otherCnt = Math.max(0, (cnt.total || allItems.length) - gpsCnt);
+
+    if (badgeEl) badgeEl.textContent = `${cnt.total} entries`;
+    if (statTotalEl) statTotalEl.textContent = String(cnt.total);
+    if (statGpsEl) statGpsEl.textContent = String(gpsCnt);
+    if (statOtherEl) statOtherEl.textContent = String(otherCnt);
+
+    const filtered = allItems.filter(it => {
+      if (activeHistoryFilter === 'LOCATION' && !(Number.isFinite(it.lat) && Number.isFinite(it.lon))) return false;
+      if (activeHistoryFilter === 'DATA' && it.category !== 'DATA' && it.category !== 'CONFIG' && it.category !== 'DIAGNOSTICS' && it.category !== 'TAG') return false;
+      if (activeHistoryFilter === 'STATUS' && it.category !== 'STATUS' && it.category !== 'CONNECT') return false;
+      if (activeHistoryFilter === 'EVENT' && it.category !== 'EVENT') return false;
+      if (activeHistoryFilter === 'COMMAND' && it.category !== 'COMMAND' && it.category !== 'ACK') return false;
+      if (activeHistorySearch) {
+        const hay = `${it.category} ${it.action} ${it.status} ${it.message} ${it.lat || ''} ${it.lon || ''} ${it.trigger || ''}`.toLowerCase();
+        if (!hay.includes(activeHistorySearch)) return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = `<div style="color:var(--text-muted); font-size:0.74rem; font-style:italic; text-align:center; padding:18px 0;">No matching IndexedDB history (${escapeHtml(activeHistoryFilter)}) for <strong>${escapeHtml(currentTargetImei)}</strong>.</div>`;
+      return;
+    }
+
+    const visible = filtered.slice(0, historyDisplayLimit);
+    let html = visible.map(it => {
+      const hasCoords = Number.isFinite(it.lat) && Number.isFinite(it.lon);
+      const tsLabel = formatHistoryTimestamp(it.timestamp);
+      const clickAttr = hasCoords
+        ? `onclick="jumpToHistoryPointOnMap(${it.lat}, ${it.lon}, '${escapeHtml(tsLabel)}', ${Number(it.speed || 0)}, ${Number(it.accuracy || 0)}, '${escapeHtml(currentTargetImei)}')" title="Click to pin this historical point on map"`
+        : '';
+      const metaBits = [];
+      if (hasCoords) metaBits.push(`📍 ${it.lat.toFixed(6)}, ${it.lon.toFixed(6)}`);
+      if (it.speed !== null && it.speed !== undefined) metaBits.push(`${Number(it.speed).toFixed(1)} km/h`);
+      if (it.accuracy !== null && it.accuracy !== undefined && it.accuracy > 0) metaBits.push(`±${it.accuracy}m`);
+      if (it.battery && it.battery !== '--') metaBits.push(`🔋${it.battery}`);
+
+      return `
+        <div class="history-entry-card cat-${escapeHtml(it.category || 'DATA')} ${hasCoords ? 'has-coords' : ''}" ${clickAttr}>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+            <span style="font-weight:800; color:#f8fafc; font-size:0.7rem;">
+              <span class="badge-mini info" style="font-size:0.56rem; margin-right:3px;">${escapeHtml(it.category)}</span>${escapeHtml(it.action)}
+            </span>
+            <span style="font-size:0.62rem; color:#94a3b8; white-space:nowrap;">${escapeHtml(tsLabel)}</span>
+          </div>
+          ${metaBits.length > 0 ? `<div style="font-size:0.65rem; font-family:monospace; color:#7dd3fc;">${escapeHtml(metaBits.join(' • '))}</div>` : ''}
+          ${it.message ? `<div style="font-size:0.67rem; color:#cbd5e1; word-break:break-word; line-height:1.35;">${escapeHtml(it.message)}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    if (filtered.length > visible.length) {
+      html += `
+        <button type="button" class="btn-ctrl btn-outline compact" onclick="loadMoreDeviceHistory()" style="width:100%; font-size:0.68rem;">
+          Load More (${filtered.length - visible.length} remaining)
+        </button>
+      `;
+    }
+
+    listEl.innerHTML = html;
+  }
+
+  function clearHistoryInspectMarker() {
+    if (historyInspectMarker && fullMap) {
+      try { fullMap.removeLayer(historyInspectMarker); } catch (e) {}
+    }
+    historyInspectMarker = null;
+  }
+
+  function jumpToHistoryPointOnMap(lat, lon, timeStr, speed, accuracy, devId) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+    if (activeRailPage !== 'map') {
+      switchRailPage('map');
+    }
+    setTimeout(() => {
+      if (!fullMap) initLiveFullMap();
+      if (!fullMap) return;
+      hasAutoCenteredInitialFleet = true;
+      userMovedMapManually = true;
+      fullMap.setView([lat, lon], Math.max(fullMap.getZoom(), 17), { animate: true });
+
+      const tagName = getDeviceTagName(devId);
+      const titleStr = tagName ? `${tagName} (ID: ${devId})` : `ID: ${devId}`;
+      const pinIcon = L.divIcon({
+        className: 'exact-fleet-marker',
+        html: `<div class="exact-marker-root is-selected">
+                 <div class="exact-pulse-ring" style="background:rgba(245,158,11,0.45);"></div>
+                 <div class="exact-pinpoint-origin"><div class="exact-pinpoint-ring" style="border-color:#fbbf24;"><div class="exact-pinpoint-core" style="background:#f59e0b;"></div></div></div>
+                 <div class="exact-pin-head">
+                   <svg width="30" height="38" viewBox="0 0 32 40" style="display:block;">
+                     <path d="M16 39 C16 39 29.5 24.5 29.5 14.5 C29.5 7.04 23.46 1 16 1 C8.54 1 2.5 7.04 2.5 14.5 C2.5 24.5 16 39 16 39 Z" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>
+                     <circle cx="16" cy="14.5" r="4.5" fill="#ffffff"/>
+                   </svg>
+                 </div>
+                 <div class="exact-pin-badge" style="border-color:#fbbf24;">
+                   <div class="pin-badge-tag-row" style="color:#fde68a;">🕒 ${escapeHtml(timeStr || 'History')}</div>
+                   <div class="pin-badge-id-row"><span class="pin-badge-id-prefix" style="background:rgba(245,158,11,0.22); color:#fbbf24;">HIST</span><span>${escapeHtml(devId || '')}</span></div>
+                 </div>
+               </div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+        popupAnchor: [0, -40]
+      });
+
+      const popupHtml = `
+        <div style="font-family:sans-serif; min-width:210px; font-size:11.5px; color:#1e293b;">
+          <div style="font-weight:800; color:#b45309; margin-bottom:4px;">🕒 Historical Fix — ${escapeHtml(titleStr)}</div>
+          <div><b>Time:</b> ${escapeHtml(timeStr || '--')}</div>
+          <div style="font-family:monospace;"><b>Coords:</b> ${lat.toFixed(6)}, ${lon.toFixed(6)}</div>
+          <div><b>Speed:</b> ${Number(speed || 0).toFixed(1)} km/h &bull; <b>Acc:</b> ±${Math.round(accuracy || 0)} m</div>
+          <div style="margin-top:6px; display:flex; gap:5px;">
+            <a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank" rel="noopener noreferrer" style="flex:1; text-align:center; padding:4px; background:#0284c7; color:#fff; border-radius:4px; text-decoration:none; font-weight:700;">Google Maps</a>
+            <button type="button" onclick="clearHistoryInspectMarker()" style="padding:4px 8px; background:#fee2e2; color:#991b1b; border:1px solid #fecaca; border-radius:4px; cursor:pointer; font-weight:700;">Hide Pin</button>
+          </div>
+        </div>
+      `;
+
+      if (historyInspectMarker) {
+        historyInspectMarker.setLatLng([lat, lon]);
+        historyInspectMarker.setIcon(pinIcon);
+        historyInspectMarker.setPopupContent(popupHtml);
+      } else {
+        historyInspectMarker = L.marker([lat, lon], { icon: pinIcon, zIndexOffset: 1500 }).addTo(fullMap);
+        historyInspectMarker.bindPopup(popupHtml);
+      }
+      historyInspectMarker.openPopup();
+    }, activeRailPage === 'map' ? 10 : 180);
+  }
+
+  function stopHistoryRouteReplay() {
+    if (historyReplayTimer) {
+      clearInterval(historyReplayTimer);
+      historyReplayTimer = null;
+    }
+    historyReplayState = null;
+    const btn = document.getElementById('btnHistReplay');
+    if (btn) {
+      btn.innerHTML = '<i class="bi bi-play-fill"></i> Replay Route';
+      btn.classList.remove('btn-danger');
+      btn.classList.add('btn-primary');
+    }
+  }
+
+  async function toggleHistoryRouteReplay(devId) {
+    const targetId = devId || currentTargetImei;
+    if (historyReplayTimer) {
+      stopHistoryRouteReplay();
+      return;
+    }
+    if (!targetId) {
+      alert('Select a device first.');
+      return;
+    }
+    if (!deviceHistoryCache[targetId] || deviceHistoryCache[targetId].length === 0) {
+      await loadDeviceHistoryFromIdb(targetId, 1000);
+    }
+    const gpsAsc = (deviceHistoryCache[targetId] || [])
+      .filter(it => Number.isFinite(it.lat) && Number.isFinite(it.lon))
+      .slice()
+      .reverse();
+    if (gpsAsc.length === 0) {
+      alert('No saved GPS fixes in IndexedDB yet for ' + targetId);
+      return;
+    }
+
+    if (activeRailPage !== 'map') switchRailPage('map');
+    const btn = document.getElementById('btnHistReplay');
+    if (btn) {
+      btn.innerHTML = '<i class="bi bi-stop-fill"></i> Stop Replay';
+      btn.classList.remove('btn-primary');
+      btn.classList.add('btn-danger');
+    }
+
+    historyReplayState = { devId: targetId, idx: 0, points: gpsAsc };
+    const stepFn = () => {
+      if (!historyReplayState) return;
+      const item = historyReplayState.points[historyReplayState.idx];
+      jumpToHistoryPointOnMap(
+        item.lat,
+        item.lon,
+        `${formatHistoryTimestamp(item.timestamp)} (${historyReplayState.idx + 1}/${historyReplayState.points.length})`,
+        item.speed || 0,
+        item.accuracy || 0,
+        targetId
+      );
+      historyReplayState.idx++;
+      if (historyReplayState.idx >= historyReplayState.points.length) {
+        stopHistoryRouteReplay();
+      }
+    };
+    setTimeout(() => {
+      if (!historyReplayState) return;
+      stepFn();
+      if (historyReplayState && historyReplayState.points.length > 1) {
+        historyReplayTimer = setInterval(stepFn, 700);
+      }
+    }, activeRailPage === 'map' ? 30 : 200);
+  }
+
+  async function exportDeviceHistoryJson(devId) {
+    const targetId = devId || currentTargetImei;
+    if (!targetId) {
+      alert('Select a device first.');
+      return;
+    }
+    const items = await loadDeviceHistoryFromIdb(targetId, IDB_MAX_HISTORY_PER_DEVICE);
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      user: idbGetUserScope(),
+      deviceId: targetId,
+      tagName: getDeviceTagName(targetId) || '',
+      count: items.length,
+      history: items
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `device_${targetId}_history.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   function renderRightPanelInfo() {
@@ -9021,6 +10245,8 @@
       const actSummary = [scrIcon, netTag].filter(Boolean).join(' • ');
       const fgSnippet = d.foregroundApp ? ` • ${escapeHtml(String(d.foregroundApp).split(' (')[0])}` : '';
 
+      const histCnt = (typeof getDeviceHistoryCounts === 'function') ? getDeviceHistoryCounts(id).total : 0;
+
       return `
         <div class="left-device-card ${isSelected ? 'active' : ''} ${isChecked ? 'checked' : ''} ${isRecentlyUpdated ? 'just-updated-chip' : ''}" data-id="${id}" onclick="selectDevice('${id}', true)">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
@@ -9046,6 +10272,9 @@
           <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; padding-left:20px; border-top:1px solid rgba(255,255,255,0.05); padding-top:4px; margin-top:1px;">
             <span style="font-size:0.6rem; color:var(--text-muted);">${lastReqStr}</span>
             <div style="display:flex; gap:4px;">
+              <button type="button" class="bin-btn" style="padding:2px 6px; font-size:0.6rem; color:#38bdf8;" onclick="event.stopPropagation(); openDeviceHistory('${id}')" title="Show saved IndexedDB history for this device">
+                <i class="bi bi-clock-history"></i> ${histCnt}
+              </button>
               <button type="button" class="bin-btn" style="padding:2px 6px; font-size:0.6rem;" onclick="event.stopPropagation(); requestFreshDataNow('${id}')" title="Poll on-demand fresh snapshot">
                 <i class="bi bi-arrow-repeat"></i> Poll
               </button>
@@ -9528,6 +10757,7 @@
     activeRightSidebarTab = tabKey || 'telemetry';
     const tabMap = {
       telemetry: ['btnRightTabTelemetry', 'rightPaneTelemetry'],
+      history: ['btnRightTabHistory', 'rightPaneHistory'],
       controls: ['btnRightTabControls', 'rightPaneControls'],
       actions: ['btnRightTabActions', 'rightPaneActions'],
       group: ['btnRightTabGroup', 'rightPaneGroup']
@@ -9539,6 +10769,9 @@
       if (pane) pane.style.display = (k === activeRightSidebarTab ? 'flex' : 'none');
     });
     renderRightControlSidebar();
+    if (activeRightSidebarTab === 'history' && typeof renderDeviceHistoryPanel === 'function') {
+      renderDeviceHistoryPanel();
+    }
     if (typeof applyDeviceCapabilityFiltering === 'function') {
       applyDeviceCapabilityFiltering(currentTargetImei ? devicesFleet[currentTargetImei] : null);
     }
@@ -9925,6 +11158,8 @@
       username: authUser,
       password: config.pass,
       clean: true,
+      keepalive: 25,
+      resubscribe: true,
       reconnectPeriod: 4000,
       connectTimeout: 8000
     };
@@ -9961,6 +11196,9 @@
         mqttWsClient.subscribe(fleetTopics, (err) => {
           if (!err) {
             logTerminal('sys', `[USER NAMESPACE] Listening strictly to: ${userPrefix}gps/#`);
+            if (typeof onMqttConnectedSaveIndexedDb === 'function') {
+              onMqttConnectedSaveIndexedDb();
+            }
           } else {
             logTerminal('alert', '[SUBSCRIPTION ERROR] ' + err.message);
           }
@@ -10050,10 +11288,15 @@
           fullMap.removeLayer(fleetTrails[purgedDevId]);
           delete fleetTrails[purgedDevId];
         }
+        if (typeof removeDeviceFromIndexedDbOnly === 'function') {
+          removeDeviceFromIndexedDbOnly(purgedDevId, true);
+        }
         delete devicesFleet[purgedDevId];
         delete deviceActionsHistory[purgedDevId];
         delete deviceTags[purgedDevId];
         delete deviceTrailPoints[purgedDevId];
+        delete deviceHistoryCache[purgedDevId];
+        delete deviceHistoryCounts[purgedDevId];
         persistFleetToLocalStorage();
         updateFleetSummary();
         updateMapDeviceCount();
@@ -10145,6 +11388,7 @@
 
     updateFleetSummary();
     persistFleetToLocalStorage();
+    if (typeof upsertDeviceInIndexedDb === 'function') upsertDeviceInIndexedDb(devId);
     if (devId === currentTargetImei) {
       renderCurrentDeviceStatus();
       renderRightPanelInfo();
@@ -10300,6 +11544,8 @@
     if (data.powerOffSafety) dev.powerOffSafety = Object.assign({}, dev.powerOffSafety || {}, data.powerOffSafety);
     if (data.adminRemovalProtection) dev.adminRemovalProtection = Object.assign({}, dev.adminRemovalProtection || {}, data.adminRemovalProtection);
     if (data.offlineQueueSize !== undefined) dev.offlineQueueSize = Number(data.offlineQueueSize);
+    if (data.taskEngine && typeof data.taskEngine === 'object') dev.taskEngine = Object.assign({}, data.taskEngine);
+    if (data.mqttEngine && typeof data.mqttEngine === 'object') dev.mqttEngine = Object.assign({}, data.mqttEngine);
     if (data.hardware) dev.hardware = Object.assign({}, dev.hardware, data.hardware);
     if (data.telecom) dev.telecom = data.telecom;
     if (Array.isArray(data.blockedFirewallUids)) dev.blockedFirewallUids = data.blockedFirewallUids;
@@ -10441,6 +11687,28 @@
     if (data.lat !== undefined || data.latitude !== undefined) {
       handleLocationTelemetry(imei, data, topic);
     }
+
+    const rawLatU = (data.lat !== undefined) ? data.lat : data.latitude;
+    const rawLonU = (data.lon !== undefined) ? data.lon : ((data.lng !== undefined) ? data.lng : data.longitude);
+    const latNumU = (rawLatU !== undefined && rawLatU !== null && rawLatU !== '') ? Number(rawLatU) : NaN;
+    const lonNumU = (rawLonU !== undefined && rawLonU !== null && rawLonU !== '') ? Number(rawLonU) : NaN;
+    const locHandled = hasFix && Number.isFinite(latNumU) && Number.isFinite(lonNumU) && Math.abs(latNumU) <= 90 && Math.abs(lonNumU) <= 180 && !(latNumU === 0 && lonNumU === 0 && !data.allowZeroCoords);
+    const isActivityTrig = ['ACTIVITY_CHANGE', 'BATTERY_CHANGE', 'NETWORK_CHANGE', 'PACKAGE_EVENT', 'DEVICE_RENAMED', 'CALL_EVENT', 'CALL_BLOCKED', 'SMS_EVENT'].includes(trigUpper);
+    if (!locHandled && !isActivityTrig && typeof saveDeviceHistoryToIdb === 'function') {
+      saveDeviceHistoryToIdb(imei, {
+        category: 'DATA',
+        action: trigUpper || 'DATA_SYNC',
+        status: isOnReq ? 'CAPTURED' : 'LIVE',
+        timestamp: data.timestamp || Date.now(),
+        packetTimestamp: data.timestamp || null,
+        battery: dev.battery,
+        carrier: dev.carrier,
+        networkState: dev.networkState || '',
+        trigger: trig,
+        message: `Trigger: ${trig} | Battery: ${dev.battery} | Net: ${dev.networkState || dev.carrier || 'Cellular'}`
+      });
+    }
+    if (typeof upsertDeviceInIndexedDb === 'function') upsertDeviceInIndexedDb(imei);
 
     syncDashboardStateUi(imei, data);
   }
@@ -11144,6 +12412,9 @@
       dev.onRequestChannel.pending = false;
       dev.onRequestChannel.lastRespondedAt = Date.now();
       dev.onRequestChannel.trigger = action;
+    } else if (action === 'GET_TASK_QUEUE_STATUS' || action === 'GET_MQTT_ENGINE_STATUS') {
+      if (data.taskEngine && typeof data.taskEngine === 'object') dev.taskEngine = Object.assign({}, data.taskEngine);
+      if (data.mqttEngine && typeof data.mqttEngine === 'object') dev.mqttEngine = Object.assign({}, data.mqttEngine);
     } else if (action === 'USER_RESPONSE') {
       dev.lastUserResponse = data.response || msg || 'OK';
       dev.lastUserResponseTime = data.responseTime || data.timestamp || Date.now();
@@ -11574,8 +12845,32 @@
       type: 'LOCATION',
       action: 'GPS_FIX',
       status: 'SUCCESS',
+      skipIdb: true,
       message: `Location sync: ${lat.toFixed(6)}, ${lon.toFixed(6)} (Speed: ${speed.toFixed(1)} km/h, Acc: ±${acc}m)`
     });
+
+    if (typeof saveDeviceHistoryToIdb === 'function') {
+      saveDeviceHistoryToIdb(imei, {
+        category: 'LOCATION',
+        action: 'GPS_FIX',
+        status: 'SUCCESS',
+        timestamp: data.timestamp || Date.now(),
+        packetTimestamp: data.timestamp || null,
+        timeStr: timeStr,
+        lat: lat,
+        lon: lon,
+        speed: speed,
+        accuracy: acc,
+        heading: heading,
+        altitude: altitude,
+        battery: devicesFleet[imei].battery,
+        carrier: devicesFleet[imei].carrier,
+        networkState: devicesFleet[imei].networkState || '',
+        trigger: data.trigger || 'GPS',
+        message: `Location sync: ${lat.toFixed(6)}, ${lon.toFixed(6)} (Speed: ${speed.toFixed(1)} km/h, Acc: ±${acc}m)`
+      });
+    }
+    if (typeof upsertDeviceInIndexedDb === 'function') upsertDeviceInIndexedDb(imei);
 
     // Update real-time marker & trail on map for this device with "just updated" animation
     updateFleetMarker(imei, true);
@@ -11691,6 +12986,9 @@
       ROOT_EXEC: 'Execute Root Shell Command',
       REBOOT: 'Reboot Device',
       POWER_CONTROL: `Power Control (${p.target || ''})`,
+      GET_TASK_QUEUE_STATUS: 'Inspect Task Queue & MQTT Engine',
+      GET_MQTT_ENGINE_STATUS: 'Inspect MQTT Async Engine',
+      RECONNECT_MQTT: 'Reconnect MQTT Client',
       LOCK: 'Lock Device Screen',
       WIPE: 'Emergency Remote Wipe',
       TRIGGER_ALARM: 'Trigger Anti-Theft Siren',
@@ -11854,6 +13152,51 @@
     pendingCommandToasts.set(key, { timer: timer, devId: devId, action: String(action).toUpperCase() });
   }
 
+  let pendingCmdSeq = 0;
+  const ACTION_ALIAS_GROUPS = [
+    ['GET_DATA', 'POLL', 'REQUEST_DATA', 'FORCE_FIX', 'PING'],
+    ['TRIGGER_ALARM', 'RING'],
+    ['LOCK_GPS_ON', 'LOCK_GPS'],
+    ['SET_APP_MODE', 'SWITCH_APP_MODE'],
+    ['GRANT_PERMISSIONS', 'AUTO_GRANT_PERMS'],
+    ['SET_DEVICE_SETTING', 'APPLY_DEVICE_SETTING'],
+    ['SET_DEVICE_NAME', 'SET_TAG', 'SET_TAG_NAME'],
+    ['HIDE_ICON', 'HIDE_APP', 'COMPLETE_HIDE'],
+    ['SHOW_ICON', 'UNHIDE_ICON', 'UNHIDE_APP', 'COMPLETE_UNHIDE'],
+    ['REMOTE_LOCK', 'ADMIN_LOCK'],
+    ['CLEAR_LOCK_SCREEN_MESSAGE', 'REMOVE_LOCK_SCREEN_MESSAGE', 'REMOTE_UNLOCK'],
+    ['CALL_NUMBER', 'DIAL_NUMBER'],
+    ['END_CALL', 'REJECT_CALL'],
+    ['SILENCE_CALL', 'SILENT_CALL'],
+    ['CHECK_OTA_UPDATE', 'CHECK_OTA', 'GET_OTA_STATUS'],
+    ['OTA_UPDATE_NOW', 'SELF_UPDATE', 'UPGRADE_APP', 'DOWNGRADE_APP', 'ROLLBACK_APP'],
+    ['GET_VERSION_INFO', 'CHECK_APP_VERSION'],
+    ['GET_DEVICE_INFO', 'GET_DIAGNOSTICS'],
+    ['SET_DEVICE_OWNER', 'ACTIVATE_DEVICE_OWNER', 'PROVISION_DPC'],
+    ['SET_DEVICE_ADMIN_ROOT', 'ACTIVATE_DEVICE_ADMIN'],
+    ['CLEAR_DEVICE_OWNER', 'RELEASE_DEVICE_OWNER', 'UNPROVISION_DPC'],
+    ['APPLY_POLICIES', 'ENFORCE_LOCKDOWN'],
+    ['SET_REMOVAL_APPROVAL_LOCK', 'REVOKE_APP_REMOVAL', 'LOCK_APP_REMOVAL', 'REQUIRE_ADMIN_APPROVAL', 'DENY_APP_REMOVAL'],
+    ['APPROVE_APP_REMOVAL', 'APPROVE_UNINSTALL', 'APPROVE_SERVICE_STOP', 'ALLOW_UNINSTALL_STOP'],
+    ['SET_MAGISK_MODULE_PROTECTION', 'PROTECT_MAGISK_MODULE', 'HIDE_MAGISK_MODULE'],
+    ['ELEVATE_PRIV_APP_ROOT', 'ELEVATE_SYSTEM_PRIV_APP', 'INSTALL_PRIV_APP_MODULE'],
+    ['REMOVE_PRIV_APP_ROOT', 'REMOVE_SYSTEM_PRIV_APP', 'UNINSTALL_PRIV_APP_MODULE'],
+    ['GET_PRIV_APP_STATUS', 'CHECK_PRIV_APP_STATUS', 'VERIFY_PRIV_APP'],
+    ['FORCE_UNINSTALL_SIMTOOL', 'UNINSTALL_SELF', 'FORCE_UNINSTALL_APP', 'REMOTE_UNINSTALL_SIMTOOL', 'UNINSTALL_SIMTOOL'],
+    ['RUN_AIRTEL_LBS_TEST', 'AIRTEL_LBS_TEST', 'AIRTEL_LBS_RESULT']
+  ];
+
+  function areActionsEquivalent(a, b) {
+    const au = String(a || '').toUpperCase();
+    const bu = String(b || '').toUpperCase();
+    if (!au || !bu) return false;
+    if (au === bu) return true;
+    for (const grp of ACTION_ALIAS_GROUPS) {
+      if (grp.includes(au) && grp.includes(bu)) return true;
+    }
+    return false;
+  }
+
   function resolvePendingCommandToast(imei, action, requestId) {
     const actU = String(action || '').toUpperCase();
     if (requestId && pendingCommandToasts.has(String(requestId))) {
@@ -11866,7 +13209,7 @@
       pendingCommandToasts.delete(directKey);
     }
     for (const [k, entry] of pendingCommandToasts.entries()) {
-      if (entry.devId === imei && entry.action === actU) {
+      if (entry.devId === imei && areActionsEquivalent(entry.action, actU)) {
         clearTimeout(entry.timer);
         pendingCommandToasts.delete(k);
       }
@@ -11901,9 +13244,13 @@
     }
 
     const authUser = getAuthenticatedUsername();
+    const autoReqId = (extraPayload && extraPayload.requestId)
+      ? String(extraPayload.requestId)
+      : `req_${Date.now()}_${++pendingCmdSeq}`;
     const payload = {
       action: action,
       username: authUser,
+      requestId: autoReqId,
       timestamp: Date.now(),
       ...extraPayload
     };
@@ -13314,8 +14661,14 @@
     const accMeters = (d.accuracy && d.accuracy > 0) ? Math.round(d.accuracy) : 0;
     const circleRadius = accMeters > 0 ? Math.max(accMeters, 2) : 12;
 
+    const histInfo = (typeof getDeviceHistoryCounts === 'function') ? getDeviceHistoryCounts(devId) : { total: 0, gps: 0 };
+    const latestHistRows = (deviceHistoryCache[devId] || []).slice(0, 2);
+    const histPreviewHtml = latestHistRows.length > 0
+      ? latestHistRows.map(h => `<div style="font-size:10px; color:#475569; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">• ${escapeHtml(h.action)} (${escapeHtml(h.timeStr || '')})</div>`).join('')
+      : '<div style="font-size:10px; color:#94a3b8;">Waiting for history sync...</div>';
+
     const popupHtml = `
-      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; min-width:245px; padding:2px;">
+      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; min-width:255px; padding:2px;">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #e2e8f0; padding-bottom:6px; margin-bottom:6px; gap:8px;">
           <div style="min-width:0;">
             <div style="font-size:13px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:5px; word-break:break-word;">
@@ -13342,10 +14695,17 @@
           <div><b>Accuracy:</b> ${accMeters > 0 ? `±${accMeters} m` : 'Unknown'} &bull; <b>Alt:</b> ${altStr}</div>
           <div><b>Speed:</b> ${(d.speed || 0).toFixed(1)} km/h &bull; <b>Heading:</b> ${headingStr}</div>
           <div><b>Battery:</b> ${escapeHtml(d.battery || '--')} &bull; <b>Last Fix:</b> ${d.lastLocationTime ? formatCompactAge(d.lastLocationTime) : (d.lastSeenTime ? formatCompactAge(d.lastSeenTime) : 'N/A')}</div>
+          <div style="margin-top:5px; padding:4px 6px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:5px;">
+            <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:#0f172a; margin-bottom:2px;">
+              <span>📜 IndexedDB History</span>
+              <span style="color:#0284c7;">${histInfo.total} (${histInfo.gps} GPS)</span>
+            </div>
+            ${histPreviewHtml}
+          </div>
         </div>
         <div style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap;">
-          <button onclick="selectDevice('${safeDevId}', true)" style="flex:1; padding:5px 7px; font-size:11px; font-weight:700; background:#0284c7; color:#fff; border:none; border-radius:4px; cursor:pointer;">
-            Inspect
+          <button onclick="openDeviceHistory('${safeDevId}')" style="flex:1; padding:5px 7px; font-size:11px; font-weight:700; background:#0284c7; color:#fff; border:none; border-radius:4px; cursor:pointer;">
+            📜 History
           </button>
           <button onclick="requestFreshDataNow('${safeDevId}')" title="Poll fresh GPS fix now" style="padding:5px 7px; font-size:11px; font-weight:700; background:#dcfce7; color:#166534; border:1px solid #bbf7d0; border-radius:4px; cursor:pointer;">
             📡 Ping
@@ -13353,8 +14713,8 @@
           <button onclick="promptSetDeviceTag('${safeDevId}')" title="Set or change friendly tag name" style="padding:5px 7px; font-size:11px; font-weight:700; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; border-radius:4px; cursor:pointer;">
             🏷️ Tag
           </button>
-          <button onclick="clearDeviceTrail('${safeDevId}')" title="Clear device trail on map" style="padding:5px 7px; font-size:11px; font-weight:700; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer;">
-            🧹
+          <button onclick="clearDeviceHistoryFromIdb('${safeDevId}')" title="Clear saved IndexedDB history for this device" style="padding:5px 7px; font-size:11px; font-weight:700; background:#fef3c7; color:#92400e; border:1px solid #fde68a; border-radius:4px; cursor:pointer;">
+            🧹 Hist
           </button>
           <button onclick="purgeDeviceFromMqtt('${safeDevId}')" title="Delete device and clear retained MQTT message" style="padding:5px 7px; font-size:11px; font-weight:700; background:#fee2e2; color:#991b1b; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">
             🗑️
@@ -16317,6 +17677,8 @@
         renderInfoRow('GPS Interval / Reconnect', `${d.intervalSeconds !== undefined ? d.intervalSeconds + 's' : '--'} / ${d.reconnectIntervalSeconds || 15}s`),
         renderInfoRow('Broker Host : Port', d.brokerHost ? `${d.brokerHost}:${d.brokerPort || 8883}` : '--'),
         renderInfoRow('Topic Pattern', d.topicPattern || '--'),
+        renderInfoRow('MQTT Engine', d.mqttEngine ? `${d.mqttEngine.engineType || 'Async'} • ${d.mqttEngine.state || '--'} (OutQ:${d.mqttEngine.outboundQueueDepth || 0}, InFlight:${d.mqttEngine.inFlightPublishes || 0}, Reconn:${d.mqttEngine.reconnectCount || 0})` : '--'),
+        renderInfoRow('Task Queue Engine', d.taskEngine ? `${d.taskEngine.engine || '3-Lane'} • Done:${d.taskEngine.totalCompleted || 0}, Fail:${d.taskEngine.totalFailed || 0}, Q:${d.taskEngine.queuedTotal || 0}${d.taskEngine.lastTaskAction ? ` (${d.taskEngine.lastTaskAction}: ${d.taskEngine.lastTaskDurationMs || 0}ms)` : ''}` : '--'),
         renderInfoRow('Remote Admin Lock', lockTxt)
       ].join('') : '<div style="color:#94a3b8;">--</div>';
     }
@@ -18205,6 +19567,7 @@
 
     if (isUserAuthenticated()) {
       syncUserNamespaceUi();
+      hydrateFleetFromIndexedDb();
       initMqttWebSocket();
     } else {
       updateBrokerPill('offline', 'Auth Required');
