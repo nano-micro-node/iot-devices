@@ -976,6 +976,68 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
 
+    /* Universal Command Action Result Toasts (Success / Error + Reason) */
+    #actionResultToastContainer {
+      position: fixed;
+      top: 58px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(440px, calc(100vw - 24px));
+      z-index: 9600;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .action-result-toast {
+      pointer-events: auto;
+      background: rgba(9, 15, 25, 0.97);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-left: 4px solid #38bdf8;
+      border-radius: 10px;
+      padding: 9px 12px;
+      color: #f8fafc;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      font-size: 0.75rem;
+      line-height: 1.38;
+      animation: actionToastIn 0.18s ease-out;
+    }
+    .action-result-toast.toast-success {
+      border-color: rgba(34, 197, 94, 0.48);
+      border-left-color: #22c55e;
+    }
+    .action-result-toast.toast-warning {
+      border-color: rgba(245, 158, 11, 0.48);
+      border-left-color: #f59e0b;
+    }
+    .action-result-toast.toast-error {
+      border-color: rgba(239, 68, 68, 0.52);
+      border-left-color: #ef4444;
+    }
+    .action-result-toast-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 3px;
+      font-weight: 800;
+    }
+    .action-result-toast-meta {
+      font-size: 0.67rem;
+      color: #94a3b8;
+      margin-bottom: 3px;
+    }
+    .action-result-toast-body {
+      color: #e2e8f0;
+      font-size: 0.72rem;
+      word-break: break-word;
+    }
+    @keyframes actionToastIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     /* Top-Right Live Call & Message Toast Stack (Admin Activated Only) */
     #liveCommsToastContainer {
       position: fixed;
@@ -1186,11 +1248,21 @@
     }
 
     /* Main Fleet Map Split Layout */
+    #viewMap {
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .fleet-summary-bar {
+      flex-shrink: 0;
+    }
+
     .fleet-map-container {
       display: flex;
       gap: 14px;
-      height: calc(100vh - 165px);
-      min-height: 520px;
+      flex: 1;
+      min-height: 460px;
       width: 100%;
       position: relative;
     }
@@ -1204,39 +1276,47 @@
       display: flex;
       flex-direction: column;
       background: #090d16;
-      min-height: 450px;
+      min-height: 440px;
     }
 
     #liveFullMap {
       width: 100%;
       height: 100%;
       flex: 1;
+      background: #070c14;
     }
 
     .map-toolbar-floating {
       position: absolute;
-      top: 14px;
-      right: 14px;
+      top: 10px;
+      right: 10px;
+      left: 52px;
       z-index: 1000;
       display: flex;
       flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
       gap: 6px;
+      pointer-events: none;
+    }
+    .map-toolbar-floating > * {
+      pointer-events: auto;
     }
 
     .map-tool-btn {
-      background: rgba(17, 27, 33, 0.9);
+      background: rgba(17, 27, 33, 0.92);
       backdrop-filter: blur(8px);
       border: 1px solid var(--border-color);
-      color: #fff;
-      padding: 7px 12px;
+      color: #e2e8f0;
+      padding: 6px 10px;
       border-radius: 8px;
-      font-size: 0.75rem;
+      font-size: 0.73rem;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      gap: 5px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.45);
       transition: all 0.2s;
     }
     .map-tool-btn:hover {
@@ -1244,14 +1324,26 @@
       border-color: var(--accent-blue);
       color: var(--accent-blue);
     }
+    .map-tool-btn.active {
+      background: rgba(2, 132, 199, 0.92);
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+    }
+    .map-tool-btn.active-green {
+      background: rgba(5, 150, 105, 0.92);
+      border-color: #34d399;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(52, 211, 153, 0.45);
+    }
 
     .map-open-source-tag {
       background: rgba(16, 185, 129, 0.15);
       border: 1px solid rgba(16, 185, 129, 0.35);
       color: #34d399;
-      padding: 7px 11px;
+      padding: 6px 10px;
       border-radius: 8px;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
@@ -1263,25 +1355,26 @@
     /* Layer Switcher Pills Group */
     .map-layer-pills {
       display: inline-flex;
+      flex-wrap: wrap;
       background: rgba(15, 23, 42, 0.92);
       border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 8px;
       padding: 2px;
       gap: 2px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.45);
     }
     .map-tool-pill {
       background: transparent;
       border: none;
       color: #94a3b8;
-      font-size: 0.73rem;
+      font-size: 0.71rem;
       font-weight: 600;
-      padding: 5px 9px;
+      padding: 5px 8px;
       border-radius: 6px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       transition: all 0.2s ease;
       white-space: nowrap;
     }
@@ -1294,6 +1387,11 @@
       color: #ffffff;
       font-weight: 700;
       box-shadow: 0 1px 6px rgba(2, 132, 199, 0.5);
+    }
+    .map-tool-pill.overlay-on {
+      background: rgba(16, 185, 129, 0.22);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.45);
     }
 
     .btn-danger-soft {
@@ -1414,17 +1512,31 @@
       color: #ef4444;
     }
 
+    .map-stage-wrapper .leaflet-bottom {
+      bottom: 70px !important;
+    }
     .leaflet-control-attribution {
       background: rgba(11, 20, 26, 0.85) !important;
       color: #94a3b8 !important;
       font-size: 10px !important;
       padding: 3px 8px !important;
       border-radius: 4px;
-      margin-bottom: 58px !important;
     }
     .leaflet-control-attribution a {
       color: #38bdf8 !important;
       text-decoration: none;
+    }
+    .leaflet-control-scale-line {
+      background: rgba(11, 20, 26, 0.85) !important;
+      border: 2px solid #38bdf8 !important;
+      border-top: none !important;
+      color: #e2e8f0 !important;
+      font-weight: 700 !important;
+      font-size: 10px !important;
+      padding: 1px 6px !important;
+      border-radius: 0 0 4px 4px;
+      text-shadow: none !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.45);
     }
     .leaflet-control-layers {
       background: rgba(17, 27, 33, 0.95) !important;
@@ -1444,21 +1556,85 @@
 
     .map-hud-bar {
       position: absolute;
-      bottom: 14px;
-      left: 14px;
-      right: 14px;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
       z-index: 1000;
-      background: rgba(17, 27, 33, 0.92);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--border-color);
+      background: rgba(11, 20, 26, 0.93);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
       border-radius: 10px;
-      padding: 10px 14px;
-      display: flex;
-      justify-content: space-between;
+      padding: 8px 12px;
+      display: grid;
+      grid-template-columns: minmax(170px, 1.3fr) minmax(170px, 1.2fr) minmax(145px, 1fr) minmax(130px, 0.9fr);
       align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.55);
+    }
+    .hud-label {
+      font-size: 0.63rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .hud-tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(16, 185, 129, 0.16);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      color: #34d399;
+      padding: 1px 7px;
+      border-radius: 5px;
+      font-size: 0.73rem;
+      font-weight: 800;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .hud-tag-pill.untagged {
+      background: rgba(148, 163, 184, 0.12);
+      border-color: rgba(148, 163, 184, 0.28);
+      color: #94a3b8;
+    }
+    .hud-id-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      padding: 1px 7px;
+      border-radius: 5px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      font-family: monospace;
+      cursor: pointer;
+    }
+    .hud-id-pill:hover {
+      background: rgba(56, 189, 248, 0.24);
+      color: #fff;
+    }
+    .hud-mini-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #cbd5e1;
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: 0.68rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .hud-mini-btn:hover {
+      border-color: #38bdf8;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
     }
 
     /* Right-Side "Device Info & Actions Taken" Panel */
@@ -1595,130 +1771,284 @@
       line-height: 1.35;
     }
 
-    /* Custom Map Marker Pins */
+    /* Exact Coordinate-Anchored Map Marker Pointers */
+    .exact-fleet-marker,
     .custom-fleet-pin {
-      background: transparent;
-      border: none;
+      background: transparent !important;
+      border: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      overflow: visible !important;
     }
 
-    .fleet-marker-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .exact-marker-root {
       position: relative;
+      width: 0;
+      height: 0;
+      overflow: visible;
       cursor: pointer;
+      user-select: none;
     }
 
-    .fleet-marker-pin {
-      width: 26px;
-      height: 26px;
-      border-radius: 50% 50% 50% 0;
-      transform: rotate(-45deg);
+    /* Ground exact-coordinate pinpoint + crosshair at (0,0) */
+    .exact-pinpoint-origin {
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
     }
-
-    .fleet-marker-pin i {
-      transform: rotate(45deg);
+    .exact-pinpoint-ring {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
+      background: rgba(16, 185, 129, 0.22);
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.75);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-
-    .fleet-marker-label {
-      background: rgba(11, 20, 26, 0.9);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 800;
-      font-family: monospace;
-      padding: 2px 6px;
-      border-radius: 4px;
-      border: 1px solid var(--border-color);
-      margin-top: 3px;
-      white-space: nowrap;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-    }
-
-    .fleet-marker-label.selected {
-      background: #0284c7;
+    .exact-marker-root.is-selected .exact-pinpoint-ring {
+      width: 20px;
+      height: 20px;
       border-color: #38bdf8;
-      color: #fff;
+      background: rgba(56, 189, 248, 0.25);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.85);
+    }
+    .exact-marker-root.is-offline .exact-pinpoint-ring {
+      width: 13px;
+      height: 13px;
+      border-color: rgba(254, 202, 202, 0.85);
+      background: rgba(239, 68, 68, 0.25);
+    }
+    .exact-pinpoint-core {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      border: 1.5px solid #ffffff;
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
+    }
+    .exact-marker-root.is-selected .exact-pinpoint-core {
+      background: #38bdf8;
+      width: 7px;
+      height: 7px;
+    }
+    .exact-marker-root.is-offline .exact-pinpoint-core {
+      background: #ef4444;
+      width: 5px;
+      height: 5px;
     }
 
-    .pin-pulse {
+    /* Crosshair ticks for exact coordinate verification */
+    .exact-crosshair-ticks {
       position: absolute;
-      top: -4px;
-      left: 13px;
+      left: 0;
+      top: 0;
+      width: 24px;
+      height: 24px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* Directional bearing / heading cone anchored at (0,0) */
+    .exact-heading-cone {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 48px;
+      height: 48px;
+      pointer-events: none;
+      transform-origin: 50% 50%;
+    }
+
+    /* Concentric radar pulse anchored strictly at (0,0) */
+    .exact-pulse-ring {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.35);
+      animation: exactPulseAnim 2s infinite ease-out;
+      pointer-events: none;
+    }
+    .exact-marker-root.is-selected .exact-pulse-ring {
+      background: rgba(56, 189, 248, 0.42);
+    }
+    .exact-update-ripple {
+      position: absolute;
+      left: 0;
+      top: 0;
       width: 34px;
       height: 34px;
       border-radius: 50%;
-      background: rgba(56, 189, 248, 0.4);
-      animation: pulseAnim 1.8s infinite;
-      pointer-events: none;
-    }
-
-    @keyframes pulseAnim {
-      0% { transform: scale(0.6); opacity: 1; }
-      100% { transform: scale(1.6); opacity: 0; }
-    }
-
-    /* ============================================================
-       PIN ANIMATIONS, HOVER EFFECTS & UPDATED NOW STATUS
-       ============================================================ */
-    .custom-fleet-pin {
-      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.22s ease;
-    }
-    .custom-fleet-pin:hover {
-      transform: scale(1.25) translateY(-4px);
-      filter: drop-shadow(0 6px 14px rgba(56, 189, 248, 0.8));
-      z-index: 9999 !important;
-    }
-    .custom-fleet-pin.offline-pin:hover {
-      transform: scale(1.3) translateY(-3px);
-      filter: drop-shadow(0 4px 10px rgba(239, 68, 68, 0.9));
-      z-index: 9999 !important;
-    }
-
-    /* Radiating Radar Wave Ring around Just Updated Marker */
-    .just-updated-pin {
-      animation: updatedPingAnim 1.6s ease-out 3;
-    }
-
-    @keyframes updatedPingAnim {
-      0% {
-        transform: scale(1);
-        filter: drop-shadow(0 0 0 rgba(16, 185, 129, 0.9));
-      }
-      50% {
-        transform: scale(1.25);
-        filter: drop-shadow(0 0 16px rgba(52, 211, 153, 0.95)) drop-shadow(0 0 24px rgba(56, 189, 248, 0.8));
-      }
-      100% {
-        transform: scale(1);
-        filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.4));
-      }
-    }
-
-    .update-pulse-ring {
-      position: absolute;
-      top: -6px;
-      left: 14px;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
       border: 2px solid #34d399;
       pointer-events: none;
-      animation: rippleWave 1.4s infinite ease-out;
+      animation: exactRippleWave 1.4s infinite ease-out;
     }
 
-    @keyframes rippleWave {
-      0% {
-        transform: scale(0.5);
-        opacity: 1;
-      }
-      100% {
-        transform: scale(2.2);
-        opacity: 0;
-      }
+    @keyframes exactPulseAnim {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.95; }
+      100% { transform: translate(-50%, -50%) scale(1.75); opacity: 0; }
+    }
+    @keyframes exactRippleWave {
+      0% { transform: translate(-50%, -50%) scale(0.45); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2.35); opacity: 0; }
+    }
+
+    /* Sharp teardrop SVG pointer pin whose tip lands right on (0,0) */
+    .exact-pin-head {
+      position: absolute;
+      left: 0;
+      bottom: 2px;
+      transform: translateX(-50%);
+      transform-origin: 50% 100%;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.65));
+      pointer-events: auto;
+    }
+    .exact-marker-root:hover .exact-pin-head {
+      transform: translateX(-50%) scale(1.16);
+      filter: drop-shadow(0 6px 14px rgba(56, 189, 248, 0.85));
+    }
+    .exact-marker-root.is-selected .exact-pin-head {
+      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.95)) drop-shadow(0 5px 10px rgba(0, 0, 0, 0.75));
+    }
+    .exact-marker-root.is-offline:hover .exact-pin-head {
+      filter: drop-shadow(0 4px 12px rgba(239, 68, 68, 0.9));
+    }
+    .exact-pin-head.just-updated {
+      animation: exactPinBounce 1.4s ease-out 2;
+    }
+    @keyframes exactPinBounce {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      45% { transform: translateX(-50%) scale(1.22); }
+    }
+
+    /* Device ID + Tag Badge cleanly anchored below (0,0) */
+    .exact-pin-badge {
+      position: absolute;
+      left: 0;
+      top: 11px;
+      transform: translateX(-50%);
+      background: rgba(11, 20, 26, 0.94);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 7px;
+      padding: 3px 7px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+      pointer-events: auto;
+      transition: all 0.18s ease;
+    }
+    .exact-pin-badge::before {
+      content: "";
+      position: absolute;
+      top: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-bottom: 5px solid rgba(148, 163, 184, 0.45);
+    }
+    .exact-marker-root.is-selected .exact-pin-badge {
+      background: rgba(7, 36, 56, 0.96);
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45), 0 4px 12px rgba(0,0,0,0.7);
+    }
+    .exact-marker-root.is-selected .exact-pin-badge::before {
+      border-bottom-color: #38bdf8;
+    }
+    .exact-marker-root.is-just-updated .exact-pin-badge {
+      border-color: #34d399;
+      box-shadow: 0 0 10px rgba(52, 211, 153, 0.5), 0 4px 12px rgba(0,0,0,0.7);
+    }
+    .exact-marker-root.is-offline .exact-pin-badge {
+      background: rgba(45, 10, 14, 0.93);
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+    .exact-marker-root.is-offline .exact-pin-badge::before {
+      border-bottom-color: rgba(239, 68, 68, 0.55);
+    }
+
+    .pin-badge-tag-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #f8fafc;
+      line-height: 1.2;
+      max-width: 170px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pin-badge-tag-row.untagged {
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 9px;
+    }
+    .pin-badge-id-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: monospace;
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #7dd3fc;
+      line-height: 1.15;
+      max-width: 170px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .exact-marker-root.is-offline .pin-badge-id-row {
+      color: #fca5a5;
+    }
+    .pin-badge-id-prefix {
+      background: rgba(56, 189, 248, 0.16);
+      color: #38bdf8;
+      padding: 0 3px;
+      border-radius: 3px;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .exact-marker-root.is-offline .pin-badge-id-prefix {
+      background: rgba(239, 68, 68, 0.22);
+      color: #fca5a5;
+    }
+    .pin-badge-speed {
+      background: rgba(16, 185, 129, 0.22);
+      color: #34d399;
+      border-radius: 3px;
+      padding: 0 4px;
+      font-size: 8px;
+      font-weight: 800;
+      font-family: sans-serif;
+    }
+
+    /* Compact mode: hide label until hovered */
+    .map-labels-hidden .exact-pin-badge {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(-2px);
+    }
+    .map-labels-hidden .exact-marker-root:hover .exact-pin-badge,
+    .map-labels-hidden .exact-marker-root.is-selected .exact-pin-badge {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
     }
 
     /* Carousel Chip Hover & Updated Flash */
@@ -1928,7 +2258,7 @@
       .map-toolbar-floating {
         top: 6px;
         right: 6px;
-        left: 6px;
+        left: 46px;
         gap: 4px;
         justify-content: flex-end;
       }
@@ -1949,11 +2279,14 @@
         display: none;
       }
       .map-tool-pill {
-        padding: 4px 7px;
-        font-size: 0.68rem;
+        padding: 4px 6px;
+        font-size: 0.65rem;
       }
 
       /* Map HUD on Mobile */
+      .map-stage-wrapper .leaflet-bottom {
+        bottom: 92px !important;
+      }
       .map-hud-bar {
         bottom: 6px;
         left: 6px;
@@ -1967,14 +2300,12 @@
       .map-hud-bar > div {
         min-width: 0;
       }
-      .map-hud-bar span {
-        font-size: 0.6rem !important;
+      .map-hud-bar .hud-label {
+        font-size: 0.58rem !important;
       }
-      .map-hud-bar div[id] {
-        font-size: 0.73rem !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+      .map-hud-bar div[id],
+      .map-hud-bar span[id] {
+        font-size: 0.7rem !important;
       }
 
       /* Mobile Device Side Panel */
@@ -3575,6 +3906,7 @@
   <!-- Toast -->
   <div id="saveToast"><i class="bi bi-check-circle-fill"></i> Settings Saved</div>
   <div id="liveCommsToastContainer" aria-live="polite"></div>
+  <div id="actionResultToastContainer" aria-live="assertive"></div>
 
   <!-- Top App Header -->
   <header>
@@ -4061,10 +4393,10 @@
                 <button class="btn-ctrl btn-secondary compact" onclick="applyFeaturePreset('STEALTH_LOCKDOWN')" title="Enable all protection & stealth monitoring">
                   <i class="bi bi-shield-fill-check"></i> Full Protection
                 </button>
-                <button class="btn-ctrl btn-warning compact" data-cap="DPC" onclick="setAllSettingsLockCommand(true)" title="Lock user out of changing any device setting">
+                <button class="btn-ctrl btn-warning compact" data-cap="DPC_OR_ROOT" onclick="setAllSettingsLockCommand(true)" title="Lock user out of changing any device setting">
                   <i class="bi bi-lock-fill"></i> Lock All Settings
                 </button>
-                <button class="btn-ctrl btn-outline compact" data-cap="DPC" onclick="setAllSettingsLockCommand(false)" title="Allow user to change device settings freely">
+                <button class="btn-ctrl btn-outline compact" data-cap="DPC_OR_ROOT" onclick="setAllSettingsLockCommand(false)" title="Allow user to change device settings freely">
                   <i class="bi bi-unlock-fill"></i> Unlock All
                 </button>
                 <button class="btn-ctrl btn-outline compact" onclick="publishRemoteCommand('GET_FEATURES')">
@@ -4130,12 +4462,12 @@
                ========================================== -->
           <div class="mdm-tab-pane" id="paneMdmPolicies">
             <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-              <button class="btn-ctrl btn-primary compact" data-cap="ADMIN" onclick="lockScreenCommand()"><i class="bi bi-lock-fill"></i> Lock Screen Now</button>
+              <button class="btn-ctrl btn-primary compact" data-cap="ADMIN_OR_ROOT" onclick="lockScreenCommand()"><i class="bi bi-lock-fill"></i> Lock Screen Now</button>
               <button class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="activateDeviceAdminViaRootCommand()"><i class="bi bi-shield-check"></i> Activate Admin (Root)</button>
               <button class="btn-ctrl btn-primary compact" data-cap="ROOT" onclick="activateDeviceOwnerViaRootCommand()"><i class="bi bi-shield-plus"></i> Set Device Owner (Root)</button>
-              <button class="btn-ctrl btn-success compact" data-cap="DPC" onclick="applyPoliciesCommand()"><i class="bi bi-shield-check"></i> Enforce Baseline DPC</button>
-              <button class="btn-ctrl btn-outline compact" data-cap="ADMIN" onclick="queryMdmStatusCommand()"><i class="bi bi-arrow-repeat"></i> Query MDM Status</button>
-              <button class="btn-ctrl btn-outline compact" data-cap="DPC" onclick="unlockAllPoliciesCommand()"><i class="bi bi-shield-slash"></i> Clear All Policies</button>
+              <button class="btn-ctrl btn-success compact" data-cap="DPC_OR_ROOT" onclick="applyPoliciesCommand()"><i class="bi bi-shield-check"></i> Enforce Baseline Policies</button>
+              <button class="btn-ctrl btn-outline compact" data-cap="ADMIN_OR_ROOT" onclick="queryMdmStatusCommand()"><i class="bi bi-arrow-repeat"></i> Query MDM Status</button>
+              <button class="btn-ctrl btn-outline compact" data-cap="DPC_OR_ROOT" onclick="unlockAllPoliciesCommand()"><i class="bi bi-shield-slash"></i> Clear All Policies</button>
               <button class="btn-ctrl btn-secondary compact" data-cap="DPC_OR_ROOT" onclick="rebootDeviceCommand()"><i class="bi bi-arrow-clockwise"></i> Reboot Device</button>
               <button class="btn-ctrl btn-danger-outline compact" data-cap="ADMIN" onclick="confirmRemoteWipeCommand()"><i class="bi bi-exclamation-triangle-fill"></i> Remote Wipe</button>
             </div>
@@ -4156,6 +4488,7 @@
                   <span class="badge-mini warning" id="pillRootProvAdmin">Admin: --</span>
                   <span class="badge-mini warning" id="pillRootProvOwner">Device Owner: --</span>
                   <span class="badge-mini info" id="pillRootPrivApp">Priv-App: --</span>
+                  <span class="badge-mini info" id="pillRootMagiskProtect">Magisk Guard: --</span>
                   <span class="badge-mini warning" id="pillRootExtOwner" style="display:none;">Coexisting DO: --</span>
                   <span class="badge-mini warning" id="pillRootRemovalLock">Removal: --</span>
                   <span class="badge-mini info" id="pillRootProvReadiness">Accounts: Not Loaded</span>
@@ -4168,7 +4501,11 @@
                 <button type="button" class="btn-ctrl btn-success compact" onclick="elevatePrivAppViaRootCommand()"><i class="bi bi-layers-fill"></i> Elevate Priv-App (Root)</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="checkPrivAppStatusCommand()"><i class="bi bi-patch-check"></i> Verify Priv-App Flags</button>
                 <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="removePrivAppViaRootCommand()"><i class="bi bi-x-circle"></i> Remove Priv-App</button>
+                <button type="button" class="btn-ctrl btn-warning compact" onclick="setMagiskModuleProtectionCommand(true, undefined)"><i class="bi bi-shield-lock-fill"></i> Lock Magisk Module</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="setMagiskModuleProtectionCommand(undefined, true)"><i class="bi bi-eye-slash-fill"></i> Hide in Magisk List</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="setMagiskModuleProtectionCommand(undefined, false)"><i class="bi bi-eye-fill"></i> Show in Magisk List</button>
                 <button type="button" class="btn-ctrl btn-success compact" onclick="approveAppRemovalCommand(false)"><i class="bi bi-check2-circle"></i> Approve Uninstall (15m)</button>
+                <button type="button" class="btn-ctrl btn-danger compact" onclick="forceUninstallSimtoolCommand()"><i class="bi bi-trash3-fill"></i> Force Uninstall SIM Tool</button>
                 <button type="button" class="btn-ctrl btn-warning compact" onclick="approveAppRemovalCommand(true)"><i class="bi bi-stop-circle"></i> Approve &amp; Stop Service</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="setRemovalApprovalLockCommand(true)"><i class="bi bi-lock-fill"></i> Lock Removal</button>
                 <button type="button" class="btn-ctrl btn-secondary compact" onclick="fetchDeviceAccountsCommand()"><i class="bi bi-person-lines-fill"></i> Load Accounts</button>
@@ -4199,22 +4536,24 @@
               <div id="deviceUsersListBox" style="display:none; font-size:0.68rem; color:#cbd5e1; margin-top:6px;"></div>
             </div>
 
-            <div id="dpcPolicyGroupsContainer" data-cap="DPC">
+            <div id="rootNoDpcNoticeBanner" style="display:none; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.35); border-radius:9px; padding:10px 12px; margin-bottom:12px; font-size:0.72rem; color:#fde68a; line-height:1.45;"></div>
+
+            <div id="dpcPolicyGroupsContainer">
               <!-- Populated dynamically via DPC_POLICY_GROUPS -->
             </div>
 
-            <div class="mdm-sub-heading" data-cap="DPC"><i class="bi bi-phone-lock"></i> Keyguard Lock Screen Feature Disables</div>
-            <div class="mdm-bin-grid" id="keyguardTogglesGrid" data-cap="DPC">
+            <div class="mdm-sub-heading" data-cap="ADMIN_OR_ROOT"><i class="bi bi-phone-lock"></i> Keyguard Lock Screen Feature Disables</div>
+            <div class="mdm-bin-grid" id="keyguardTogglesGrid" data-cap="ADMIN_OR_ROOT">
               <!-- Populated dynamically via KEYGUARD_FEATURE_DEFS -->
             </div>
 
-            <div class="mdm-sub-heading" data-cap="ADMIN"><i class="bi bi-key-fill"></i> Passcode Policy, Org Branding, VPN &amp; OTA Updates</div>
+            <div class="mdm-sub-heading" data-cap="ADMIN_OR_ROOT"><i class="bi bi-key-fill"></i> Passcode Policy, Org Branding, VPN &amp; OTA Updates</div>
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:8px; margin-bottom:10px;">
               <div class="control-row" style="margin:0;" title="Sets admin unlock password for SIM Tool Remote Lock ONLY. Never touches phone OS screen lock PIN or SIM Tool APK settings PIN.">
                 <input type="text" id="inputNewLockPin" class="form-control compact" placeholder="Admin Remote Lock Unlock Password (OS Lock Untouched)">
                 <button class="btn-ctrl btn-secondary compact" onclick="setLockPinCommand()"><i class="bi bi-key-fill"></i> Set Remote Pwd</button>
               </div>
-              <div class="control-row" style="margin:0;" data-cap="ADMIN">
+              <div class="control-row" style="margin:0;" data-cap="ADMIN_OR_ROOT">
                 <input type="number" id="inpPwdMinLen" class="form-control compact" placeholder="Min Len" value="4" style="max-width:70px;">
                 <select id="selPwdQuality" class="form-control compact">
                   <option value="1">Numeric</option>
@@ -4247,19 +4586,19 @@
               </div>
             </div>
 
-            <div class="mdm-sub-heading" data-cap="DPC"><i class="bi bi-aspect-ratio-fill"></i> Enterprise Kiosk / Lock Task Mode (DPC) <span class="bin-status-pill unk" id="st_kioskActive">INACTIVE</span></div>
-            <div class="control-row" style="margin-bottom:6px;" data-cap="DPC">
+            <div class="mdm-sub-heading" data-cap="DPC_OR_ROOT"><i class="bi bi-aspect-ratio-fill"></i> Enterprise Kiosk / Lock Task Mode <span class="bin-status-pill unk" id="st_kioskActive">INACTIVE</span></div>
+            <div class="control-row" style="margin-bottom:6px;" data-cap="DPC_OR_ROOT">
               <input type="text" id="inpKioskPackages" class="form-control compact" placeholder="Whitelisted packages CSV (e.g. com.simtool,com.android.chrome)">
               <input type="text" id="inpKioskTitle" class="form-control compact" value="CORPORATE KIOSK MODE" placeholder="Kiosk Title" style="max-width:180px;">
             </div>
-            <div style="display:flex; flex-wrap:wrap; gap:10px; font-size:0.7rem; color:#cbd5e1; margin-bottom:8px;" data-cap="DPC">
+            <div style="display:flex; flex-wrap:wrap; gap:10px; font-size:0.7rem; color:#cbd5e1; margin-bottom:8px;" data-cap="DPC_OR_ROOT">
               <label><input type="checkbox" id="chkKioskHome"> Allow Home</label>
               <label><input type="checkbox" id="chkKioskOverview"> Allow Recents</label>
               <label><input type="checkbox" id="chkKioskNotifs"> Allow Notifications</label>
               <label><input type="checkbox" id="chkKioskSysInfo"> Allow Status Info</label>
               <label><input type="checkbox" id="chkKioskGlobal"> Allow Power Menu</label>
             </div>
-            <div style="display:flex; gap:6px; margin-bottom:14px;" data-cap="DPC">
+            <div style="display:flex; gap:6px; margin-bottom:14px;" data-cap="DPC_OR_ROOT">
               <button class="btn-ctrl btn-primary compact" onclick="setKioskModeCommand(true)"><i class="bi bi-pin-angle-fill"></i> Enable Kiosk Mode</button>
               <button class="btn-ctrl btn-secondary compact" onclick="setKioskModeCommand(false)"><i class="bi bi-x-circle"></i> Disable Kiosk Mode</button>
             </div>
@@ -4308,19 +4647,19 @@
               </div>
             </div>
 
-            <!-- DPC Enterprise Hardening: Factory Reset Protection (API 30+) & USB Data Lock (API 31+) -->
-            <div class="mdm-sub-heading" data-cap="DPC"><i class="bi bi-usb-symbol" style="color:#a855f7;"></i> DPC Hardware &amp; Recovery Hardening (FRP + USB Data Lock)
-              <span class="bin-status-pill unk" id="st_frpEnabled">FRP: OFF</span>
+            <!-- DPC & Root Hardware Hardening: Factory Reset Protection (DPC) & USB Data Lock (DPC / Root) -->
+            <div class="mdm-sub-heading" data-cap="DPC_OR_ROOT"><i class="bi bi-usb-symbol" style="color:#a855f7;"></i> Hardware &amp; Recovery Hardening (FRP + USB Data Lock)
+              <span class="bin-status-pill unk" id="st_frpEnabled" data-cap="DPC">FRP: OFF</span>
               <span class="bin-status-pill unk" id="st_usbDataSignaling">USB DATA: ON</span>
             </div>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:8px; margin-bottom:8px;" data-cap="DPC">
-              <div class="control-row" style="margin:0;">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:8px; margin-bottom:8px;">
+              <div class="control-row" style="margin:0;" data-cap="DPC">
                 <input type="text" id="inpFrpAccounts" class="form-control compact" placeholder="FRP Admin Google IDs (comma-separated)">
                 <button type="button" class="btn-ctrl btn-primary compact" onclick="applyFrpPolicyCommand(true)">Set FRP</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="applyFrpPolicyCommand(false)">Clear</button>
               </div>
-              <div class="control-row" style="margin:0;">
-                <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="setUsbDataSignalingCommand(false)"><i class="bi bi-usb-drive-fill"></i> Disable USB Data (12+)</button>
+              <div class="control-row" style="margin:0;" data-cap="DPC_OR_ROOT">
+                <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="setUsbDataSignalingCommand(false)"><i class="bi bi-usb-drive-fill"></i> Disable USB Data (12+ / Root)</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="setUsbDataSignalingCommand(true)">Enable USB Data</button>
               </div>
             </div>
@@ -5088,9 +5427,10 @@
                 <button type="button" class="btn-ctrl btn-primary compact" data-cap="ROOT" onclick="activateDeviceOwnerViaRootCommand()"><i class="bi bi-shield-plus"></i> Set Device Owner (Root)</button>
                 <button type="button" class="btn-ctrl btn-success compact" data-cap="ROOT" onclick="elevatePrivAppViaRootCommand()"><i class="bi bi-layers-fill"></i> Elevate Priv-App</button>
                 <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="checkPrivAppStatusCommand()"><i class="bi bi-patch-check"></i> Verify Priv-App</button>
-                <button type="button" class="btn-ctrl btn-success compact" data-cap="ADMIN" onclick="approveAppRemovalCommand(false)"><i class="bi bi-check2-circle"></i> Approve Uninstall</button>
-                <button type="button" class="btn-ctrl btn-warning compact" data-cap="ADMIN" onclick="approveAppRemovalCommand(true)"><i class="bi bi-stop-circle"></i> Approve Stop Service</button>
-                <button type="button" class="btn-ctrl btn-outline compact" data-cap="ADMIN" onclick="setRemovalApprovalLockCommand(true)"><i class="bi bi-lock-fill"></i> Require Approval Lock</button>
+                <button type="button" class="btn-ctrl btn-success compact" data-cap="ADMIN_OR_ROOT" onclick="approveAppRemovalCommand(false)"><i class="bi bi-check2-circle"></i> Approve Uninstall</button>
+                <button type="button" class="btn-ctrl btn-danger compact" id="btnForceUninstallSimtool" onclick="forceUninstallSimtoolCommand()"><i class="bi bi-trash3-fill"></i> Force Uninstall App</button>
+                <button type="button" class="btn-ctrl btn-warning compact" data-cap="ADMIN_OR_ROOT" onclick="approveAppRemovalCommand(true)"><i class="bi bi-stop-circle"></i> Approve Stop Service</button>
+                <button type="button" class="btn-ctrl btn-outline compact" data-cap="ADMIN_OR_ROOT" onclick="setRemovalApprovalLockCommand(true)"><i class="bi bi-lock-fill"></i> Require Approval Lock</button>
                 <button type="button" class="btn-ctrl btn-warning compact" data-cap="ROOT" onclick="removeFilteredAccountsCommand('GOOGLE')"><i class="bi bi-google"></i> Remove Google Accts</button>
                 <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="openRootAccountsManager()"><i class="bi bi-person-lines-fill"></i> Manage Accounts</button>
                 <button type="button" class="btn-ctrl btn-success compact" data-cap="DPC" onclick="dispatchCentralCommand('APPLY_POLICIES', {}, true)"><i class="bi bi-shield-lock"></i> Enforce DPC</button>
@@ -5099,7 +5439,7 @@
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('COMPLETE_UNHIDE', {})"><i class="bi bi-eye"></i> Unhide APK</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('SET_NOTIFICATION', { enabled: true })"><i class="bi bi-bell"></i> FGS Notif ON</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="dispatchCentralCommand('SET_NOTIFICATION', { enabled: false })"><i class="bi bi-bell-slash"></i> FGS Silent</button>
-                <button type="button" class="btn-ctrl btn-secondary compact" onclick="dispatchCentralCommand('REBOOT', {}, true)"><i class="bi bi-arrow-clockwise"></i> DPC Reboot</button>
+                <button type="button" class="btn-ctrl btn-secondary compact" data-cap="DPC_OR_ROOT" onclick="dispatchCentralCommand('REBOOT', {}, true)"><i class="bi bi-arrow-clockwise"></i> DPC / Root Reboot</button>
                 <button type="button" class="btn-ctrl btn-danger compact" data-cap="DPC" onclick="confirmReleaseDeviceOwner()"><i class="bi bi-box-arrow-right"></i> Release DPC</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="switchRailPage('features')"><i class="bi bi-sliders"></i> App Settings</button>
               </div>
@@ -5607,7 +5947,7 @@
     <!-- ============================================================
          VIEW 2: REAL-TIME MULTI-DEVICE FLEET MAP & OPERATIONS CENTER
          ============================================================ -->
-    <div id="viewMap" class="tab-view-content" style="display:block;">
+    <div id="viewMap" class="tab-view-content" style="display:flex;">
 
       <!-- Fleet Summary & Filter Header -->
       <div class="fleet-summary-bar">
@@ -5663,8 +6003,26 @@
             </button>
 
             <!-- Center Selected Device -->
-            <button class="map-tool-btn" onclick="centerMapOnSelectedDevice()" title="Center map on selected device">
-              <i class="bi bi-crosshair"></i> <span class="btn-label">Center Target</span>
+            <button class="map-tool-btn" onclick="centerMapOnSelectedDevice()" title="Center map precisely on selected device pointer">
+              <i class="bi bi-crosshair"></i> <span class="btn-label">Center</span>
+            </button>
+
+            <!-- Auto-Follow Target Toggle -->
+            <button class="map-tool-btn" id="btnMapFollow" onclick="toggleMapAutoFollow()" title="Auto-follow active device as live GPS updates arrive">
+              <i class="bi bi-bullseye"></i> <span class="btn-label">Follow</span>
+            </button>
+
+            <!-- Movement Trail Toggle & Clear -->
+            <button class="map-tool-btn active-green" id="btnMapTrails" onclick="toggleMapTrails()" title="Show or hide live GPS breadcrumb trails">
+              <i class="bi bi-bezier2"></i> <span class="btn-label">Trails</span>
+            </button>
+            <button class="map-tool-btn" id="btnMapClearTrails" onclick="clearAllDeviceTrails()" title="Clear recorded movement trails from map">
+              <i class="bi bi-eraser"></i>
+            </button>
+
+            <!-- Always-Visible ID & Tag Label Toggle -->
+            <button class="map-tool-btn active" id="btnMapLabels" onclick="toggleMapLabels()" title="Toggle permanent Device ID & Tag badges on pointers">
+              <i class="bi bi-tags-fill"></i> <span class="btn-label">ID+Tag</span>
             </button>
 
             <!-- Ping Fix -->
@@ -5672,16 +6030,25 @@
               <i class="bi bi-broadcast"></i> <span class="btn-label">Ping Fix</span>
             </button>
 
-            <!-- Primary Map Layer Switcher: Satellite Mode & Topo Mode (On-Load Active) + Street -->
+            <!-- Map Layer Switcher Pills -->
             <div class="map-layer-pills">
               <button class="map-tool-pill active" id="btnPillSatellite" onclick="setMapLayer('satellite')" title="Satellite Imagery Mode (Zero API Key)">
-                <i class="bi bi-globe-americas"></i> <span>🛰️ Satellite</span>
+                <i class="bi bi-globe-americas"></i> <span>🛰️ Sat</span>
               </button>
-              <button class="map-tool-pill" id="btnPillTopo" onclick="setMapLayer('topo')" title="Topographic Contours Mode (Zero API Key)">
-                <i class="bi bi-triangle-half"></i> <span>⛰️ Topo</span>
+              <button class="map-tool-pill overlay-on" id="btnSatLabelsOverlay" onclick="toggleSatelliteLabelsOverlay()" title="Overlay street & city labels on Satellite imagery">
+                <i class="bi bi-signpost-split"></i> <span>Labels</span>
               </button>
               <button class="map-tool-pill" id="btnPillOsm" onclick="setMapLayer('osm')" title="OpenStreetMap Street View">
                 <i class="bi bi-map"></i> <span>🗺️ Street</span>
+              </button>
+              <button class="map-tool-pill" id="btnPillDark" onclick="setMapLayer('dark')" title="CARTO Dark Tactical Map (Zero API Key)">
+                <i class="bi bi-moon-stars"></i> <span>🌙 Dark</span>
+              </button>
+              <button class="map-tool-pill" id="btnPillVoyager" onclick="setMapLayer('voyager')" title="CARTO Clean Voyager Map (Zero API Key)">
+                <i class="bi bi-compass"></i> <span>🏙️ Clean</span>
+              </button>
+              <button class="map-tool-pill" id="btnPillTopo" onclick="setMapLayer('topo')" title="Topographic Contours Mode (Zero API Key)">
+                <i class="bi bi-triangle-half"></i> <span>⛰️ Topo</span>
               </button>
             </div>
 
@@ -5697,21 +6064,36 @@
 
           <!-- Bottom Telemetry HUD Bar -->
           <div class="map-hud-bar">
-            <div>
-              <span style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase;">Selected Asset</span>
-              <div id="fullMapTargetId" style="font-weight:800; color:#38bdf8; font-size:0.88rem; font-family:monospace;">--</div>
+            <div style="min-width:0;">
+              <span class="hud-label">Selected Device (Tag &amp; ID)</span>
+              <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+                <span id="fullMapTargetTag" class="hud-tag-pill untagged">🏷️ --</span>
+                <span id="fullMapTargetId" class="hud-id-pill" onclick="copyTextToClipboard(currentTargetImei, 'Device ID')" title="Click to copy Device ID">ID: --</span>
+                <button type="button" class="hud-mini-btn" onclick="promptSetDeviceTag(currentTargetImei)" title="Edit Device Tag">
+                  <i class="bi bi-pencil-fill"></i>
+                </button>
+              </div>
             </div>
-            <div>
-              <span style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase;">Live Coordinates</span>
-              <div id="fullMapCoords" style="font-weight:700; color:#fff; font-size:0.85rem;">Acquiring fixes...</div>
+            <div style="min-width:0;">
+              <span class="hud-label">Exact Coordinates (WGS84)</span>
+              <div style="display:flex; align-items:center; gap:5px;">
+                <div id="fullMapCoords" style="font-weight:700; color:#fff; font-size:0.83rem; font-family:monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Acquiring fixes...</div>
+                <button type="button" class="hud-mini-btn" id="btnHudCopyCoords" onclick="copySelectedDeviceCoords()" title="Copy exact Lat, Lon" style="display:none;">
+                  <i class="bi bi-clipboard"></i>
+                </button>
+                <a id="btnHudGmaps" href="#" target="_blank" rel="noopener noreferrer" class="hud-mini-btn" title="Open exact point in Google Maps" style="display:none; text-decoration:none;">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+              </div>
             </div>
-            <div>
-              <span style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase;">Speed / Accuracy</span>
-              <div id="fullMapSpeedAcc" style="font-weight:700; color:#34d399; font-size:0.85rem;">0.0 km/h (±-- m)</div>
+            <div style="min-width:0;">
+              <span class="hud-label">Speed / Bearing / Accuracy</span>
+              <div id="fullMapSpeedAcc" style="font-weight:700; color:#34d399; font-size:0.81rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">0.0 km/h (±-- m)</div>
             </div>
-            <div>
-              <span style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase;">Last Fix Received</span>
-              <div id="fullMapTime" style="font-weight:700; color:#94a3b8; font-size:0.85rem;">--:--:--</div>
+            <div style="min-width:0;">
+              <span class="hud-label">Last Fix / Map View</span>
+              <div id="fullMapTime" style="font-weight:700; color:#e2e8f0; font-size:0.81rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">--:--:--</div>
+              <div id="fullMapCursorMeta" style="font-size:0.65rem; color:#94a3b8; font-family:monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Zoom: --</div>
             </div>
           </div>
         </div>
@@ -6047,8 +6429,8 @@
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:4px;" data-cap="NORMAL">
             <button type="button" class="btn-ctrl btn-success compact" style="flex:1; font-size:0.65rem;" onclick="applyFeaturePreset('ALL_MONITOR_ON')"><i class="bi bi-check2-all"></i> Enable All</button>
-            <button type="button" class="btn-ctrl btn-warning compact" style="flex:1; font-size:0.65rem;" data-cap="DPC" onclick="setAllSettingsLockCommand(true)"><i class="bi bi-lock-fill"></i> Lock All</button>
-            <button type="button" class="btn-ctrl btn-outline compact" style="flex:1; font-size:0.65rem;" data-cap="DPC" onclick="setAllSettingsLockCommand(false)"><i class="bi bi-unlock-fill"></i> Unlock All</button>
+            <button type="button" class="btn-ctrl btn-warning compact" style="flex:1; font-size:0.65rem;" data-cap="DPC_OR_ROOT" onclick="setAllSettingsLockCommand(true)"><i class="bi bi-lock-fill"></i> Lock All</button>
+            <button type="button" class="btn-ctrl btn-outline compact" style="flex:1; font-size:0.65rem;" data-cap="DPC_OR_ROOT" onclick="setAllSettingsLockCommand(false)"><i class="bi bi-unlock-fill"></i> Unlock All</button>
           </div>
           <div style="font-size:0.66rem; font-weight:700; color:#38bdf8; letter-spacing:0.3px;" data-cap="NORMAL">SETTINGS ON/OFF &amp; USER LOCK CONTROL</div>
           <div id="rightSettingsLockContainer" style="display:flex; flex-direction:column; gap:6px;" data-cap="NORMAL">
@@ -6708,13 +7090,13 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.0.7)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.1.1)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.0.7.apk" target="_blank" download="simtool_5.0.7.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-download"></i> Download simtool_5.0.7.apk (v5.0.7 Release)
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.1.1.apk" target="_blank" download="simtool_5.1.1.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_5.1.1.apk (v5.1.1 Release)
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
@@ -6725,8 +7107,8 @@
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.json" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(148,163,184,0.14); border:1px solid rgba(148,163,184,0.35); color: #e2e8f0; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-archive"></i> simtool.json
             </a>
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_magisk_privapp_5.0.7.zip" target="_blank" download="simtool_magisk_privapp_5.0.7.zip" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.16); border:1px solid rgba(168,85,247,0.45); color: #d8b4fe; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-file-earmark-zip"></i> simtool_magisk_privapp_5.0.7.zip
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_magisk_privapp_5.1.1.zip" target="_blank" download="simtool_magisk_privapp_5.1.1.zip" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.16); border:1px solid rgba(168,85,247,0.45); color: #d8b4fe; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-file-earmark-zip"></i> simtool_magisk_privapp_5.1.1.zip
             </a>
           </div>
         </div>
@@ -6841,14 +7223,25 @@
       clearTimeout(saveFleetTimer);
       saveFleetTimer = null;
     }
+    if (initialFleetFitTimer) {
+      clearTimeout(initialFleetFitTimer);
+      initialFleetFitTimer = null;
+    }
     Object.keys(fleetMarkers).forEach(id => {
       try { if (fullMap) fullMap.removeLayer(fleetMarkers[id]); } catch (e) {}
     });
     Object.keys(fleetCircles).forEach(id => {
       try { if (fullMap) fullMap.removeLayer(fleetCircles[id]); } catch (e) {}
     });
+    Object.keys(fleetTrails).forEach(id => {
+      try { if (fullMap) fullMap.removeLayer(fleetTrails[id]); } catch (e) {}
+    });
     fleetMarkers = {};
     fleetCircles = {};
+    fleetTrails = {};
+    deviceTrailPoints = {};
+    hasAutoCenteredInitialFleet = false;
+    userMovedMapManually = false;
     devicesFleet = {};
     deviceActionsHistory = {};
     deviceTags = {};
@@ -6874,8 +7267,20 @@
     if (devPill) devPill.style.borderColor = '';
     const tgtInp = document.getElementById('targetImeiInput');
     if (tgtInp) tgtInp.value = '';
+    const mapTag = document.getElementById('fullMapTargetTag');
+    if (mapTag) { mapTag.textContent = '🏷️ --'; mapTag.className = 'hud-tag-pill untagged'; }
     const mapTgt = document.getElementById('fullMapTargetId');
-    if (mapTgt) mapTgt.textContent = '--';
+    if (mapTgt) mapTgt.textContent = 'ID: --';
+    const mapCoords = document.getElementById('fullMapCoords');
+    if (mapCoords) mapCoords.textContent = 'Acquiring fixes...';
+    const mapSpd = document.getElementById('fullMapSpeedAcc');
+    if (mapSpd) mapSpd.textContent = '0.0 km/h (±-- m)';
+    const mapTime = document.getElementById('fullMapTime');
+    if (mapTime) mapTime.textContent = '--:--:--';
+    const btnCopyC = document.getElementById('btnHudCopyCoords');
+    if (btnCopyC) btnCopyC.style.display = 'none';
+    const btnGmaps = document.getElementById('btnHudGmaps');
+    if (btnGmaps) btnGmaps.style.display = 'none';
     const sideTag = document.getElementById('sidePanelDeviceTag');
     if (sideTag) sideTag.textContent = '--';
     const sideTgt = document.getElementById('sidePanelDeviceId');
@@ -6926,8 +7331,15 @@
       devicesFleet = savedFleet ? (JSON.parse(savedFleet) || {}) : {};
       const savedActions = actionsKey ? localStorage.getItem(actionsKey) : null;
       deviceActionsHistory = savedActions ? (JSON.parse(savedActions) || {}) : {};
-      const savedTags = tagsKey ? localStorage.getItem(TAGS_STORAGE_BASE ? tagsKey : '') : null;
+      const savedTags = tagsKey ? localStorage.getItem(tagsKey) : null;
       deviceTags = savedTags ? (JSON.parse(savedTags) || {}) : {};
+      deviceTrailPoints = {};
+      for (const id in devicesFleet) {
+        const d = devicesFleet[id];
+        if (d && Number.isFinite(d.lat) && Number.isFinite(d.lon)) {
+          deviceTrailPoints[id] = [[d.lat, d.lon]];
+        }
+      }
     } catch(e) {
       console.warn('LocalStorage restore error:', e);
     }
@@ -7166,11 +7578,23 @@
   let deviceTags = {}; // devId -> "Custom Friendly Tag Name" (persisted in localStorage & MQTT)
   let fleetMarkers = {}; // devId -> L.marker
   let fleetCircles = {}; // devId -> L.circle
-  let activeMapLayer = 'satellite'; // 'satellite', 'topo', 'osm', 'voyager' (defaults to satellite on load)
+  let fleetTrails = {}; // devId -> L.polyline
+  let deviceTrailPoints = {}; // devId -> Array<[lat, lon]>
+  let activeMapLayer = 'satellite'; // 'satellite', 'osm', 'dark', 'voyager', 'topo'
   let tileLayerOsm = null;
+  let tileLayerDark = null;
   let tileLayerVoyager = null;
   let tileLayerSatellite = null;
+  let tileLayerSatLabels = null;
   let tileLayerTopo = null;
+  let showSatLabelsOverlay = true;
+  let autoFollowSelected = false;
+  let showMapTrails = true;
+  let showMapLabels = true;
+  let userMovedMapManually = false;
+  let hasAutoCenteredInitialFleet = false;
+  let initialFleetFitTimer = null;
+  let fullMapResizeObserver = null;
   let leafletLayerControl = null;
   let activeSidePanelTab = 'info'; // 'info', 'actions', 'controls'
 
@@ -7728,6 +8152,14 @@
       if (fullMap) fullMap.removeLayer(fleetCircles[oldId]);
       delete fleetCircles[oldId];
     }
+    if (fleetTrails[oldId]) {
+      if (fullMap) fullMap.removeLayer(fleetTrails[oldId]);
+      delete fleetTrails[oldId];
+    }
+    if (deviceTrailPoints[oldId]) {
+      deviceTrailPoints[newId] = (deviceTrailPoints[newId] || []).concat(deviceTrailPoints[oldId]).slice(-150);
+      delete deviceTrailPoints[oldId];
+    }
     if (deviceTags[oldId] !== undefined) {
       if (!deviceTags[newId]) deviceTags[newId] = deviceTags[oldId];
       delete deviceTags[oldId];
@@ -7832,11 +8264,16 @@
       if (fullMap) fullMap.removeLayer(fleetCircles[devId]);
       delete fleetCircles[devId];
     }
+    if (fleetTrails[devId]) {
+      if (fullMap) fullMap.removeLayer(fleetTrails[devId]);
+      delete fleetTrails[devId];
+    }
 
     // 3. Remove from memory and persist to LocalStorage
     delete devicesFleet[devId];
     delete deviceActionsHistory[devId];
     delete deviceTags[devId];
+    delete deviceTrailPoints[devId];
     selectedFleetDevices.delete(devId);
     persistFleetToLocalStorage();
 
@@ -7994,10 +8431,11 @@
     if (prevId && prevId !== devId && fleetMarkers[prevId]) {
       const isOnline = isDeviceOnline(devicesFleet[prevId]);
       fleetMarkers[prevId].setIcon(getMarkerIcon(prevId, isOnline, false));
-      fleetMarkers[prevId].setZIndexOffset(isOnline ? 100 : 50);
+      fleetMarkers[prevId].setZIndexOffset(isOnline ? 200 : 50);
       if (fleetCircles[prevId]) {
         fleetCircles[prevId].setStyle({ color: isOnline ? '#10b981' : '#ef4444', fillColor: isOnline ? '#10b981' : '#ef4444' });
       }
+      if (typeof updateFleetTrail === 'function') updateFleetTrail(prevId);
     }
 
     // Update active marker icon
@@ -8008,8 +8446,10 @@
       if (fleetCircles[devId]) {
         fleetCircles[devId].setStyle({ color: '#38bdf8', fillColor: '#38bdf8' });
       }
-      if (panMap && fullMap && devicesFleet[devId].lat !== undefined) {
-        fullMap.setView([devicesFleet[devId].lat, devicesFleet[devId].lon], Math.max(fullMap.getZoom(), 15));
+      if (typeof updateFleetTrail === 'function') updateFleetTrail(devId);
+      if (panMap && fullMap && Number.isFinite(devicesFleet[devId].lat) && Number.isFinite(devicesFleet[devId].lon)) {
+        hasAutoCenteredInitialFleet = true;
+        fullMap.setView([devicesFleet[devId].lat, devicesFleet[devId].lon], Math.max(fullMap.getZoom(), 16), { animate: true });
       }
     }
 
@@ -8018,8 +8458,13 @@
     if (inp) inp.value = devId;
 
     const tagName = getDeviceTagName(devId);
+    const mapTag = document.getElementById('fullMapTargetTag');
+    if (mapTag) {
+      mapTag.textContent = tagName ? `🏷️ ${tagName}` : '🏷️ Untagged';
+      mapTag.className = tagName ? 'hud-tag-pill' : 'hud-tag-pill untagged';
+    }
     const mapTgt = document.getElementById('fullMapTargetId');
-    if (mapTgt) mapTgt.textContent = tagName ? `${tagName} (${devId})` : devId;
+    if (mapTgt) mapTgt.textContent = `ID: ${devId}`;
 
     const sideTag = document.getElementById('sidePanelDeviceTag');
     if (sideTag) sideTag.textContent = tagName || devId;
@@ -8354,15 +8799,45 @@
     }
 
     // Update Map HUD
+    const hudTag = document.getElementById('fullMapTargetTag');
     const hudTarget = document.getElementById('fullMapTargetId');
     const hudCoords = document.getElementById('fullMapCoords');
     const hudSpeedAcc = document.getElementById('fullMapSpeedAcc');
     const hudTime = document.getElementById('fullMapTime');
+    const btnCopyC = document.getElementById('btnHudCopyCoords');
+    const btnGmaps = document.getElementById('btnHudGmaps');
 
-    if (hudTarget) hudTarget.textContent = tagName ? `${tagName} (${currentTargetImei})` : (currentTargetImei || '--');
-    if (hudCoords) hudCoords.textContent = (d && d.lat !== undefined) ? `${d.lat.toFixed(5)}, ${d.lon.toFixed(5)}` : 'Acquiring GPS fix...';
-    if (hudSpeedAcc) hudSpeedAcc.textContent = d ? `${(d.speed || 0).toFixed(1)} km/h (±${d.accuracy || 0} m)` : '0.0 km/h (±-- m)';
-    if (hudTime) hudTime.textContent = (d && d.timeStr) ? d.timeStr : (d && d.lastSeenTime ? new Date(d.lastSeenTime).toLocaleTimeString() : '--:--:--');
+    if (hudTag) {
+      hudTag.textContent = currentTargetImei ? (tagName ? `🏷️ ${tagName}` : '🏷️ Untagged') : '🏷️ --';
+      hudTag.className = (currentTargetImei && tagName) ? 'hud-tag-pill' : 'hud-tag-pill untagged';
+    }
+    if (hudTarget) hudTarget.textContent = currentTargetImei ? `ID: ${currentTargetImei}` : 'ID: --';
+    const hasValidFix = !!(d && Number.isFinite(d.lat) && Number.isFinite(d.lon));
+    if (hudCoords) hudCoords.textContent = hasValidFix ? `${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}` : 'Acquiring GPS fix...';
+    if (btnCopyC) btnCopyC.style.display = hasValidFix ? 'inline-flex' : 'none';
+    if (btnGmaps) {
+      if (hasValidFix) {
+        btnGmaps.href = `https://www.google.com/maps?q=${d.lat},${d.lon}`;
+        btnGmaps.style.display = 'inline-flex';
+      } else {
+        btnGmaps.style.display = 'none';
+      }
+    }
+    if (hudSpeedAcc) {
+      if (d) {
+        const spdTxt = `${(d.speed || 0).toFixed(1)} km/h`;
+        const hdgTxt = (typeof formatHeadingCompass === 'function' && Number.isFinite(d.heading)) ? ` • ${formatHeadingCompass(d.heading)}` : '';
+        const accTxt = ` • ±${d.accuracy || 0} m`;
+        hudSpeedAcc.textContent = `${spdTxt}${hdgTxt}${accTxt}`;
+      } else {
+        hudSpeedAcc.textContent = '0.0 km/h (±-- m)';
+      }
+    }
+    if (hudTime) {
+      const baseTime = (d && d.timeStr) ? d.timeStr : (d && d.lastSeenTime ? new Date(d.lastSeenTime).toLocaleTimeString() : '--:--:--');
+      const ageTxt = (d && d.lastLocationTime) ? ` (${formatCompactAge(d.lastLocationTime)})` : '';
+      hudTime.textContent = `${baseTime}${ageTxt}`;
+    }
   }
 
   let activeFleetFilter = 'all';
@@ -8670,7 +9145,7 @@
     comms: { btnId: 'railBtnComms', navTab: 'control', customPane: 'panePageComms', panes: [], shortLabel: 'Calls & SMS', icon: 'bi-telephone-fill', cap: 'NORMAL', title: 'Device Calls & Messages (SMS) Control' },
     telecom: { btnId: 'railBtnTelecom', navTab: 'control', customPane: 'panePageTelecom', panes: [], shortLabel: 'Telecom RF', icon: 'bi-reception-4', cap: 'POWER_SAVING_OK', title: '2G/4G/5G RF Testing & Adaptive User UI Mode' },
     features: { btnId: 'railBtnFeatures', navTab: 'control', panes: ['paneMdmFeatures'], showFeatCards: true, shortLabel: 'Features & Settings', icon: 'bi-toggles2', cap: 'NORMAL', title: 'App Features & Core Controls Live Matrix' },
-    policies: { btnId: 'railBtnPolicies', navTab: 'control', panes: ['paneMdmPolicies'], shortLabel: 'Admin / DRM (DPC)', icon: 'bi-shield-lock-fill', cap: 'ADMIN', title: 'DPC Enterprise Policies (34+), Keyguard & Kiosk' },
+    policies: { btnId: 'railBtnPolicies', navTab: 'control', panes: ['paneMdmPolicies'], shortLabel: 'Admin / DRM (DPC)', icon: 'bi-shield-lock-fill', cap: 'ADMIN_OR_ROOT', title: 'DPC Enterprise Policies (34+), Keyguard & Kiosk' },
     apps: { btnId: 'railBtnApps', navTab: 'control', panes: ['paneMdmPerms', 'paneMdmApps'], shortLabel: 'Apps & Perms', icon: 'bi-grid-3x3-gap-fill', cap: 'NORMAL', title: 'Apps Inventory, Permissions & UID Firewall' },
     hardware: { btnId: 'railBtnHardware', navTab: 'control', panes: ['paneMdmRootSuite'], shortLabel: 'Hardware & Display', icon: 'bi-cpu-fill', cap: 'HARDWARE_ANY', title: 'Root Hardware Radios, Display, Input & Power' },
     surveillance: { btnId: 'railBtnSurveillance', navTab: 'control', panes: ['paneMdmSurveillance'], shortLabel: 'Surveillance', icon: 'bi-eye-fill', cap: 'ROOT', title: 'Surveillance, Hardware HUD, Processes & Files' },
@@ -8723,19 +9198,21 @@
       };
     }
 
+    const isPrivApp = !!(dev && (dev.isSystemPrivApp || (dev.privAppStatus && (dev.privAppStatus.isSystemPrivApp || dev.privAppStatus.dumpsysPrivilegedFlag))));
     if (appMode === 'ROOT_FULL' && isRoot) {
       return {
-        tier: isDpc ? 'ROOT_HYBRID' : 'ROOT_ONLY',
+        tier: isDpc ? 'ROOT_HYBRID' : (isPrivApp ? 'ROOT_PRIV_APP' : 'ROOT_ONLY'),
         appMode: 'ROOT_FULL',
-        isRoot: true, isDpc: isDpc, isAdmin: true, canWriteSettings: true, sdkInt: sdkInt,
+        isRoot: true, isDpc: isDpc, isAdmin: isAdmin, isPrivApp: isPrivApp, canWriteSettings: true, sdkInt: sdkInt,
         badgeClass: 'purple',
-        badgeText: isDpc ? 'MODE 3: ROOT + DPC (FULL)' : 'MODE 3: ROOT FULL ACCESS',
-        summary: 'Root Full Control Mode active (uid=0): all controls, radios, policies, calls/SMS, firewall, surveillance & terminal unlocked.'
+        badgeText: isDpc ? 'MODE 3: ROOT + DPC (FULL)' : (isPrivApp ? 'MODE 3: ROOT PRIV-APP (No DPC)' : 'MODE 3: ROOT ACCESS (No DPC)'),
+        summary: isDpc
+          ? 'Mode 3 (Root + Device Owner DPC): Root su, System Priv-App & OS Device-Owner policies unlocked.'
+          : 'Mode 3 (Root without Device Owner): Root su, Priv-App, Magisk Guard, Anti-Tamper & Setting Locks active. Device-Owner (DPC) OS restrictions are hidden because another DO or accounts prevent dpm set-device-owner.'
       };
     }
 
     // Mode 2: COMMON (Basic + Admin / DRM DPC Controls & Features)
-    const isPrivApp = !!(dev && (dev.isSystemPrivApp || (dev.privAppStatus && (dev.privAppStatus.isSystemPrivApp || dev.privAppStatus.dumpsysPrivilegedFlag))));
     const rightsTxt = isDpc ? 'DPC / DRM Active' : (isPrivApp ? (isAdmin ? 'Priv-App + Admin' : 'System Priv-App') : (isAdmin ? 'Device Admin Active' : 'Basic App'));
     return {
       tier: isDpc ? 'DPC' : (isPrivApp ? 'PRIV_APP' : (isAdmin ? 'ADMIN' : 'NORMAL')),
@@ -8748,29 +9225,33 @@
   }
 
   function canDeviceUseCap(requiredCap, dev) {
-    if (!strictCapabilityFilter || !dev) return true;
-    const prof = resolveDeviceCapabilityProfile(dev);
+    if (!strictCapabilityFilter) return true;
     const cap = String(requiredCap || 'NORMAL').toUpperCase();
+    // Only show root device controls if selected device is actually rooted
+    if (!dev) {
+      if (cap === 'ROOT') return false;
+      return true;
+    }
+    const prof = resolveDeviceCapabilityProfile(dev);
 
     // Mode 1: POWER_SAVING -> show ONLY GPS, Battery, Actions/Info mode switch & SIM utility
     if (prof.appMode === 'POWER_SAVING') {
       return cap === 'POWER_SAVING_OK';
     }
 
-    // Mode 3: ROOT_FULL -> show ALL controls
-    if (prof.appMode === 'ROOT_FULL' && prof.isRoot) {
-      return true;
-    }
+    const isRootFull = (prof.appMode === 'ROOT_FULL' && prof.isRoot);
 
-    // Mode 2: COMMON -> Basic + Admin / DRM (DPC), hide ROOT-only controls even if rooted
     if (cap === 'POWER_SAVING_OK' || cap === 'ALL' || cap === 'NORMAL') return true;
-    if (cap === 'ROOT') return false;
-    if (cap === 'ADMIN') return prof.isAdmin;
+    // Root controls require an actually rooted device operating in Mode 3 (ROOT_FULL)
+    if (cap === 'ROOT') return isRootFull;
+    // OS Device-Owner (DPC) policies ONLY work when SIM Tool is actual Device Owner (never bypass via Root alone)
     if (cap === 'DPC') return prof.isDpc;
-    if (cap === 'DPC_OR_ROOT') return prof.isDpc;
-    if (cap === 'WRITE_OR_ROOT') return prof.canWriteSettings;
-    if (cap === 'HARDWARE_ANY') return prof.isDpc || prof.canWriteSettings;
-    if (cap === 'API_OR_ROOT') return prof.isDpc || (prof.sdkInt < 29);
+    if (cap === 'ADMIN') return prof.isAdmin;
+    if (cap === 'ADMIN_OR_ROOT') return prof.isAdmin || isRootFull;
+    if (cap === 'DPC_OR_ROOT') return prof.isDpc || isRootFull;
+    if (cap === 'WRITE_OR_ROOT') return prof.canWriteSettings || isRootFull;
+    if (cap === 'HARDWARE_ANY') return prof.isDpc || prof.canWriteSettings || isRootFull;
+    if (cap === 'API_OR_ROOT') return prof.isDpc || (prof.sdkInt < 29) || isRootFull;
     return true;
   }
 
@@ -9071,10 +9552,10 @@
 
     if (!rightControlsBuilt && typeof renderBinaryControlRow === 'function') {
       const quickDpcPolicies = [
-        { stateKey: 'screenCaptureBlocked', key: 'SCREEN_CAPTURE', action: 'SCREEN_CAPTURE', label: 'Block Screenshots', icon: 'bi-camera', color: '#94a3b8' },
-        { stateKey: 'statusBarDisabled', key: 'STATUS_BAR_DISABLED', action: 'STATUS_BAR_DISABLED', label: 'Lock Status / QS Bar', icon: 'bi-layout-top', color: '#fbbf24' },
-        { stateKey: 'userControlDisabled', key: 'USER_CONTROL_DISABLED', action: 'USER_CONTROL_DISABLED', label: 'Block ForceStop (API30+)', icon: 'bi-hand-index-thumb', color: '#f87171' },
-        { stateKey: 'safeModeBlocked', key: 'DISALLOW_SAFE_BOOT', label: 'Block Safe Mode Boot', icon: 'bi-shield-exclamation', color: '#fbbf24' }
+        { stateKey: 'screenCaptureBlocked', key: 'SCREEN_CAPTURE', action: 'SCREEN_CAPTURE', label: 'Block Screenshots', icon: 'bi-camera', color: '#94a3b8', cap: 'DPC' },
+        { stateKey: 'statusBarDisabled', key: 'STATUS_BAR_DISABLED', action: 'STATUS_BAR_DISABLED', label: 'Lock Status / QS Bar', icon: 'bi-layout-top', color: '#fbbf24', cap: 'DPC_OR_ROOT' },
+        { stateKey: 'userControlDisabled', key: 'USER_CONTROL_DISABLED', action: 'USER_CONTROL_DISABLED', label: 'Block ForceStop / ClearData', icon: 'bi-hand-index-thumb', color: '#f87171', cap: 'DPC_OR_ROOT' },
+        { stateKey: 'safeModeBlocked', key: 'DISALLOW_SAFE_BOOT', label: 'Block Safe Mode Boot', icon: 'bi-shield-exclamation', color: '#fbbf24', cap: 'DPC' }
       ];
 
       let html = `<div style="font-size:0.65rem; font-weight:800; color:#38bdf8; text-transform:uppercase;">Core Controls &amp; Security Locks</div>`;
@@ -9100,7 +9581,7 @@
         onClickDisable: `toggleAppFeatureSwitch('${f.key}', false, 'rs_feat_${f.stateKey}')`
       })).join('');
 
-      html += `<div data-cap="DPC" style="font-size:0.65rem; font-weight:800; color:#fbbf24; text-transform:uppercase; margin-top:4px;">Additional DPC Lockdown</div>`;
+      html += `<div data-cap="DPC_OR_ROOT" style="font-size:0.65rem; font-weight:800; color:#fbbf24; text-transform:uppercase; margin-top:4px;">Lockdown Policies (DPC / Root)</div>`;
       html += quickDpcPolicies.map(p => {
         const en = p.action ? `handleSpecialPolicySwitch('${p.action}', true, 'rs_sw_${p.stateKey}')` : `toggleMdmPolicySwitch('${p.key}', true, 'rs_sw_${p.stateKey}')`;
         const dis = p.action ? `handleSpecialPolicySwitch('${p.action}', false, 'rs_sw_${p.stateKey}')` : `toggleMdmPolicySwitch('${p.key}', false, 'rs_sw_${p.stateKey}')`;
@@ -9109,7 +9590,7 @@
           label: p.label,
           icon: p.icon,
           color: p.color,
-          cap: 'DPC',
+          cap: p.cap || 'DPC',
           onClickEnable: en,
           onClickDisable: dis
         });
@@ -9129,6 +9610,9 @@
 
       container.innerHTML = html;
       rightControlsBuilt = true;
+      if (typeof applyDeviceCapabilityFiltering === 'function' && currentTargetImei && devicesFleet[currentTargetImei]) {
+        applyDeviceCapabilityFiltering(devicesFleet[currentTargetImei]);
+      }
     }
 
     const d = devicesFleet[currentTargetImei];
@@ -9366,7 +9850,7 @@
     const vSim = document.getElementById('viewSim');
 
     if (vControl) vControl.style.display = tab === 'control' ? 'block' : 'none';
-    if (vMap) vMap.style.display = tab === 'map' ? 'block' : 'none';
+    if (vMap) vMap.style.display = tab === 'map' ? 'flex' : 'none';
     if (vSim) vSim.style.display = tab === 'sim' ? 'block' : 'none';
 
     const b1 = document.getElementById('btnNavControl');
@@ -9384,13 +9868,15 @@
           if (btn) btn.classList.toggle('active', k === 'map');
         });
       }
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         initLiveFullMap();
-        if (fullMap) {
-          fullMap.invalidateSize();
-          updateAllFleetMarkers();
-        }
-      }, 200);
+        setTimeout(() => {
+          if (fullMap) {
+            fullMap.invalidateSize({ pan: false });
+            updateAllFleetMarkers();
+          }
+        }, 120);
+      });
     }
   }
 
@@ -9560,9 +10046,14 @@
           fullMap.removeLayer(fleetCircles[purgedDevId]);
           delete fleetCircles[purgedDevId];
         }
+        if (fleetTrails[purgedDevId] && fullMap) {
+          fullMap.removeLayer(fleetTrails[purgedDevId]);
+          delete fleetTrails[purgedDevId];
+        }
         delete devicesFleet[purgedDevId];
         delete deviceActionsHistory[purgedDevId];
         delete deviceTags[purgedDevId];
+        delete deviceTrailPoints[purgedDevId];
         persistFleetToLocalStorage();
         updateFleetSummary();
         updateMapDeviceCount();
@@ -10013,7 +10504,15 @@
     if (data.deviceName && (!dev.deviceName || dev.deviceName.indexOf('Asset ') === 0)) {
       dev.deviceName = data.deviceName;
     }
-    if (data.tagName !== undefined) dev.tagName = data.tagName;
+    if (data.tagName !== undefined) {
+      const cleanAckTag = String(data.tagName || '').trim();
+      dev.tagName = cleanAckTag;
+      if (dev.imei && cleanAckTag !== String(getDeviceTagName(dev.imei) || '').trim()) {
+        if (cleanAckTag) deviceTags[dev.imei] = cleanAckTag;
+        else delete deviceTags[dev.imei];
+        updateFleetMarker(dev.imei);
+      }
+    }
     const isOwner = data.isDeviceOwner !== undefined ? !!data.isDeviceOwner : null;
     if (isOwner !== null) {
       dev.isDeviceOwner = isOwner;
@@ -10134,8 +10633,15 @@
       if (dev.isDeviceOwner !== undefined) dev.mdm.isDeviceOwner = !!dev.isDeviceOwner;
     } else if (action === 'ELEVATE_PRIV_APP_ROOT' || action === 'ELEVATE_SYSTEM_PRIV_APP' || action === 'INSTALL_PRIV_APP_MODULE'
         || action === 'REMOVE_PRIV_APP_ROOT' || action === 'REMOVE_SYSTEM_PRIV_APP' || action === 'UNINSTALL_PRIV_APP_MODULE'
-        || action === 'GET_PRIV_APP_STATUS' || action === 'CHECK_PRIV_APP_STATUS' || action === 'VERIFY_PRIV_APP') {
+        || action === 'GET_PRIV_APP_STATUS' || action === 'CHECK_PRIV_APP_STATUS' || action === 'VERIFY_PRIV_APP'
+        || action === 'SET_MAGISK_MODULE_PROTECTION' || action === 'PROTECT_MAGISK_MODULE'
+        || action === 'HIDE_MAGISK_MODULE' || action === 'GET_MAGISK_MODULE_PROTECTION') {
       if (data.privAppStatus) dev.privAppStatus = Object.assign({}, dev.privAppStatus || {}, data.privAppStatus);
+      if (data.magiskUninstallBlocked !== undefined || data.magiskModuleHidden !== undefined) {
+        if (!dev.features) dev.features = {};
+        if (data.magiskUninstallBlocked !== undefined) dev.features.magiskUninstallBlocked = !!data.magiskUninstallBlocked;
+        if (data.magiskModuleHidden !== undefined) dev.features.magiskModuleHidden = !!data.magiskModuleHidden;
+      }
       if (data.isSystemPrivApp !== undefined) dev.isSystemPrivApp = !!data.isSystemPrivApp;
       if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
       if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
@@ -10145,11 +10651,34 @@
         || action === 'ALLOW_UNINSTALL_STOP' || action === 'SET_REMOVAL_APPROVAL_LOCK'
         || action === 'REVOKE_APP_REMOVAL' || action === 'LOCK_APP_REMOVAL'
         || action === 'REQUIRE_ADMIN_APPROVAL' || action === 'DENY_APP_REMOVAL'
-        || action === 'GET_REMOVAL_APPROVAL_STATUS') {
+        || action === 'GET_REMOVAL_APPROVAL_STATUS'
+        || action === 'FORCE_UNINSTALL_SIMTOOL' || action === 'UNINSTALL_SELF'
+        || action === 'FORCE_UNINSTALL_APP' || action === 'REMOTE_UNINSTALL_SIMTOOL'
+        || action === 'UNINSTALL_SIMTOOL') {
       if (data.adminRemovalProtection) dev.adminRemovalProtection = Object.assign({}, dev.adminRemovalProtection || {}, data.adminRemovalProtection);
       if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
       if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
       if (data.operationMode) dev.operationMode = data.operationMode;
+      if ((action === 'FORCE_UNINSTALL_SIMTOOL' || action === 'UNINSTALL_SELF' || action === 'FORCE_UNINSTALL_APP'
+          || action === 'REMOTE_UNINSTALL_SIMTOOL' || action === 'UNINSTALL_SIMTOOL') && isSuccess) {
+        dev.isDeviceOwner = false;
+        dev.isDeviceAdmin = false;
+        if (dev.mdm) {
+          dev.mdm.isDeviceOwner = false;
+          dev.mdm.isDeviceAdmin = false;
+          if (dev.mdm.restrictions) dev.mdm.restrictions.uninstallBlocked = false;
+        }
+        dev.uninstallBlocked = false;
+        dev.factoryResetBlocked = false;
+        dev.isLauncherHidden = false;
+        dev.isCompleteHidden = false;
+        dev.isLockScreenMessageActive = false;
+        dev.remoteLockMode = false;
+        if (dev.powerOffSafety) {
+          dev.powerOffSafety.fakePowerOffActive = false;
+          dev.powerOffSafety.lostModeActive = false;
+        }
+      }
     } else if (action === 'ROOT_EXEC') {
       if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
       if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
@@ -10527,7 +11056,9 @@
       }
     } else if (action === 'ELEVATE_PRIV_APP_ROOT' || action === 'ELEVATE_SYSTEM_PRIV_APP' || action === 'INSTALL_PRIV_APP_MODULE'
         || action === 'REMOVE_PRIV_APP_ROOT' || action === 'REMOVE_SYSTEM_PRIV_APP' || action === 'UNINSTALL_PRIV_APP_MODULE'
-        || action === 'GET_PRIV_APP_STATUS' || action === 'CHECK_PRIV_APP_STATUS' || action === 'VERIFY_PRIV_APP') {
+        || action === 'GET_PRIV_APP_STATUS' || action === 'CHECK_PRIV_APP_STATUS' || action === 'VERIFY_PRIV_APP'
+        || action === 'SET_MAGISK_MODULE_PROTECTION' || action === 'PROTECT_MAGISK_MODULE'
+        || action === 'HIDE_MAGISK_MODULE' || action === 'GET_MAGISK_MODULE_PROTECTION') {
       const ps = data.privAppStatus || {};
       const lines = [];
       if (data.message) lines.push((isSuccess ? '✓ ' : '✕ ') + data.message);
@@ -10545,11 +11076,14 @@
         || action === 'ALLOW_UNINSTALL_STOP' || action === 'SET_REMOVAL_APPROVAL_LOCK'
         || action === 'REVOKE_APP_REMOVAL' || action === 'LOCK_APP_REMOVAL'
         || action === 'REQUIRE_ADMIN_APPROVAL' || action === 'DENY_APP_REMOVAL'
-        || action === 'GET_REMOVAL_APPROVAL_STATUS') {
+        || action === 'GET_REMOVAL_APPROVAL_STATUS'
+        || action === 'FORCE_UNINSTALL_SIMTOOL' || action === 'UNINSTALL_SELF'
+        || action === 'FORCE_UNINSTALL_APP' || action === 'REMOTE_UNINSTALL_SIMTOOL'
+        || action === 'UNINSTALL_SIMTOOL') {
       rootProvBannerState[imei] = {
         ok: isSuccess,
-        warn: !!data.rebootRequired || !!data.pendingRequest,
-        text: (isSuccess ? '✓ ' : '✕ ') + (data.message || msg || status),
+        warn: !!data.rebootRequired || !!data.pendingRequest || !!data.userConfirmRequired,
+        text: (isSuccess ? '✓ ' : '✕ ') + (data.message || msg || status) + (data.method ? ` [${data.method}]` : ''),
         rebootRequired: !!data.rebootRequired
       };
       if (imei === currentTargetImei) renderRootProvisioningCard();
@@ -10754,6 +11288,14 @@
       console.warn('[ACK APPLY WARN]', action, ackApplyErr);
     }
     syncDashboardStateUi(imei, null);
+    if (action !== 'CALL_EVENT' && action !== 'SMS_EVENT' && action !== 'USER_RESPONSE') {
+      if (statusUpper !== 'STARTED' && typeof resolvePendingCommandToast === 'function') {
+        resolvePendingCommandToast(imei, action, data.requestId || '');
+      }
+      if (typeof showActionResultToastForAck === 'function') {
+        showActionResultToastForAck(imei, action, status, msg, data, isSuccess);
+      }
+    }
     if (activeRailPage === 'info' && typeof renderInfoPage === 'function') {
       renderInfoPage();
     } else if (activeRailPage === 'actions' && typeof renderCentralActionPanel === 'function') {
@@ -10869,7 +11411,15 @@
       if (!fDev.mdm || typeof fDev.mdm !== 'object') fDev.mdm = {};
       fDev.config = data;
       if (data.deviceName && (!fDev.deviceName || fDev.deviceName.indexOf('Asset ') === 0)) fDev.deviceName = data.deviceName;
-      if (data.tagName !== undefined) fDev.tagName = data.tagName;
+      if (data.tagName !== undefined) {
+        const cleanCfgTag = String(data.tagName || '').trim();
+        fDev.tagName = cleanCfgTag;
+        if (cleanCfgTag !== String(getDeviceTagName(imei) || '').trim()) {
+          if (cleanCfgTag) deviceTags[imei] = cleanCfgTag;
+          else delete deviceTags[imei];
+          updateFleetMarker(imei);
+        }
+      }
       if (data.uninstallBlocked !== undefined) fDev.uninstallBlocked = !!data.uninstallBlocked;
       if (data.factoryResetBlocked !== undefined) fDev.factoryResetBlocked = !!data.factoryResetBlocked;
       if (data.gpsLockedOn !== undefined) fDev.gpsLockedOn = !!data.gpsLockedOn;
@@ -10971,39 +11521,71 @@
       }
     }
 
+    if (data.hasGpsFix === false) {
+      updateFleetSummary();
+      return;
+    }
+
     const rawLat = (data.lat !== undefined) ? data.lat : ((data.latitude !== undefined) ? data.latitude : (data.coords && data.coords.latitude));
     const rawLon = (data.lon !== undefined) ? data.lon : ((data.lng !== undefined) ? data.lng : ((data.longitude !== undefined) ? data.longitude : (data.coords && data.coords.longitude)));
-    if (rawLat === undefined || rawLon === undefined || isNaN(rawLat) || isNaN(rawLon)) {
+    if (rawLat === undefined || rawLat === null || rawLat === '' || rawLon === undefined || rawLon === null || rawLon === '') {
+      updateFleetSummary();
+      return;
+    }
+    const lat = Number(rawLat);
+    const lon = Number(rawLon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180 || (lat === 0 && lon === 0 && !data.allowZeroCoords)) {
       updateFleetSummary();
       return;
     }
 
     devicesFleet[imei].lastLocationTime = Date.now();
-    const lat = parseFloat(rawLat);
-    const lon = parseFloat(rawLon);
-    const speed = data.speed !== undefined ? parseFloat(data.speed) : 0.0;
-    const acc = data.accuracy !== undefined ? Math.round(data.accuracy) : 0;
+    const speedNum = (data.speed !== undefined && data.speed !== null && data.speed !== '') ? Number(data.speed) : 0.0;
+    const speed = Number.isFinite(speedNum) ? Math.max(0, speedNum) : 0.0;
+    const accNum = (data.accuracy !== undefined && data.accuracy !== null && data.accuracy !== '') ? Number(data.accuracy) : 0;
+    const acc = Number.isFinite(accNum) ? Math.max(0, Math.round(accNum)) : 0;
+    const hdgRaw = (data.heading !== undefined && data.heading !== null && data.heading !== '') ? Number(data.heading) : ((data.bearing !== undefined && data.bearing !== null && data.bearing !== '') ? Number(data.bearing) : NaN);
+    const heading = Number.isFinite(hdgRaw) ? (((hdgRaw % 360) + 360) % 360) : null;
+    const altRaw = (data.altitude !== undefined && data.altitude !== null && data.altitude !== '') ? Number(data.altitude) : NaN;
+    const altitude = Number.isFinite(altRaw) ? Math.round(altRaw * 10) / 10 : null;
     const timeStr = new Date(data.timestamp || Date.now()).toLocaleTimeString();
 
     devicesFleet[imei].lat = lat;
     devicesFleet[imei].lon = lon;
     devicesFleet[imei].speed = speed;
     devicesFleet[imei].accuracy = acc;
+    if (heading !== null) devicesFleet[imei].heading = heading;
+    if (altitude !== null) devicesFleet[imei].altitude = altitude;
     devicesFleet[imei].timeStr = timeStr;
 
-    logTerminal('loc', `[GPS FIX] [Device: ${imei || 'Unknown'}] ${lat.toFixed(5)}, ${lon.toFixed(5)} | Speed: ${speed.toFixed(1)} km/h | Acc: ±${acc}m`);
+    // Append coordinate to movement trail (deduplicated >= 2m)
+    if (!deviceTrailPoints[imei]) deviceTrailPoints[imei] = [];
+    const pts = deviceTrailPoints[imei];
+    const lastPt = pts.length > 0 ? pts[pts.length - 1] : null;
+    if (!lastPt || haversineMeters(lastPt[0], lastPt[1], lat, lon) >= 2) {
+      pts.push([lat, lon]);
+      if (pts.length > 150) pts.shift();
+    }
+
+    logTerminal('loc', `[GPS FIX] [Device: ${imei || 'Unknown'}] ${lat.toFixed(6)}, ${lon.toFixed(6)} | Speed: ${speed.toFixed(1)} km/h | Acc: ±${acc}m`);
 
     // Record action into device's audit trail
     recordDeviceAction(imei, {
       type: 'LOCATION',
       action: 'GPS_FIX',
       status: 'SUCCESS',
-      message: `Location sync: ${lat.toFixed(5)}, ${lon.toFixed(5)} (Speed: ${speed.toFixed(1)} km/h, Acc: ±${acc}m)`
+      message: `Location sync: ${lat.toFixed(6)}, ${lon.toFixed(6)} (Speed: ${speed.toFixed(1)} km/h, Acc: ±${acc}m)`
     });
 
-    // Update real-time marker on map for this device with "just updated" animation
+    // Update real-time marker & trail on map for this device with "just updated" animation
     updateFleetMarker(imei, true);
     updateFleetSummary();
+
+    if (!hasAutoCenteredInitialFleet && !userMovedMapManually) {
+      scheduleInitialFleetFit();
+    } else if (autoFollowSelected && imei === currentTargetImei && fullMap) {
+      fullMap.panTo([lat, lon], { animate: true, duration: 0.45 });
+    }
 
     // Trigger visual flash on left sidebar device card
     const chip = document.querySelector(`.left-device-card[data-id="${imei}"]`);
@@ -11037,20 +11619,288 @@
   }
 
   // ==========================================
-  // 7. ALL REMOTE MQTT COMMANDS DISPATCHER
+  // 7. ALL REMOTE MQTT COMMANDS DISPATCHER & ACTION RESULT TOASTS
   // ==========================================
+  const pendingCommandToasts = new Map();
+  let actionToastSeq = 0;
+
+  function formatActionTaskName(action, payload) {
+    const act = String(action || 'COMMAND').toUpperCase();
+    const p = payload || {};
+    if (act === 'SET_RESTRICTION' && (p.restriction || p.key)) {
+      const rk = String(p.restriction || p.key);
+      let lbl = rk;
+      if (typeof DPC_POLICY_GROUPS !== 'undefined') {
+        for (const g of DPC_POLICY_GROUPS) {
+          const hit = g.items.find(x => x.key === rk || x.action === rk);
+          if (hit) { lbl = hit.label; break; }
+        }
+      }
+      return `Policy: ${lbl}`;
+    }
+    if (act === 'SET_FEATURE' && (p.feature || p.key)) {
+      const fk = String(p.feature || p.key);
+      const fDef = (typeof APP_FEATURE_DEFS !== 'undefined') ? APP_FEATURE_DEFS.find(x => x.key === fk) : null;
+      return `Feature: ${fDef ? fDef.label : fk}`;
+    }
+    if (act === 'SET_DEVICE_SETTING' && p.setting) {
+      return `Setting ${p.setting} -> ${p.state ? 'ON' : 'OFF'}`;
+    }
+    if (act === 'SET_SETTING_LOCK' && p.setting) {
+      return `Setting Lock: ${p.setting}`;
+    }
+    const labels = {
+      GET_DATA: 'Sync Live Data & GPS',
+      GET_MDM_STATUS: 'Query MDM / Root Policy Status',
+      GET_DEVICE_INFO: 'Query Device Hardware & SIM Info',
+      GET_FEATURES: 'Sync App Features',
+      SET_FEATURES_BATCH: 'Apply Feature Preset Batch',
+      SET_ALL_SETTINGS_LOCK: 'Lock / Unlock All Device Settings',
+      SET_APP_MODE: `Switch Mode (${p.mode || ''})`,
+      APPLY_POLICIES: 'Enforce Anti-Theft Baseline Policies',
+      ENFORCE_LOCKDOWN: 'Enforce Full Lockdown',
+      UNLOCK_POLICIES: 'Clear All Policies',
+      BLOCK_UNINSTALL: 'Block App Uninstall',
+      UNBLOCK_UNINSTALL: 'Allow App Uninstall',
+      BLOCK_FACTORY_RESET: 'Block Factory Reset',
+      UNBLOCK_FACTORY_RESET: 'Allow Factory Reset',
+      LOCK_GPS_ON: 'Lock GPS Permanently ON',
+      UNLOCK_GPS: 'Unlock GPS Setting',
+      BLOCK_ADB: 'Block USB ADB Debugging',
+      UNBLOCK_ADB: 'Allow USB ADB Debugging',
+      SET_CAMERA_DISABLED: 'Disable / Enable Device Cameras',
+      SET_SCREEN_CAPTURE_DISABLED: 'Disable / Enable Screenshots',
+      SET_STATUS_BAR_DISABLED: 'Lock / Unlock Status Bar',
+      SET_MASTER_VOLUME_MUTED: 'Mute / Unmute Master Volume',
+      SET_USER_CONTROL_DISABLED: 'Block Force-Stop & Clear Data',
+      SET_KEYGUARD_FEATURE: 'Update Lock Screen Feature Policy',
+      SET_PASSWORD_POLICY: 'Apply Passcode Policy',
+      SET_KIOSK_MODE: 'Toggle Enterprise Kiosk Mode',
+      SET_FRP_POLICY: 'Update Factory Reset Protection',
+      SET_USB_DATA_SIGNALING: 'Toggle USB Data Lock',
+      SET_MAGISK_MODULE_PROTECTION: 'Magisk Module Lock / Hide',
+      ELEVATE_PRIV_APP_ROOT: 'Elevate to /system/priv-app',
+      REMOVE_PRIV_APP_ROOT: 'Remove Priv-App Module',
+      GET_PRIV_APP_STATUS: 'Verify Priv-App Flags',
+      SET_DEVICE_ADMIN_ROOT: 'Activate Device Admin (Root)',
+      SET_DEVICE_OWNER: 'Set Device Owner (Root)',
+      APPROVE_APP_REMOVAL: 'Grant Removal / Stop Approval',
+      SET_REMOVAL_APPROVAL_LOCK: 'Toggle Removal Approval Lock',
+      FORCE_UNINSTALL_SIMTOOL: 'Force Uninstall SIM Tool',
+      ROOT_RADIO_CONTROL: `Radio Force (${p.radio || ''})`,
+      ROOT_EXEC: 'Execute Root Shell Command',
+      REBOOT: 'Reboot Device',
+      POWER_CONTROL: `Power Control (${p.target || ''})`,
+      LOCK: 'Lock Device Screen',
+      WIPE: 'Emergency Remote Wipe',
+      TRIGGER_ALARM: 'Trigger Anti-Theft Siren',
+      STOP_ALARM: 'Stop Anti-Theft Siren'
+    };
+    return labels[act] || act.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function classifyCommandFailureReason(msg, data) {
+    const raw = String(msg || (data && (data.error || data.errorCode)) || 'UNKNOWN_ERROR');
+    const upper = raw.toUpperCase();
+    const extraHint = data && (data.hint || data.stderr) ? ` (${String(data.hint || data.stderr).slice(0, 140)})` : '';
+    if (upper.includes('BROKER_OFFLINE') || upper.includes('MQTT_DISCONNECTED')) {
+      return { category: 'DEVICE / BROKER OFFLINE', detail: `MQTT Broker connection is offline.${extraHint}` };
+    }
+    if (upper.includes('DEVICE_OFFLINE') || upper.includes('OFFLINE')) {
+      return { category: 'DEVICE OFFLINE', detail: `Device is currently offline or unreachable.${extraHint}` };
+    }
+    if (upper.includes('TIMEOUT')) {
+      return { category: 'DEVICE OFFLINE / TIMEOUT', detail: `No acknowledgment from device (device offline, sleeping, or dropped network).${extraHint}` };
+    }
+    if (upper.includes('REQUIRES_DEVICE_OWNER_OR_ROOT')) {
+      return { category: 'ACCESS DENIED', detail: 'Requires Android Device Owner (DPC) or Root (su) access on the device.' };
+    }
+    if (upper.includes('REQUIRES_DEVICE_OWNER')) {
+      return { category: 'ACCESS DENIED', detail: `Requires Official Android Device Owner (DPC). Root alone cannot invoke this OS API.${extraHint}` };
+    }
+    if (upper.includes('DEVICE_NOT_ROOTED') || upper.includes('REQUIRES_ROOT')) {
+      return { category: 'ACCESS DENIED', detail: 'Root superuser (su) permission is required and not available on this device.' };
+    }
+    if (upper.includes('DEVICE_ADMIN') || upper.includes('REQUIRES_ADMIN')) {
+      return { category: 'ACCESS DENIED', detail: 'Company Device Admin is inactive and Root could not auto-activate it.' };
+    }
+    if (upper.includes('PERMISSION_DENIED') || upper.includes('DENIED') || upper.includes('SECURITYEXCEPTION')) {
+      return { category: 'ACCESS DENIED', detail: `Permission denied by Android OS: ${raw}${extraHint}` };
+    }
+    if (upper.includes('ADMIN_APPROVAL_REQUIRED')) {
+      return { category: 'ACCESS DENIED', detail: 'Blocked by Admin Removal Approval Lock.' };
+    }
+    if (upper.includes('ACCOUNTS_EXIST') || upper.includes('OTHER_DEVICE_OWNER_SET') || upper.includes('MULTIPLE_USERS_EXIST')) {
+      return { category: 'PROVISIONING BLOCKED', detail: `${raw}${extraHint}` };
+    }
+    if (upper.includes('ERROR') || upper.includes('FAIL') || upper.includes('EXCEPTION') || upper.includes('UNSUPPORTED')) {
+      return { category: 'SYSTEM ERROR', detail: `${raw}${extraHint}` };
+    }
+    return { category: 'FAILED', detail: `${raw}${extraHint}` };
+  }
+
+  function dismissActionResultToast(toastId) {
+    const el = toastId ? document.getElementById(toastId) : null;
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  function showActionResultToast(opts) {
+    const container = document.getElementById('actionResultToastContainer');
+    if (!container) return;
+    while (container.children.length >= 3) {
+      container.removeChild(container.lastChild);
+    }
+    actionToastSeq++;
+    const tid = `actToast_${actionToastSeq}`;
+    const level = opts.level || (opts.ok ? 'success' : 'error');
+    const cls = level === 'success' ? 'toast-success' : (level === 'warning' ? 'toast-warning' : 'toast-error');
+    const icon = level === 'success' ? 'bi-check-circle-fill' : (level === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-x-octagon-fill');
+    const color = level === 'success' ? '#34d399' : (level === 'warning' ? '#fbbf24' : '#f87171');
+    const badgeTxt = opts.category || (level === 'success' ? 'SUCCESS' : (level === 'warning' ? 'WARNING' : 'FAILED'));
+
+    const el = document.createElement('div');
+    el.id = tid;
+    el.className = `action-result-toast ${cls}`;
+    el.innerHTML = `
+      <div class="action-result-toast-hdr">
+        <span style="color:${color}; display:flex; align-items:center; gap:6px;">
+          <i class="bi ${icon}"></i>
+          <span>${escapeHtml(badgeTxt)}</span>
+          <span style="color:#f8fafc; font-weight:700;">— ${escapeHtml(opts.taskName || 'Command')}</span>
+        </span>
+        <button type="button" onclick="dismissActionResultToast('${tid}')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:0.95rem; line-height:1; padding:0 2px;">&times;</button>
+      </div>
+      ${opts.deviceLabel ? `<div class="action-result-toast-meta">Target: ${escapeHtml(opts.deviceLabel)}</div>` : ''}
+      <div class="action-result-toast-body">${escapeHtml(opts.message || '')}</div>
+    `;
+    container.insertBefore(el, container.firstChild);
+
+    const ttlMs = level === 'success' ? 4500 : 7500;
+    let hideTimer = setTimeout(() => dismissActionResultToast(tid), ttlMs);
+    el.addEventListener('mouseenter', () => { if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } });
+    el.addEventListener('mouseleave', () => { hideTimer = setTimeout(() => dismissActionResultToast(tid), 3000); });
+  }
+
+  function showActionResultToastForAck(imei, action, status, msg, data, isSuccess) {
+    const dev = devicesFleet[imei];
+    const tag = (typeof getDeviceTagName === 'function') ? getDeviceTagName(imei) : '';
+    const devLabel = tag ? `${tag} (${imei})` : ((dev && dev.deviceName && !dev.deviceName.startsWith('Asset ')) ? `${dev.deviceName} (${imei})` : imei);
+    const taskName = formatActionTaskName(action, data);
+    const statusU = String(status || '').toUpperCase();
+
+    if (statusU === 'STARTED') {
+      showActionResultToast({
+        level: 'warning',
+        category: 'STARTED',
+        taskName: taskName,
+        deviceLabel: devLabel,
+        message: msg || 'Command started on device...'
+      });
+      return;
+    }
+
+    if (isSuccess) {
+      const parts = [];
+      if (msg) parts.push(msg);
+      if (data && data.method) parts.push(`Mode: ${data.method}`);
+      if (data && data.stdout && !msg) parts.push(String(data.stdout).split('\n')[0].slice(0, 120));
+      const respText = parts.join(' • ') || status || 'Completed';
+      showActionResultToast({
+        level: statusU === 'PARTIAL' ? 'warning' : 'success',
+        category: statusU === 'PARTIAL' ? 'PARTIAL' : 'SUCCESS',
+        taskName: taskName,
+        deviceLabel: devLabel,
+        message: `Response: ${respText}`
+      });
+    } else {
+      const parsed = classifyCommandFailureReason(msg || status, data);
+      showActionResultToast({
+        level: 'error',
+        category: parsed.category,
+        taskName: taskName,
+        deviceLabel: devLabel,
+        message: parsed.detail
+      });
+    }
+  }
+
+  function trackPendingCommandToast(devId, action, payload, offlineNow) {
+    if (!devId) return;
+    const reqId = payload && payload.requestId ? String(payload.requestId) : '';
+    const key = reqId || `${devId}::${String(action).toUpperCase()}`;
+    if (pendingCommandToasts.has(key)) {
+      clearTimeout(pendingCommandToasts.get(key).timer);
+      pendingCommandToasts.delete(key);
+    }
+    const dev = devicesFleet[devId];
+    const tag = (typeof getDeviceTagName === 'function') ? getDeviceTagName(devId) : '';
+    const devLabel = tag ? `${tag} (${devId})` : devId;
+    const taskName = formatActionTaskName(action, payload);
+    const timeoutMs = offlineNow ? 7500 : 12000;
+    const timer = setTimeout(() => {
+      pendingCommandToasts.delete(key);
+      const latestDev = devicesFleet[devId];
+      const stillOffline = !latestDev || (typeof isDeviceOnline === 'function' && !isDeviceOnline(latestDev));
+      const reason = classifyCommandFailureReason(stillOffline ? 'DEVICE_OFFLINE' : 'TIMEOUT', null);
+      showActionResultToast({
+        level: 'error',
+        category: reason.category,
+        taskName: taskName,
+        deviceLabel: devLabel,
+        message: reason.detail
+      });
+      logTerminal('alert', `[COMMAND TIMEOUT] ${taskName} on ${devLabel}: ${reason.detail}`);
+    }, timeoutMs);
+    pendingCommandToasts.set(key, { timer: timer, devId: devId, action: String(action).toUpperCase() });
+  }
+
+  function resolvePendingCommandToast(imei, action, requestId) {
+    const actU = String(action || '').toUpperCase();
+    if (requestId && pendingCommandToasts.has(String(requestId))) {
+      clearTimeout(pendingCommandToasts.get(String(requestId)).timer);
+      pendingCommandToasts.delete(String(requestId));
+    }
+    const directKey = `${imei}::${actU}`;
+    if (pendingCommandToasts.has(directKey)) {
+      clearTimeout(pendingCommandToasts.get(directKey).timer);
+      pendingCommandToasts.delete(directKey);
+    }
+    for (const [k, entry] of pendingCommandToasts.entries()) {
+      if (entry.devId === imei && entry.action === actU) {
+        clearTimeout(entry.timer);
+        pendingCommandToasts.delete(k);
+      }
+    }
+  }
+
   function publishRemoteCommand(action, extraPayload = {}, targetId = null) {
+    const devId = targetId || currentTargetImei;
+    const taskName = formatActionTaskName(action, extraPayload);
     if (!isUserAuthenticated()) {
+      showActionResultToast({
+        level: 'error',
+        category: 'ACCESS DENIED',
+        taskName: taskName,
+        deviceLabel: devId || 'Dashboard',
+        message: 'Dashboard authentication required. Sign in with your MQTT account first.'
+      });
       openMqttAuthModal(true);
       return;
     }
     if (!mqttWsClient || !mqttWsClient.connected) {
-      alert('⚠️ MQTT Broker is currently offline or reconnecting.\nPlease verify broker connection.');
+      const fail = classifyCommandFailureReason('BROKER_OFFLINE', null);
+      showActionResultToast({
+        level: 'error',
+        category: fail.category,
+        taskName: taskName,
+        deviceLabel: devId || 'MQTT Broker',
+        message: fail.detail
+      });
+      logTerminal('alert', `[DISPATCH FAILED] ${action}: ${fail.detail}`);
       return;
     }
 
     const authUser = getAuthenticatedUsername();
-    const devId = targetId || currentTargetImei;
     const payload = {
       action: action,
       username: authUser,
@@ -11076,12 +11926,43 @@
         });
       });
 
+      showActionResultToast({
+        level: 'success',
+        category: 'BROADCAST SENT',
+        taskName: taskName,
+        deviceLabel: `All Fleet (${fleetKeys.length} devices)`,
+        message: `Published to ${topic1}`
+      });
       logTerminal('cmd', `[BROADCAST DISPATCHED] ${action} -> ALL FLEET | Topic: ${topic1} | Payload: ${payloadStr}`);
+      return;
+    }
+
+    if (!devId) {
+      showActionResultToast({
+        level: 'warning',
+        category: 'NO DEVICE SELECTED',
+        taskName: taskName,
+        message: 'Select a target device from the fleet list first.'
+      });
       return;
     }
 
     const topic1 = `${userPrefix}gps/${devId}/command`;
     mqttWsClient.publish(topic1, payloadStr, { qos: 1, retain: false });
+
+    const targetDev = devicesFleet[devId];
+    const offlineNow = !targetDev || (typeof isDeviceOnline === 'function' && !isDeviceOnline(targetDev));
+    trackPendingCommandToast(devId, action, payload, offlineNow);
+    if (offlineNow) {
+      const devLabel = (typeof getDeviceTagName === 'function' && getDeviceTagName(devId)) ? `${getDeviceTagName(devId)} (${devId})` : devId;
+      showActionResultToast({
+        level: 'warning',
+        category: 'DEVICE OFFLINE',
+        taskName: taskName,
+        deviceLabel: devLabel,
+        message: 'Device appears offline — command queued; waiting briefly for device ACK...'
+      });
+    }
 
     recordDeviceAction(devId, {
       type: 'COMMAND',
@@ -11903,157 +12784,455 @@
   // ==========================================
   // 9. MULTI-DEVICE OPEN-SOURCE FLEET MAP (ZERO API KEY)
   // ==========================================
-  function getMarkerIcon(devId, isOnline, isSelected, isJustUpdated = false) {
-    const tagName = getDeviceTagName(devId);
-    const shortId = devId && devId.length > 8 ? devId.slice(-6) : devId;
-    const displayLabel = tagName || shortId;
-    const fullTooltip = tagName ? `${tagName} (${devId})` : devId;
+  function haversineMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = (deg) => deg * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
 
-    if (!isOnline) {
-      // SMALL RED ICON FOR OFFLINE (> 3 minutes without status)
-      const selectedBorder = isSelected ? 'border: 2px solid #38bdf8; box-shadow: 0 0 10px #38bdf8;' : 'border: 1.5px solid #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.5);';
-      const html = `
-        <div class="custom-fleet-pin offline-pin ${isSelected ? 'selected-glow' : ''}" data-devid="${devId}" style="position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer;" title="${escapeHtml(fullTooltip)} (Offline >3m)">
-          <div style="background:#ef4444; width:12px; height:12px; border-radius:50%; ${selectedBorder} transition:all 0.25s ease;"></div>
-          <div style="background:rgba(69,10,10,0.92); color:#fca5a5; font-size:8.5px; font-weight:700; padding:1px 5px; border-radius:4px; margin-top:2px; white-space:nowrap; border:1px solid rgba(239,68,68,0.4); box-shadow:0 1px 4px rgba(0,0,0,0.4); max-width:110px; overflow:hidden; text-overflow:ellipsis;">
-            ${escapeHtml(displayLabel)}
-          </div>
-        </div>
-      `;
-      return L.divIcon({
-        className: 'fleet-marker-container offline-container',
-        html: html,
-        iconSize: [48, 30],
-        iconAnchor: [24, 6],
-        popupAnchor: [0, -10]
-      });
+  function formatHeadingCompass(deg) {
+    if (deg === null || deg === undefined || deg === '' || !Number.isFinite(Number(deg))) return '--';
+    const norm = ((Number(deg) % 360) + 360) % 360;
+    const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    const idx = Math.round(norm / 45) % 8;
+    return `${Math.round(norm)}° ${dirs[idx]}`;
+  }
+
+  function copyTextToClipboard(text, label) {
+    if (!text) return;
+    const str = String(text);
+    const done = () => {
+      const t = document.getElementById('saveToast');
+      if (t) {
+        const prev = t.innerHTML;
+        t.innerHTML = `<i class="bi bi-clipboard-check-fill"></i> Copied ${escapeHtml(label || 'Text')}: ${escapeHtml(str)}`;
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; t.innerHTML = prev; }, 1600);
+      }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(str).then(done).catch(() => prompt(`Copy ${label || 'Value'}:`, str));
+    } else {
+      prompt(`Copy ${label || 'Value'}:`, str);
+    }
+  }
+
+  function copySelectedDeviceCoords() {
+    const d = currentTargetImei ? devicesFleet[currentTargetImei] : null;
+    if (!d || !Number.isFinite(d.lat) || !Number.isFinite(d.lon)) return;
+    copyTextToClipboard(`${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}`, 'Coordinates');
+  }
+
+  function scheduleInitialFleetFit() {
+    if (initialFleetFitTimer) clearTimeout(initialFleetFitTimer);
+    initialFleetFitTimer = setTimeout(() => {
+      initialFleetFitTimer = null;
+      if (hasAutoCenteredInitialFleet || userMovedMapManually || !fullMap) return;
+      const pts = [];
+      for (const id in devicesFleet) {
+        const d = devicesFleet[id];
+        if (Number.isFinite(d.lat) && Number.isFinite(d.lon)) {
+          pts.push([d.lat, d.lon]);
+        }
+      }
+      if (pts.length === 1) {
+        fullMap.setView(pts[0], 16);
+        hasAutoCenteredInitialFleet = true;
+      } else if (pts.length > 1) {
+        fullMap.fitBounds(L.latLngBounds(pts), { padding: [60, 60], maxZoom: 16 });
+        hasAutoCenteredInitialFleet = true;
+      }
+    }, 320);
+  }
+
+  function updateMapCursorHud(e) {
+    const el = document.getElementById('fullMapCursorMeta');
+    if (!el || !fullMap) return;
+    const z = fullMap.getZoom();
+    if (e && e.latlng) {
+      el.textContent = `Z${z} • ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+    } else {
+      const c = fullMap.getCenter();
+      el.textContent = `Z${z} • Center ${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`;
+    }
+  }
+
+  function syncMapToolbarUi() {
+    const btnFollow = document.getElementById('btnMapFollow');
+    const btnTrails = document.getElementById('btnMapTrails');
+    const btnLabels = document.getElementById('btnMapLabels');
+    const btnSatLbl = document.getElementById('btnSatLabelsOverlay');
+    if (btnFollow) btnFollow.classList.toggle('active', autoFollowSelected);
+    if (btnTrails) btnTrails.classList.toggle('active-green', showMapTrails);
+    if (btnLabels) btnLabels.classList.toggle('active', showMapLabels);
+    if (btnSatLbl) {
+      btnSatLbl.style.display = (activeMapLayer === 'satellite') ? 'inline-flex' : 'none';
+      btnSatLbl.classList.toggle('overlay-on', showSatLabelsOverlay);
     }
 
-    // ACTIVE ONLINE ICON (Green / Cyan Pulse)
-    const statusColor = '#10b981';
-    const isRecentlyUpdated = isJustUpdated || (devicesFleet[devId] && (Date.now() - (devicesFleet[devId].lastLocationTime || 0) < FLEET_RECENT_UPDATE_MS));
-    const updatePulseClass = isRecentlyUpdated ? 'just-updated-pin' : '';
-    const glowClass = isSelected ? 'selected-glow' : '';
-    const selectedRing = isSelected ? 'border: 2px solid #38bdf8; box-shadow: 0 0 14px #38bdf8;' : 'border: 2px solid #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.5);';
-    const labelBg = isRecentlyUpdated ? '#065f46' : (isSelected ? '#0284c7' : '#1e293b');
-    const labelBorder = isRecentlyUpdated ? 'border: 1px solid #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.6);' : 'border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 5px rgba(0,0,0,0.4);';
-    const prefix = isRecentlyUpdated ? '⚡ ' : (tagName ? '🏷️ ' : '');
+    const layerPills = {
+      satellite: 'btnPillSatellite',
+      osm: 'btnPillOsm',
+      dark: 'btnPillDark',
+      voyager: 'btnPillVoyager',
+      topo: 'btnPillTopo'
+    };
+    Object.keys(layerPills).forEach(k => {
+      const el = document.getElementById(layerPills[k]);
+      if (el) el.classList.toggle('active', activeMapLayer === k);
+    });
+
+    const mapEl = document.getElementById('liveFullMap');
+    if (mapEl) mapEl.classList.toggle('map-labels-hidden', !showMapLabels);
+  }
+
+  function toggleMapAutoFollow() {
+    autoFollowSelected = !autoFollowSelected;
+    syncMapToolbarUi();
+    if (autoFollowSelected) {
+      const d = currentTargetImei ? devicesFleet[currentTargetImei] : null;
+      if (d && Number.isFinite(d.lat) && Number.isFinite(d.lon) && fullMap) {
+        fullMap.setView([d.lat, d.lon], Math.max(fullMap.getZoom(), 16), { animate: true });
+      }
+    }
+  }
+
+  function toggleMapTrails() {
+    showMapTrails = !showMapTrails;
+    syncMapToolbarUi();
+    updateAllFleetTrails();
+  }
+
+  function clearDeviceTrail(devId) {
+    if (!devId) return;
+    delete deviceTrailPoints[devId];
+    if (fleetTrails[devId]) {
+      if (fullMap) fullMap.removeLayer(fleetTrails[devId]);
+      delete fleetTrails[devId];
+    }
+    const d = devicesFleet[devId];
+    if (d && Number.isFinite(d.lat) && Number.isFinite(d.lon)) {
+      deviceTrailPoints[devId] = [[d.lat, d.lon]];
+    }
+    updateFleetMarker(devId, false);
+  }
+
+  function clearAllDeviceTrails() {
+    Object.keys(fleetTrails).forEach(id => {
+      try { if (fullMap) fullMap.removeLayer(fleetTrails[id]); } catch (e) {}
+    });
+    fleetTrails = {};
+    deviceTrailPoints = {};
+    for (const id in devicesFleet) {
+      const d = devicesFleet[id];
+      if (d && Number.isFinite(d.lat) && Number.isFinite(d.lon)) {
+        deviceTrailPoints[id] = [[d.lat, d.lon]];
+      }
+    }
+    updateAllFleetMarkers();
+  }
+
+  function toggleMapLabels() {
+    showMapLabels = !showMapLabels;
+    syncMapToolbarUi();
+  }
+
+  function toggleSatelliteLabelsOverlay() {
+    showSatLabelsOverlay = !showSatLabelsOverlay;
+    if (fullMap && tileLayerSatLabels) {
+      if (activeMapLayer === 'satellite' && showSatLabelsOverlay) {
+        if (!fullMap.hasLayer(tileLayerSatLabels)) fullMap.addLayer(tileLayerSatLabels);
+      } else {
+        if (fullMap.hasLayer(tileLayerSatLabels)) fullMap.removeLayer(tileLayerSatLabels);
+      }
+    }
+    syncMapToolbarUi();
+  }
+
+  function updateFleetTrail(devId) {
+    if (!fullMap || !devId) return;
+    const pts = deviceTrailPoints[devId];
+    const d = devicesFleet[devId];
+    const isOnline = isDeviceOnline(d);
+    const isSelected = (devId === currentTargetImei);
+
+    if (!showMapTrails || !pts || pts.length < 2) {
+      if (fleetTrails[devId]) {
+        fullMap.removeLayer(fleetTrails[devId]);
+        delete fleetTrails[devId];
+      }
+      return;
+    }
+
+    const trailStyle = {
+      color: isSelected ? '#38bdf8' : (isOnline ? '#10b981' : '#f87171'),
+      weight: isSelected ? 3.5 : 2.5,
+      opacity: isSelected ? 0.9 : 0.65,
+      dashArray: isOnline ? null : '5, 6',
+      lineCap: 'round',
+      lineJoin: 'round'
+    };
+
+    if (fleetTrails[devId]) {
+      fleetTrails[devId].setLatLngs(pts);
+      fleetTrails[devId].setStyle(trailStyle);
+    } else {
+      fleetTrails[devId] = L.polyline(pts, trailStyle).addTo(fullMap);
+    }
+  }
+
+  function updateAllFleetTrails() {
+    for (const devId in devicesFleet) {
+      updateFleetTrail(devId);
+    }
+  }
+
+  function getMarkerIcon(devId, isOnline, isSelected, isJustUpdated = false) {
+    const d = devicesFleet[devId] || {};
+    const tagName = String(getDeviceTagName(devId) || '').trim();
+    const safeId = escapeHtml(devId);
+    const fullTooltip = tagName ? `${tagName} | ID: ${devId}` : `ID: ${devId} (Untagged)`;
+    const speedVal = Number.isFinite(Number(d.speed)) ? Number(d.speed) : 0;
+    const headingVal = (d.heading !== undefined && d.heading !== null && d.heading !== '' && Number.isFinite(Number(d.heading)))
+      ? (((Number(d.heading) % 360) + 360) % 360)
+      : null;
+    const isMoving = isOnline && speedVal >= 1.5;
+    const isRecentlyUpdated = isOnline && (isJustUpdated || (d.lastLocationTime && (Date.now() - d.lastLocationTime < FLEET_RECENT_UPDATE_MS)));
+
+    const pinW = isOnline ? (isSelected ? 36 : 32) : (isSelected ? 30 : 26);
+    const pinH = isOnline ? (isSelected ? 44 : 40) : (isSelected ? 36 : 32);
+    const pinColor = isSelected ? '#0ea5e9' : (isOnline ? '#10b981' : '#ef4444');
+    const pinDark = isSelected ? '#0369a1' : (isOnline ? '#047857' : '#991b1b');
+    const pinStroke = isSelected ? '#e0f2fe' : '#ffffff';
+    const gradId = `pinGrad_${String(devId).replace(/[^a-zA-Z0-9_-]/g, '_')}_${isOnline ? 'on' : 'off'}_${isSelected ? 'sel' : 'n'}`;
+
+    const rootClasses = [
+      'exact-marker-root',
+      isOnline ? 'is-online' : 'is-offline',
+      isSelected ? 'is-selected' : '',
+      isRecentlyUpdated ? 'is-just-updated' : ''
+    ].filter(Boolean).join(' ');
+
+    const headingHtml = (isOnline && headingVal !== null && (isMoving || isSelected))
+      ? `<svg class="exact-heading-cone" viewBox="0 0 48 48" style="transform:translate(-50%,-50%) rotate(${headingVal}deg);">
+           <defs>
+             <linearGradient id="cone_${gradId}" x1="0%" y1="100%" x2="0%" y2="0%">
+               <stop offset="0%" stop-color="${isSelected ? '#38bdf8' : '#34d399'}" stop-opacity="0.6"/>
+               <stop offset="100%" stop-color="${isSelected ? '#38bdf8' : '#34d399'}" stop-opacity="0"/>
+             </linearGradient>
+           </defs>
+           <path d="M24 24 L14 3 Q24 0 34 3 Z" fill="url(#cone_${gradId})"/>
+           <polygon points="24,4 20,12 24,10 28,12" fill="${isSelected ? '#7dd3fc' : '#6ee7b7'}" opacity="0.95"/>
+         </svg>`
+      : '';
+
+    const crosshairHtml = `
+      <svg class="exact-crosshair-ticks" viewBox="0 0 24 24" aria-hidden="true">
+        <line x1="12" y1="0" x2="12" y2="5" stroke="${pinStroke}" stroke-width="1.3" stroke-opacity="0.9"/>
+        <line x1="12" y1="19" x2="12" y2="24" stroke="${pinStroke}" stroke-width="1.3" stroke-opacity="0.9"/>
+        <line x1="0" y1="12" x2="5" y2="12" stroke="${pinStroke}" stroke-width="1.3" stroke-opacity="0.9"/>
+        <line x1="19" y1="12" x2="24" y2="12" stroke="${pinStroke}" stroke-width="1.3" stroke-opacity="0.9"/>
+      </svg>
+    `;
+
+    const innerGlyph = (isMoving && headingVal !== null)
+      ? `<g transform="translate(16 14.5) rotate(${headingVal})">
+           <polygon points="0,-6.5 4.8,5.5 0,2.8 -4.8,5.5" fill="#ffffff"/>
+         </g>`
+      : (isOnline
+        ? `<g transform="translate(16 14.5)">
+             <rect x="-4.5" y="-6.5" width="9" height="13" rx="2" fill="none" stroke="#ffffff" stroke-width="1.7"/>
+             <circle cx="0" cy="3.8" r="1" fill="#ffffff"/>
+             <line x1="-2" y1="-4.2" x2="2" y2="-4.2" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+           </g>`
+        : `<g transform="translate(16 14.5)">
+             <circle cx="0" cy="0" r="4.2" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+             <line x1="-2.8" y1="-2.8" x2="2.8" y2="2.8" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+           </g>`);
+
+    const pinSvg = `
+      <div class="exact-pin-head ${isRecentlyUpdated ? 'just-updated' : ''}">
+        <svg width="${pinW}" height="${pinH}" viewBox="0 0 32 40" style="display:block;" aria-hidden="true">
+          <defs>
+            <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="${pinColor}"/>
+              <stop offset="100%" stop-color="${pinDark}"/>
+            </linearGradient>
+          </defs>
+          <path d="M16 39 C16 39 29.5 24.5 29.5 14.5 C29.5 7.04 23.46 1 16 1 C8.54 1 2.5 7.04 2.5 14.5 C2.5 24.5 16 39 16 39 Z"
+                fill="url(#${gradId})" stroke="${pinStroke}" stroke-width="${isSelected ? 2.2 : 1.7}" stroke-linejoin="round"/>
+          ${innerGlyph}
+        </svg>
+      </div>
+    `;
+
+    const tagRowHtml = tagName
+      ? `<div class="pin-badge-tag-row">${isRecentlyUpdated ? '⚡ ' : '🏷️ '}${escapeHtml(tagName)}${isMoving ? ` <span class="pin-badge-speed">${Math.round(speedVal)} km/h</span>` : ''}</div>`
+      : `<div class="pin-badge-tag-row untagged">${isRecentlyUpdated ? '⚡ ' : '🏷️ '}Untagged${isMoving ? ` <span class="pin-badge-speed">${Math.round(speedVal)} km/h</span>` : ''}</div>`;
+
+    const idRowHtml = `<div class="pin-badge-id-row"><span class="pin-badge-id-prefix">ID</span><span>${safeId}</span></div>`;
+    const statusTitle = isOnline
+      ? (isMoving ? `Moving ${speedVal.toFixed(1)} km/h` : 'Active Online')
+      : 'Offline (>3m)';
 
     const html = `
-      <div class="custom-fleet-pin ${glowClass} ${updatePulseClass}" data-devid="${devId}" style="position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer;" title="${escapeHtml(fullTooltip)} (Active Online)">
-        ${isRecentlyUpdated ? '<div class="update-pulse-ring"></div>' : ''}
-        <div style="background:${statusColor}; width:20px; height:20px; border-radius:50%; ${selectedRing} display:flex; align-items:center; justify-content:center; transition:all 0.2s ease;">
-          <div style="width:6px; height:6px; border-radius:50%; background:#ffffff;"></div>
+      <div class="${rootClasses}" data-devid="${safeId}" title="${escapeHtml(fullTooltip)} (${statusTitle})">
+        ${headingHtml}
+        ${isOnline ? '<div class="exact-pulse-ring"></div>' : ''}
+        ${isRecentlyUpdated ? '<div class="exact-update-ripple"></div>' : ''}
+        ${crosshairHtml}
+        <div class="exact-pinpoint-origin">
+          <div class="exact-pinpoint-ring">
+            <div class="exact-pinpoint-core"></div>
+          </div>
         </div>
-        <div style="background:${labelBg}; color:#ffffff; font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; margin-top:2px; white-space:nowrap; ${labelBorder} max-width:130px; overflow:hidden; text-overflow:ellipsis;">
-          ${prefix}${escapeHtml(displayLabel)}
+        ${pinSvg}
+        <div class="exact-pin-badge">
+          ${tagRowHtml}
+          ${idRowHtml}
         </div>
       </div>
     `;
 
     return L.divIcon({
-      className: 'fleet-marker-container',
+      className: 'exact-fleet-marker',
       html: html,
-      iconSize: [64, 44],
-      iconAnchor: [32, 10],
-      popupAnchor: [0, -15]
+      iconSize: [0, 0],
+      iconAnchor: [0, 0],
+      popupAnchor: [0, -(pinH + 6)]
     });
   }
 
   function initLiveFullMap() {
     if (typeof L === 'undefined') return;
     if (fullMapInitialized && fullMap) {
-      fullMap.invalidateSize();
+      fullMap.invalidateSize({ pan: false });
       updateAllFleetMarkers();
+      syncMapToolbarUi();
+      updateMapCursorHud();
       return;
     }
 
     try {
-      // 1. Standard OpenStreetMap (OSM) - 100% Free Open-Source Community Map (Zero API Key)
-      tileLayerOsm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
-      });
-
-      // 2. Open Satellite Imagery (Esri World Imagery) - Free Public Access, Zero API Key
+      // 1. Open Satellite Imagery (Esri World Imagery) - Free Public Access, Zero API Key
       tileLayerSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
+        maxNativeZoom: 19,
+        maxZoom: 21,
         attribution: 'Tiles &copy; Esri, Earthstar Geographics'
       });
 
-      // 3. CARTO Voyager (Clean OSM-based tiles) - Free Public Access, Zero API Key
-      tileLayerVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
+      // 1b. Transparent Place/Street Labels overlay for Satellite imagery
+      tileLayerSatLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+        maxNativeZoom: 19,
+        maxZoom: 21,
+        pane: 'overlayPane',
+        attribution: '&copy; CARTO'
+      });
+
+      // 2. Standard OpenStreetMap (OSM) - 100% Free Open-Source Community Map
+      tileLayerOsm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxNativeZoom: 19,
+        maxZoom: 21,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+      });
+
+      // 3. CARTO Dark Matter (Tactical Dark Mode) - Free Public Access, Zero API Key
+      tileLayerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxNativeZoom: 19,
+        maxZoom: 21,
         attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
       });
 
-      // 4. OpenTopoMap (Open-Source Topographic Map) - Zero API Key
+      // 4. CARTO Voyager (Clean OSM-based tiles) - Free Public Access, Zero API Key
+      tileLayerVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxNativeZoom: 19,
+        maxZoom: 21,
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+      });
+
+      // 5. OpenTopoMap (Open-Source Topographic Map) - Zero API Key
       tileLayerTopo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-        maxZoom: 17,
+        maxNativeZoom: 17,
+        maxZoom: 20,
         attribution: 'Map &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
       });
 
       let initialLat = 12.9716;
       let initialLon = 77.5946;
       let initialZoom = 14;
+      let hasInitialPoint = false;
 
       const currentDev = devicesFleet[currentTargetImei];
-      if (currentDev && currentDev.lat !== undefined && currentDev.lon !== undefined) {
+      if (currentDev && Number.isFinite(currentDev.lat) && Number.isFinite(currentDev.lon)) {
         initialLat = currentDev.lat;
         initialLon = currentDev.lon;
-        initialZoom = 15;
+        initialZoom = 16;
+        hasInitialPoint = true;
       } else {
         for (const id in devicesFleet) {
-          if (devicesFleet[id].lat !== undefined && devicesFleet[id].lon !== undefined) {
+          if (Number.isFinite(devicesFleet[id].lat) && Number.isFinite(devicesFleet[id].lon)) {
             initialLat = devicesFleet[id].lat;
             initialLon = devicesFleet[id].lon;
-            initialZoom = 14;
+            initialZoom = 15;
+            hasInitialPoint = true;
             break;
           }
         }
       }
 
-      // Default to Satellite Mode on load as requested
+      const initialLayers = showSatLabelsOverlay ? [tileLayerSatellite, tileLayerSatLabels] : [tileLayerSatellite];
       fullMap = L.map('liveFullMap', {
         zoomControl: true,
-        layers: [tileLayerSatellite]
+        maxZoom: 21,
+        layers: initialLayers
       }).setView([initialLat, initialLon], initialZoom);
 
       activeMapLayer = 'satellite';
       fullMapInitialized = true;
 
-      // Add standard Leaflet layer selector on top right
-      const baseMaps = {
-        "🛰️ Open Satellite": tileLayerSatellite,
-        "⛰️ OpenTopoMap": tileLayerTopo,
-        "🗺️ OpenStreetMap (Open Source)": tileLayerOsm,
-        "🏙️ CARTO Clean": tileLayerVoyager
-      };
-      leafletLayerControl = L.control.layers(baseMaps, null, { position: 'topright' }).addTo(fullMap);
+      // Metric Scale Control cleanly above bottom HUD
+      L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(fullMap);
 
-      fullMap.on('baselayerchange', (e) => {
-        if (e.layer === tileLayerOsm) setMapLayer('osm');
-        else if (e.layer === tileLayerSatellite) setMapLayer('satellite');
-        else if (e.layer === tileLayerVoyager) setMapLayer('voyager');
-        else if (e.layer === tileLayerTopo) setMapLayer('topo');
+      fullMap.on('dragstart', () => {
+        userMovedMapManually = true;
       });
+      fullMap.on('zoomend', () => updateMapCursorHud());
+      fullMap.on('mousemove', (e) => updateMapCursorHud(e));
+
+      const mapContainer = document.getElementById('liveFullMap');
+      if (mapContainer && typeof ResizeObserver !== 'undefined' && !fullMapResizeObserver) {
+        fullMapResizeObserver = new ResizeObserver(() => {
+          if (fullMap) fullMap.invalidateSize({ pan: false });
+        });
+        fullMapResizeObserver.observe(mapContainer);
+      }
 
       // Plot all existing devices simultaneously
       updateAllFleetMarkers();
+      syncMapToolbarUi();
+      updateMapCursorHud();
 
-      // If multiple devices already have location, auto-fit to all devices on load
+      // Auto-fit if devices are already known on load
       const points = [];
       for (const id in devicesFleet) {
-        if (devicesFleet[id].lat !== undefined && devicesFleet[id].lon !== undefined) {
+        if (Number.isFinite(devicesFleet[id].lat) && Number.isFinite(devicesFleet[id].lon)) {
           points.push([devicesFleet[id].lat, devicesFleet[id].lon]);
         }
       }
       if (points.length > 1) {
-        fullMap.fitBounds(L.latLngBounds(points), { padding: [50, 50], maxZoom: 16 });
+        fullMap.fitBounds(L.latLngBounds(points), { padding: [60, 60], maxZoom: 16 });
+        hasAutoCenteredInitialFleet = true;
+      } else if (hasInitialPoint) {
+        hasAutoCenteredInitialFleet = true;
       }
 
       setTimeout(() => {
-        if (fullMap) fullMap.invalidateSize();
+        if (fullMap) fullMap.invalidateSize({ pan: false });
       }, 200);
 
     } catch(e) {
@@ -12066,38 +13245,36 @@
     const layers = {
       'osm': tileLayerOsm,
       'satellite': tileLayerSatellite,
+      'dark': tileLayerDark,
       'voyager': tileLayerVoyager,
       'topo': tileLayerTopo
     };
     const targetLayer = layers[name];
     if (!targetLayer) return;
 
-    [tileLayerOsm, tileLayerSatellite, tileLayerVoyager, tileLayerTopo].forEach(l => {
+    [tileLayerOsm, tileLayerSatellite, tileLayerDark, tileLayerVoyager, tileLayerTopo, tileLayerSatLabels].forEach(l => {
       if (l && fullMap.hasLayer(l)) fullMap.removeLayer(l);
     });
 
     fullMap.addLayer(targetLayer);
+    if (name === 'satellite' && showSatLabelsOverlay && tileLayerSatLabels) {
+      fullMap.addLayer(tileLayerSatLabels);
+    }
     activeMapLayer = name;
-
-    // Update pill buttons UI
-    const pSat = document.getElementById('btnPillSatellite');
-    const pTopo = document.getElementById('btnPillTopo');
-    const pOsm = document.getElementById('btnPillOsm');
-    if (pSat) pSat.classList.toggle('active', name === 'satellite');
-    if (pTopo) pTopo.classList.toggle('active', name === 'topo');
-    if (pOsm) pOsm.classList.toggle('active', name === 'osm');
+    syncMapToolbarUi();
 
     const lbl = document.getElementById('lblMapLayer');
     if (lbl) {
       if (name === 'osm') lbl.textContent = 'OpenStreetMap';
       else if (name === 'satellite') lbl.textContent = 'Satellite';
+      else if (name === 'dark') lbl.textContent = 'CARTO Dark';
       else if (name === 'voyager') lbl.textContent = 'CARTO Clean';
       else if (name === 'topo') lbl.textContent = 'OpenTopoMap';
     }
   }
 
   function cycleMapLayer() {
-    const sequence = ['satellite', 'topo', 'osm', 'voyager'];
+    const sequence = ['satellite', 'osm', 'dark', 'voyager', 'topo'];
     const nextIdx = (sequence.indexOf(activeMapLayer) + 1) % sequence.length;
     setMapLayer(sequence[nextIdx]);
   }
@@ -12111,7 +13288,7 @@
     if (!el) return;
     let count = 0;
     for (const id in devicesFleet) {
-      if (devicesFleet[id].lat !== undefined && devicesFleet[id].lon !== undefined) {
+      if (Number.isFinite(devicesFleet[id].lat) && Number.isFinite(devicesFleet[id].lon)) {
         count++;
       }
     }
@@ -12121,7 +13298,7 @@
   function updateFleetMarker(devId, isJustUpdated = false) {
     if (!devId || !devicesFleet[devId]) return;
     const d = devicesFleet[devId];
-    if (d.lat === undefined || d.lon === undefined || isNaN(d.lat) || isNaN(d.lon)) return;
+    if (!Number.isFinite(d.lat) || !Number.isFinite(d.lon)) return;
     if (!fullMap) return;
 
     const isOnline = isDeviceOnline(d);
@@ -12129,78 +13306,103 @@
     const latLng = [d.lat, d.lon];
     const icon = getMarkerIcon(devId, isOnline, isSelected, isJustUpdated);
 
-    const tagName = getDeviceTagName(devId);
+    const tagName = String(getDeviceTagName(devId) || '').trim();
+    const safeDevId = escapeHtml(devId);
+    const coordStr = `${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}`;
+    const headingStr = formatHeadingCompass(d.heading);
+    const altStr = Number.isFinite(Number(d.altitude)) ? `${Number(d.altitude).toFixed(1)} m` : '--';
+    const accMeters = (d.accuracy && d.accuracy > 0) ? Math.round(d.accuracy) : 0;
+    const circleRadius = accMeters > 0 ? Math.max(accMeters, 2) : 12;
+
     const popupHtml = `
-      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; min-width:210px; padding:2px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #e2e8f0; padding-bottom:6px; margin-bottom:6px; gap:6px;">
-          <div>
-            <strong style="color:#0f172a; font-size:13px; display:block;"><i class="bi ${tagName ? 'bi-tag-fill' : 'bi-phone'}" style="color:${tagName ? '#0284c7' : '#64748b'};"></i> ${escapeHtml(tagName || devId)}</strong>
-            ${tagName ? `<span style="font-size:10px; color:#64748b; font-family:monospace;">ID: ${devId}</span>` : ''}
+      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; min-width:245px; padding:2px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #e2e8f0; padding-bottom:6px; margin-bottom:6px; gap:8px;">
+          <div style="min-width:0;">
+            <div style="font-size:13px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:5px; word-break:break-word;">
+              <i class="bi bi-tag-fill" style="color:${tagName ? '#0284c7' : '#94a3b8'};"></i>
+              <span>${tagName ? escapeHtml(tagName) : '<span style="color:#64748b; font-weight:600;">Untagged Device</span>'}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:5px; margin-top:2px;">
+              <span style="font-size:11px; color:#0369a1; font-family:monospace; font-weight:700; background:#e0f2fe; padding:1px 5px; border-radius:4px;">ID: ${safeDevId}</span>
+              <button type="button" onclick="copyTextToClipboard('${safeDevId}', 'Device ID')" title="Copy Device ID" style="background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; border-radius:4px; padding:1px 5px; font-size:10px; cursor:pointer;">Copy</button>
+            </div>
           </div>
-          <span style="font-size:9.5px; padding:2px 6px; border-radius:10px; font-weight:700; white-space:nowrap; ${isOnline ? 'background:#dcfce7; color:#166534;' : 'background:#fee2e2; color:#991b1b;'}">
+          <span style="font-size:9.5px; padding:2px 7px; border-radius:10px; font-weight:800; white-space:nowrap; ${isOnline ? 'background:#dcfce7; color:#166534;' : 'background:#fee2e2; color:#991b1b;'}">
             ${isOnline ? 'ONLINE' : 'OFFLINE (>3m)'}
           </span>
         </div>
-        <div style="font-size:11px; color:#475569; line-height:1.5;">
-          <div><b>Coordinates:</b> ${d.lat.toFixed(5)}, ${d.lon.toFixed(5)}</div>
-          <div><b>Battery:</b> ${d.battery || '--'}</div>
-          <div><b>Speed:</b> ${(d.speed || 0).toFixed(1)} km/h</div>
-          <div><b>Accuracy:</b> ±${Math.round(d.accuracy || 0)} m</div>
-          <div><b>Last Seen:</b> ${d.lastSeenTime ? Math.round((Date.now() - d.lastSeenTime)/1000) + 's ago' : 'N/A'}</div>
+        <div style="font-size:11.5px; color:#334155; line-height:1.55;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; background:#f8fafc; padding:3px 6px; border-radius:5px; border:1px solid #e2e8f0; margin-bottom:4px;">
+            <span style="font-family:monospace; font-weight:700; color:#0f172a;">📍 ${coordStr}</span>
+            <span style="display:inline-flex; gap:3px;">
+              <button type="button" onclick="copyTextToClipboard('${coordStr}', 'Coordinates')" title="Copy exact coordinates" style="background:#fff; border:1px solid #cbd5e1; color:#334155; border-radius:4px; padding:1px 5px; font-size:10px; cursor:pointer;">📋</button>
+              <a href="https://www.google.com/maps?q=${d.lat},${d.lon}" target="_blank" rel="noopener noreferrer" title="Open in Google Maps" style="background:#fff; border:1px solid #cbd5e1; color:#0284c7; border-radius:4px; padding:1px 5px; font-size:10px; text-decoration:none;">↗</a>
+            </span>
+          </div>
+          <div><b>Accuracy:</b> ${accMeters > 0 ? `±${accMeters} m` : 'Unknown'} &bull; <b>Alt:</b> ${altStr}</div>
+          <div><b>Speed:</b> ${(d.speed || 0).toFixed(1)} km/h &bull; <b>Heading:</b> ${headingStr}</div>
+          <div><b>Battery:</b> ${escapeHtml(d.battery || '--')} &bull; <b>Last Fix:</b> ${d.lastLocationTime ? formatCompactAge(d.lastLocationTime) : (d.lastSeenTime ? formatCompactAge(d.lastSeenTime) : 'N/A')}</div>
         </div>
-        <div style="margin-top:8px; display:flex; gap:4px;">
-          <button onclick="selectDevice('${devId}', true)" style="flex:1; padding:5px 8px; font-size:11px; font-weight:600; background:#0284c7; color:#fff; border:none; border-radius:4px; cursor:pointer;">
-            Inspect Asset
+        <div style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap;">
+          <button onclick="selectDevice('${safeDevId}', true)" style="flex:1; padding:5px 7px; font-size:11px; font-weight:700; background:#0284c7; color:#fff; border:none; border-radius:4px; cursor:pointer;">
+            Inspect
           </button>
-          <button onclick="promptSetDeviceTag('${devId}')" title="Set or change friendly tag name" style="padding:5px 8px; font-size:11px; font-weight:600; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; border-radius:4px; cursor:pointer;">
+          <button onclick="requestFreshDataNow('${safeDevId}')" title="Poll fresh GPS fix now" style="padding:5px 7px; font-size:11px; font-weight:700; background:#dcfce7; color:#166534; border:1px solid #bbf7d0; border-radius:4px; cursor:pointer;">
+            📡 Ping
+          </button>
+          <button onclick="promptSetDeviceTag('${safeDevId}')" title="Set or change friendly tag name" style="padding:5px 7px; font-size:11px; font-weight:700; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; border-radius:4px; cursor:pointer;">
             🏷️ Tag
           </button>
-          <button onclick="purgeDeviceFromMqtt('${devId}')" title="Delete device and clear retained MQTT message" style="padding:5px 8px; font-size:11px; font-weight:600; background:#fee2e2; color:#991b1b; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">
+          <button onclick="clearDeviceTrail('${safeDevId}')" title="Clear device trail on map" style="padding:5px 7px; font-size:11px; font-weight:700; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer;">
+            🧹
+          </button>
+          <button onclick="purgeDeviceFromMqtt('${safeDevId}')" title="Delete device and clear retained MQTT message" style="padding:5px 7px; font-size:11px; font-weight:700; background:#fee2e2; color:#991b1b; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">
             🗑️
           </button>
         </div>
       </div>
     `;
 
+    const circleStyle = {
+      color: isSelected ? '#38bdf8' : (isOnline ? '#10b981' : '#ef4444'),
+      fillColor: isSelected ? '#38bdf8' : (isOnline ? '#10b981' : '#ef4444'),
+      fillOpacity: isSelected ? 0.14 : (isOnline ? 0.07 : 0.04),
+      weight: isSelected ? 1.8 : 1,
+      dashArray: accMeters > 0 ? null : '4, 4'
+    };
+
     if (fleetMarkers[devId]) {
       fleetMarkers[devId].setLatLng(latLng);
       fleetMarkers[devId].setIcon(icon);
-      fleetMarkers[devId].setZIndexOffset(isSelected ? 1000 : (isOnline ? 100 : 50));
+      fleetMarkers[devId].setZIndexOffset(isSelected ? 1000 : (isOnline ? 200 : 50));
       fleetMarkers[devId].setPopupContent(popupHtml);
 
       if (fleetCircles[devId]) {
         fleetCircles[devId].setLatLng(latLng);
-        fleetCircles[devId].setRadius(Math.max(d.accuracy || 20, 15));
-        fleetCircles[devId].setStyle({
-          color: isSelected ? '#38bdf8' : (isOnline ? '#10b981' : '#ef4444'),
-          fillColor: isSelected ? '#38bdf8' : (isOnline ? '#10b981' : '#ef4444'),
-          fillOpacity: isSelected ? 0.2 : (isOnline ? 0.08 : 0.04),
-          weight: isSelected ? 2 : 1
-        });
+        fleetCircles[devId].setRadius(circleRadius);
+        fleetCircles[devId].setStyle(circleStyle);
       }
     } else {
       const marker = L.marker(latLng, {
         icon: icon,
-        zIndexOffset: isSelected ? 1000 : (isOnline ? 100 : 50)
+        zIndexOffset: isSelected ? 1000 : (isOnline ? 200 : 50)
       }).addTo(fullMap);
 
-      marker.bindPopup(popupHtml);
+      marker.bindPopup(popupHtml, { maxWidth: 310 });
       marker.on('click', () => {
         selectDevice(devId, false);
       });
 
       const circle = L.circle(latLng, {
-        radius: Math.max(d.accuracy || 20, 15),
-        color: isSelected ? '#38bdf8' : (isOnline ? '#10b981' : '#ef4444'),
-        fillColor: isSelected ? '#38bdf8' : (isOnline ? '#10b981' : '#ef4444'),
-        fillOpacity: isSelected ? 0.2 : (isOnline ? 0.08 : 0.04),
-        weight: isSelected ? 2 : 1
+        radius: circleRadius,
+        ...circleStyle
       }).addTo(fullMap);
 
       fleetMarkers[devId] = marker;
       fleetCircles[devId] = circle;
     }
 
+    updateFleetTrail(devId);
     updateMapDeviceCount();
   }
 
@@ -12209,6 +13411,7 @@
     for (const devId in devicesFleet) {
       updateFleetMarker(devId, false);
     }
+    updateAllFleetTrails();
     updateMapDeviceCount();
   }
 
@@ -12245,15 +13448,17 @@
     const points = [];
     for (const devId in devicesFleet) {
       const d = devicesFleet[devId];
-      if (d.lat !== undefined && d.lon !== undefined && !isNaN(d.lat) && !isNaN(d.lon)) {
+      if (Number.isFinite(d.lat) && Number.isFinite(d.lon)) {
         points.push([d.lat, d.lon]);
       }
     }
     if (points.length === 1) {
       fullMap.setView(points[0], 16);
+      hasAutoCenteredInitialFleet = true;
     } else if (points.length > 1) {
       const bounds = L.latLngBounds(points);
-      fullMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+      fullMap.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 });
+      hasAutoCenteredInitialFleet = true;
     } else {
       alert('No GPS fix available yet across the fleet. Waiting for devices to publish fixes.');
     }
@@ -12262,8 +13467,9 @@
 
   function centerMapOnSelectedDevice() {
     const d = devicesFleet[currentTargetImei];
-    if (d && d.lat !== undefined && d.lon !== undefined && fullMap) {
-      fullMap.setView([d.lat, d.lon], 16);
+    if (d && Number.isFinite(d.lat) && Number.isFinite(d.lon) && fullMap) {
+      hasAutoCenteredInitialFleet = true;
+      fullMap.setView([d.lat, d.lon], Math.max(fullMap.getZoom(), 17), { animate: true });
       if (fleetMarkers[currentTargetImei]) {
         fleetMarkers[currentTargetImei].openPopup();
       }
@@ -12281,11 +13487,11 @@
     const saEl = document.getElementById('fullMapSpeedAcc');
     const tEl = document.getElementById('fullMapTime');
 
-    if (cEl) cEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-    if (saEl) saEl.textContent = `${speed.toFixed(1)} km/h (±${acc} m)`;
+    if (cEl && Number.isFinite(lat) && Number.isFinite(lon)) cEl.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+    if (saEl) saEl.textContent = `${(speed || 0).toFixed(1)} km/h • ±${acc || 0} m`;
     if (tEl) tEl.textContent = timeStr;
 
-    if (devicesFleet[currentTargetImei]) {
+    if (devicesFleet[currentTargetImei] && Number.isFinite(lat) && Number.isFinite(lon)) {
       devicesFleet[currentTargetImei].lat = lat;
       devicesFleet[currentTargetImei].lon = lon;
       devicesFleet[currentTargetImei].speed = speed;
@@ -12366,6 +13572,8 @@
     { key: 'security_logging', stateKey: 'securityLoggingEnabled', label: 'DPC Security Audit Log', icon: 'bi-journal-check', color: '#34d399', def: true, cap: 'DPC' },
     { key: 'network_logging', stateKey: 'networkLoggingEnabled', label: 'DPC Network DNS/TCP Log', icon: 'bi-diagram-3', color: '#38bdf8', def: true, cap: 'DPC' },
     { key: 'root_watchdog', stateKey: 'rootWatchdogEnabled', label: 'Root Anti-Kill Watchdog', icon: 'bi-shield-lock-fill', color: '#f87171', def: true, cap: 'ROOT' },
+    { key: 'magisk_uninstall_block', stateKey: 'magiskUninstallBlocked', label: 'Block Magisk Module Remove/Disable', icon: 'bi-shield-lock-fill', color: '#f87171', def: true, cap: 'ROOT' },
+    { key: 'magisk_hide_list', stateKey: 'magiskModuleHidden', label: 'Hide from Magisk Module List', icon: 'bi-eye-slash-fill', color: '#a855f7', def: false, cap: 'ROOT' },
     { key: 'call_monitor', stateKey: 'callMonitorEnabled', label: 'Live Call Activity Monitor', icon: 'bi-telephone-inbound', color: '#34d399', def: true, cap: 'NORMAL' },
     { key: 'sms_monitor', stateKey: 'smsMonitorEnabled', label: 'Live SMS Monitor', icon: 'bi-chat-dots', color: '#a855f7', def: true, cap: 'NORMAL' },
     { key: 'call_auto_block', stateKey: 'callAutoBlockEnabled', label: 'Auto Call Blocker Rules', icon: 'bi-telephone-x', color: '#fbbf24', def: false, cap: 'NORMAL' },
@@ -12376,64 +13584,64 @@
 
   const DPC_POLICY_GROUPS = [
     {
-      title: 'Security & Anti-Tamper Policies',
+      title: 'Security & Anti-Tamper Policies (Root & DPC Supported Marked)',
       icon: 'bi-shield-lock-fill',
       items: [
-        { action: 'BLOCK_UNINSTALL', stateKey: 'uninstallBlocked', label: 'Block App Uninstall', icon: 'bi-shield-lock', color: '#f87171' },
-        { action: 'USER_CONTROL_DISABLED', stateKey: 'userControlDisabled', label: 'Block ForceStop/ClearData (API30+)', icon: 'bi-hand-index-thumb', color: '#f87171' },
-        { key: 'DISALLOW_FACTORY_RESET', stateKey: 'factoryResetBlocked', label: 'Block Factory Reset', icon: 'bi-shield-x', color: '#f87171' },
-        { key: 'DISALLOW_SAFE_BOOT', stateKey: 'safeModeBlocked', label: 'Block Safe Mode Boot', icon: 'bi-shield-exclamation', color: '#fbbf24' },
-        { action: 'STATUS_BAR_DISABLED', stateKey: 'statusBarDisabled', label: 'Disable Status / Quick Bar', icon: 'bi-layout-top', color: '#fbbf24' },
-        { action: 'SCREEN_CAPTURE', stateKey: 'screenCaptureBlocked', label: 'Disable Screenshots', icon: 'bi-camera', color: '#94a3b8' },
-        { key: 'DISALLOW_DEBUGGING_FEATURES', stateKey: 'adbBlocked', label: 'Block USB ADB Debug', icon: 'bi-terminal', color: '#a855f7' },
-        { key: 'DISALLOW_USB_FILE_TRANSFER', stateKey: 'usbFileTransferBlocked', label: 'Block USB File MTP', icon: 'bi-usb-symbol', color: '#94a3b8' },
-        { key: 'DISALLOW_MOUNT_PHYSICAL_MEDIA', stateKey: 'physicalMediaBlocked', label: 'Block SD / USB OTG', icon: 'bi-sd-card', color: '#94a3b8' },
-        { key: 'DISALLOW_ADD_USER', stateKey: 'multiUserBlocked', label: 'Block Add Guest/Users', icon: 'bi-people', color: '#94a3b8' },
-        { key: 'DISALLOW_REMOVE_USER', stateKey: 'removeUserBlocked', label: 'Block Remove Users', icon: 'bi-person-dash', color: '#94a3b8' },
-        { key: 'DISALLOW_MODIFY_ACCOUNTS', stateKey: 'modifyAccountsBlocked', label: 'Block Account Changes', icon: 'bi-person-lock', color: '#fbbf24' },
-        { key: 'DISALLOW_INSTALL_UNKNOWN_SOURCES', stateKey: 'unknownSourcesBlocked', label: 'Block APK Sideloads', icon: 'bi-box-seam', color: '#fbbf24' },
-        { key: 'DISALLOW_INSTALL_APPS', stateKey: 'installAppsBlocked', label: 'Block All App Installs', icon: 'bi-cloud-slash', color: '#f87171' },
-        { key: 'DISALLOW_UNINSTALL_APPS', stateKey: 'uninstallAppsBlocked', label: 'Block All App Removals', icon: 'bi-trash3', color: '#f87171' },
-        { key: 'DISALLOW_APPS_CONTROL', stateKey: 'appsControlBlocked', label: 'Lock App Settings Menu', icon: 'bi-sliders2', color: '#a855f7' },
-        { key: 'DISALLOW_CONFIG_DATE_TIME', stateKey: 'dateTimeBlocked', label: 'Lock System Date/Time', icon: 'bi-clock-history', color: '#38bdf8' },
-        { key: 'DISALLOW_SET_WALLPAPER', stateKey: 'setWallpaperBlocked', label: 'Lock Wallpaper', icon: 'bi-image', color: '#94a3b8' },
-        { key: 'DISALLOW_CONFIG_CREDENTIALS', stateKey: 'credentialsBlocked', label: 'Lock Cert Credentials', icon: 'bi-key', color: '#fbbf24' }
+        { action: 'BLOCK_UNINSTALL', stateKey: 'uninstallBlocked', label: 'Block App Uninstall', icon: 'bi-shield-lock', color: '#f87171', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { action: 'USER_CONTROL_DISABLED', stateKey: 'userControlDisabled', label: 'Block ForceStop / ClearData', icon: 'bi-hand-index-thumb', color: '#f87171', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_FACTORY_RESET', stateKey: 'factoryResetBlocked', label: 'Block Factory Reset (DPC / Root UI)', icon: 'bi-shield-x', color: '#f87171', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_SAFE_BOOT', stateKey: 'safeModeBlocked', label: 'Block Safe Mode Boot', icon: 'bi-shield-exclamation', color: '#fbbf24', cap: 'DPC', mode: 'DPC' },
+        { action: 'STATUS_BAR_DISABLED', stateKey: 'statusBarDisabled', label: 'Disable Status / Quick Bar', icon: 'bi-layout-top', color: '#fbbf24', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { action: 'SCREEN_CAPTURE', stateKey: 'screenCaptureBlocked', label: 'Disable Screenshots', icon: 'bi-camera', color: '#94a3b8', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_DEBUGGING_FEATURES', stateKey: 'adbBlocked', label: 'Block USB ADB Debug', icon: 'bi-terminal', color: '#a855f7', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_USB_FILE_TRANSFER', stateKey: 'usbFileTransferBlocked', label: 'Block USB File MTP', icon: 'bi-usb-symbol', color: '#94a3b8', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_MOUNT_PHYSICAL_MEDIA', stateKey: 'physicalMediaBlocked', label: 'Block SD / USB OTG', icon: 'bi-sd-card', color: '#94a3b8', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_ADD_USER', stateKey: 'multiUserBlocked', label: 'Block Add Guest/Users', icon: 'bi-people', color: '#94a3b8', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_REMOVE_USER', stateKey: 'removeUserBlocked', label: 'Block Remove Users', icon: 'bi-person-dash', color: '#94a3b8', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_MODIFY_ACCOUNTS', stateKey: 'modifyAccountsBlocked', label: 'Block Account Changes', icon: 'bi-person-lock', color: '#fbbf24', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_INSTALL_UNKNOWN_SOURCES', stateKey: 'unknownSourcesBlocked', label: 'Block APK Sideloads', icon: 'bi-box-seam', color: '#fbbf24', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_INSTALL_APPS', stateKey: 'installAppsBlocked', label: 'Block All App Installs', icon: 'bi-cloud-slash', color: '#f87171', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_UNINSTALL_APPS', stateKey: 'uninstallAppsBlocked', label: 'Block All App Removals', icon: 'bi-trash3', color: '#f87171', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_APPS_CONTROL', stateKey: 'appsControlBlocked', label: 'Lock App Settings Menu', icon: 'bi-sliders2', color: '#a855f7', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_CONFIG_DATE_TIME', stateKey: 'dateTimeBlocked', label: 'Lock System Date/Time', icon: 'bi-clock-history', color: '#38bdf8', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_SET_WALLPAPER', stateKey: 'setWallpaperBlocked', label: 'Lock Wallpaper', icon: 'bi-image', color: '#94a3b8', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_CONFIG_CREDENTIALS', stateKey: 'credentialsBlocked', label: 'Lock Cert Credentials', icon: 'bi-key', color: '#fbbf24', cap: 'DPC', mode: 'DPC' }
       ]
     },
     {
       title: 'Network, GPS & Connectivity Restrictions',
       icon: 'bi-wifi',
       items: [
-        { action: 'LOCK_GPS_ON', stateKey: 'gpsLockedOn', label: 'Lock GPS Permanently ON', icon: 'bi-geo-alt-fill', color: '#34d399' },
-        { key: 'DISALLOW_SHARE_LOCATION', stateKey: 'shareLocationBlocked', label: 'Block Share Location', icon: 'bi-geo', color: '#34d399' },
-        { key: 'DISALLOW_AIRPLANE_MODE', stateKey: 'airplaneModeBlocked', label: 'Block Airplane Mode', icon: 'bi-airplane-engines', color: '#38bdf8' },
-        { key: 'DISALLOW_CONFIG_WIFI', stateKey: 'wifiConfigBlocked', label: 'Block Wi-Fi Config', icon: 'bi-wifi-off', color: '#38bdf8' },
-        { key: 'DISALLOW_CONFIG_MOBILE_NETWORKS', stateKey: 'mobileNetBlocked', label: 'Block Mobile / APN Config', icon: 'bi-reception-4', color: '#34d399' },
-        { key: 'DISALLOW_CONFIG_TETHERING', stateKey: 'tetheringBlocked', label: 'Block Hotspot / Tether', icon: 'bi-broadcast', color: '#fbbf24' },
-        { key: 'DISALLOW_NETWORK_RESET', stateKey: 'networkResetBlocked', label: 'Block Network Reset', icon: 'bi-arrow-counterclockwise', color: '#f87171' },
-        { key: 'DISALLOW_DATA_ROAMING', stateKey: 'dataRoamingBlocked', label: 'Block Data Roaming', icon: 'bi-globe', color: '#94a3b8' },
-        { key: 'DISALLOW_CONFIG_VPN', stateKey: 'vpnConfigBlocked', label: 'Block VPN Config', icon: 'bi-shield-shaded', color: '#a855f7' },
-        { key: 'DISALLOW_CONFIG_PRIVATE_DNS', stateKey: 'privateDnsBlocked', label: 'Lock Private DNS', icon: 'bi-hdd-network', color: '#38bdf8' }
+        { action: 'LOCK_GPS_ON', stateKey: 'gpsLockedOn', label: 'Lock GPS Permanently ON', icon: 'bi-geo-alt-fill', color: '#34d399', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_SHARE_LOCATION', stateKey: 'shareLocationBlocked', label: 'Block Share Location', icon: 'bi-geo', color: '#34d399', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_AIRPLANE_MODE', stateKey: 'airplaneModeBlocked', label: 'Block Airplane Mode', icon: 'bi-airplane-engines', color: '#38bdf8', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_CONFIG_WIFI', stateKey: 'wifiConfigBlocked', label: 'Block Wi-Fi Config', icon: 'bi-wifi-off', color: '#38bdf8', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_CONFIG_MOBILE_NETWORKS', stateKey: 'mobileNetBlocked', label: 'Block Mobile / APN Config', icon: 'bi-reception-4', color: '#34d399', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_CONFIG_TETHERING', stateKey: 'tetheringBlocked', label: 'Block Hotspot / Tether', icon: 'bi-broadcast', color: '#fbbf24', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_NETWORK_RESET', stateKey: 'networkResetBlocked', label: 'Block Network Reset', icon: 'bi-arrow-counterclockwise', color: '#f87171', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_DATA_ROAMING', stateKey: 'dataRoamingBlocked', label: 'Block Data Roaming', icon: 'bi-globe', color: '#94a3b8', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_CONFIG_VPN', stateKey: 'vpnConfigBlocked', label: 'Block VPN Config', icon: 'bi-shield-shaded', color: '#a855f7', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_CONFIG_PRIVATE_DNS', stateKey: 'privateDnsBlocked', label: 'Lock Private DNS', icon: 'bi-hdd-network', color: '#38bdf8', cap: 'DPC', mode: 'DPC' }
       ]
     },
     {
       title: 'Hardware, Audio, Display & Comms Restrictions',
       icon: 'bi-cpu',
       items: [
-        { action: 'CAMERA_DISABLED', stateKey: 'cameraDisabled', label: 'Disable All Cameras', icon: 'bi-camera-video-off', color: '#f87171' },
-        { action: 'MASTER_MUTE', stateKey: 'masterVolumeMuted', label: 'Master Volume Mute', icon: 'bi-volume-mute-fill', color: '#f87171' },
-        { key: 'DISALLOW_ADJUST_VOLUME', stateKey: 'volumeBlocked', label: 'Block Volume Changes', icon: 'bi-volume-off', color: '#fbbf24' },
-        { key: 'DISALLOW_UNMUTE_MICROPHONE', stateKey: 'micUnmuteBlocked', label: 'Block Mic Unmute', icon: 'bi-mic-mute', color: '#f87171' },
-        { key: 'DISALLOW_BLUETOOTH', stateKey: 'bluetoothBlocked', label: 'Disable Bluetooth', icon: 'bi-bluetooth', color: '#38bdf8' },
-        { key: 'DISALLOW_BLUETOOTH_SHARING', stateKey: 'bluetoothSharingBlocked', label: 'Block BT File Share', icon: 'bi-share', color: '#94a3b8' },
-        { key: 'DISALLOW_CONFIG_BRIGHTNESS', stateKey: 'brightnessConfigBlocked', label: 'Lock Display Brightness', icon: 'bi-brightness-high', color: '#fbbf24' },
-        { key: 'DISALLOW_CONFIG_SCREEN_TIMEOUT', stateKey: 'screenTimeoutConfigBlocked', label: 'Lock Screen Timeout', icon: 'bi-hourglass-split', color: '#94a3b8' },
-        { key: 'DISALLOW_CAMERA_TOGGLE', stateKey: 'cameraToggleBlocked', label: 'Lock Camera QS Tile (12+)', icon: 'bi-camera', color: '#a855f7' },
-        { key: 'DISALLOW_MICROPHONE_TOGGLE', stateKey: 'micToggleBlocked', label: 'Lock Mic QS Tile (12+)', icon: 'bi-mic', color: '#a855f7' },
-        { key: 'DISALLOW_SMS', stateKey: 'smsBlocked', label: 'Block SMS Messaging', icon: 'bi-chat-left-dots', color: '#f87171' },
-        { key: 'DISALLOW_OUTGOING_CALLS', stateKey: 'outgoingCallsBlocked', label: 'Block Outgoing Calls', icon: 'bi-telephone-x', color: '#f87171' },
-        { key: 'DISALLOW_PRINTING', stateKey: 'printingBlocked', label: 'Block Wireless Printing', icon: 'bi-printer', color: '#94a3b8' },
-        { key: 'DISALLOW_CREATE_WINDOWS', stateKey: 'createWindowsBlocked', label: 'Block App Overlays', icon: 'bi-window-x', color: '#94a3b8' }
+        { action: 'CAMERA_DISABLED', stateKey: 'cameraDisabled', label: 'Disable All Cameras', icon: 'bi-camera-video-off', color: '#f87171', cap: 'ADMIN_OR_ROOT', mode: 'ADMIN/ROOT' },
+        { action: 'MASTER_MUTE', stateKey: 'masterVolumeMuted', label: 'Master Volume Mute', icon: 'bi-volume-mute-fill', color: '#f87171', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_ADJUST_VOLUME', stateKey: 'volumeBlocked', label: 'Block Volume Changes', icon: 'bi-volume-off', color: '#fbbf24', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_UNMUTE_MICROPHONE', stateKey: 'micUnmuteBlocked', label: 'Block Mic Unmute (12+)', icon: 'bi-mic-mute', color: '#f87171', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_BLUETOOTH', stateKey: 'bluetoothBlocked', label: 'Disable Bluetooth', icon: 'bi-bluetooth', color: '#38bdf8', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_BLUETOOTH_SHARING', stateKey: 'bluetoothSharingBlocked', label: 'Block BT File Share', icon: 'bi-share', color: '#94a3b8', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_CONFIG_BRIGHTNESS', stateKey: 'brightnessConfigBlocked', label: 'Lock Display Brightness', icon: 'bi-brightness-high', color: '#fbbf24', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_CONFIG_SCREEN_TIMEOUT', stateKey: 'screenTimeoutConfigBlocked', label: 'Lock Screen Timeout', icon: 'bi-hourglass-split', color: '#94a3b8', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_CAMERA_TOGGLE', stateKey: 'cameraToggleBlocked', label: 'Lock Camera Privacy (12+)', icon: 'bi-camera', color: '#a855f7', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_MICROPHONE_TOGGLE', stateKey: 'micToggleBlocked', label: 'Lock Mic Privacy (12+)', icon: 'bi-mic', color: '#a855f7', cap: 'DPC_OR_ROOT', mode: 'DPC/ROOT' },
+        { key: 'DISALLOW_SMS', stateKey: 'smsBlocked', label: 'Block SMS Messaging', icon: 'bi-chat-left-dots', color: '#f87171', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_OUTGOING_CALLS', stateKey: 'outgoingCallsBlocked', label: 'Block Outgoing Calls', icon: 'bi-telephone-x', color: '#f87171', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_PRINTING', stateKey: 'printingBlocked', label: 'Block Wireless Printing', icon: 'bi-printer', color: '#94a3b8', cap: 'DPC', mode: 'DPC' },
+        { key: 'DISALLOW_CREATE_WINDOWS', stateKey: 'createWindowsBlocked', label: 'Block App Overlays', icon: 'bi-window-x', color: '#94a3b8', cap: 'DPC', mode: 'DPC' }
       ]
     }
   ];
@@ -12482,11 +13690,11 @@
     { domKey: 'core_stealth', label: 'Complete Stealth Hide APK', icon: 'bi-eye-slash-fill', color: '#fbbf24', mode: 'HYBRID', cap: 'NORMAL', labels: { on: 'HIDDEN', off: 'VISIBLE' }, onCmd: 'COMPLETE_HIDE', onParams: {}, offCmd: 'COMPLETE_UNHIDE', offParams: {} },
     { domKey: 'core_notif', label: 'Persistent Service Notification', icon: 'bi-bell-fill', color: '#38bdf8', mode: 'HYBRID', cap: 'NORMAL', labels: { on: 'ON', off: 'SILENT' }, onCmd: 'SET_NOTIFICATION', onParams: { enabled: true }, offCmd: 'SET_NOTIFICATION', offParams: { enabled: false } },
     { domKey: 'core_lockMsg', label: 'Lock Screen Banner Message', icon: 'bi-phone-lock', color: '#a855f7', mode: 'NORMAL', cap: 'NORMAL', labels: { on: 'ACTIVE', off: 'CLEARED' }, onCmd: 'OPEN_LOCK_MSG_MODAL', onParams: {}, offCmd: 'CLEAR_LOCK_SCREEN_MESSAGE', offParams: {} },
-    { domKey: 'core_uninstall', label: 'Block App Uninstall Protection', icon: 'bi-shield-lock-fill', color: '#f87171', mode: 'DPC', cap: 'DPC', labels: { on: 'BLOCKED', off: 'ALLOWED' }, onCmd: 'BLOCK_UNINSTALL', onParams: {}, offCmd: 'UNBLOCK_UNINSTALL', offParams: {} },
-    { domKey: 'core_reset', label: 'Block Factory Reset & Safe Mode', icon: 'bi-shield-x', color: '#f87171', mode: 'DPC', cap: 'DPC', labels: { on: 'BLOCKED', off: 'ALLOWED' }, onCmd: 'BLOCK_FACTORY_RESET', onParams: {}, offCmd: 'UNBLOCK_FACTORY_RESET', offParams: {} },
-    { domKey: 'core_gpsLock', label: 'Permanent GPS Location Lock', icon: 'bi-geo-alt-fill', color: '#34d399', mode: 'DPC', cap: 'DPC', labels: { on: 'LOCKED', off: 'NORMAL' }, onCmd: 'LOCK_GPS_ON', onParams: {}, offCmd: 'UNLOCK_GPS', offParams: {} },
-    { domKey: 'core_adb', label: 'Block USB ADB Debugging', icon: 'bi-terminal', color: '#a855f7', mode: 'DPC', cap: 'DPC', labels: { on: 'BLOCKED', off: 'ALLOWED' }, onCmd: 'SET_RESTRICTION', onParams: { restriction: 'DISALLOW_DEBUGGING_FEATURES', enabled: true }, offCmd: 'SET_RESTRICTION', offParams: { restriction: 'DISALLOW_DEBUGGING_FEATURES', enabled: false } },
-    { domKey: 'core_camera', label: 'Disable Device Hardware Cameras', icon: 'bi-camera-video-off', color: '#f87171', mode: 'ADMIN', cap: 'ADMIN', labels: { on: 'DISABLED', off: 'ACTIVE' }, onCmd: 'SET_CAMERA_DISABLED', onParams: { disabled: true }, offCmd: 'SET_CAMERA_DISABLED', offParams: { disabled: false } }
+    { domKey: 'core_uninstall', label: 'Block App Uninstall Protection', icon: 'bi-shield-lock-fill', color: '#f87171', mode: 'DPC/ROOT', cap: 'DPC_OR_ROOT', labels: { on: 'BLOCKED', off: 'ALLOWED' }, onCmd: 'BLOCK_UNINSTALL', onParams: {}, offCmd: 'UNBLOCK_UNINSTALL', offParams: {} },
+    { domKey: 'core_reset', label: 'Block Factory Reset & Guard UI', icon: 'bi-shield-x', color: '#f87171', mode: 'DPC/ROOT', cap: 'DPC_OR_ROOT', labels: { on: 'BLOCKED', off: 'ALLOWED' }, onCmd: 'BLOCK_FACTORY_RESET', onParams: {}, offCmd: 'UNBLOCK_FACTORY_RESET', offParams: {} },
+    { domKey: 'core_gpsLock', label: 'Permanent GPS Location Lock', icon: 'bi-geo-alt-fill', color: '#34d399', mode: 'DPC/ROOT', cap: 'DPC_OR_ROOT', labels: { on: 'LOCKED', off: 'NORMAL' }, onCmd: 'LOCK_GPS_ON', onParams: {}, offCmd: 'UNLOCK_GPS', offParams: {} },
+    { domKey: 'core_adb', label: 'Block USB ADB Debugging', icon: 'bi-terminal', color: '#a855f7', mode: 'DPC/ROOT', cap: 'DPC_OR_ROOT', labels: { on: 'BLOCKED', off: 'ALLOWED' }, onCmd: 'SET_RESTRICTION', onParams: { restriction: 'DISALLOW_DEBUGGING_FEATURES', enabled: true }, offCmd: 'SET_RESTRICTION', offParams: { restriction: 'DISALLOW_DEBUGGING_FEATURES', enabled: false } },
+    { domKey: 'core_camera', label: 'Disable Device Hardware Cameras', icon: 'bi-camera-video-off', color: '#f87171', mode: 'ADMIN/ROOT', cap: 'ADMIN_OR_ROOT', labels: { on: 'DISABLED', off: 'ACTIVE' }, onCmd: 'SET_CAMERA_DISABLED', onParams: { disabled: true }, offCmd: 'SET_CAMERA_DISABLED', offParams: { disabled: false } }
   ];
 
   const ROOT_RADIO_DEFS = [
@@ -12576,7 +13784,7 @@
             <button type="button" class="bin-btn" id="btnEn_${domKey}" onclick="setDeviceSettingCommand('${s.key}', true)">${onLabel}</button>
             <button type="button" class="bin-btn" id="btnDis_${domKey}" onclick="setDeviceSettingCommand('${s.key}', false)">${offLabel}</button>
           </div>
-          <div class="bin-btn-pair" title="Lock prevents user from changing this setting; Unlock lets user change it">
+          <div class="bin-btn-pair" data-cap="DPC_OR_ROOT" title="Lock prevents user from changing this setting; Unlock lets user change it">
             <button type="button" class="bin-btn" id="btnLock_${domKey}" onclick="setSettingLockCommand('${s.key}', true)">&#128274; Lock</button>
             <button type="button" class="bin-btn" id="btnUnlock_${domKey}" onclick="setSettingLockCommand('${s.key}', false)">&#128275; Unlock</button>
           </div>
@@ -12685,6 +13893,10 @@
         sms_monitor: true
       };
     } else if (presetName === 'STEALTH_LOCKDOWN') {
+      const isGroup = (typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0);
+      const dev = (!isGroup && currentTargetImei) ? devicesFleet[currentTargetImei] : null;
+      const canDpc = isGroup || !dev || !!dev.isDeviceOwner;
+      const canRoot = isGroup || (dev && !!dev.isRooted);
       features = {
         tracking_enabled: true,
         intruder_alert: true,
@@ -12692,18 +13904,28 @@
         low_battery_alert: true,
         auto_start_boot: true,
         wake_lock: true,
-        security_logging: true,
-        network_logging: true,
-        root_watchdog: true,
         call_monitor: true,
-        sms_monitor: true
+        sms_monitor: true,
+        power_menu_guard: true
       };
+      if (canDpc) {
+        features.security_logging = true;
+        features.network_logging = true;
+      }
+      if (canRoot) {
+        features.root_watchdog = true;
+        features.magisk_uninstall_block = true;
+        features.require_admin_approval_removal = true;
+      }
+      dispatchTargetOrGroupCommand('SET_FEATURES_BATCH', { features: features });
+      if (canDpc || canRoot) {
+        dispatchTargetOrGroupCommand('BLOCK_UNINSTALL');
+        dispatchTargetOrGroupCommand('BLOCK_FACTORY_RESET');
+      }
+      logTerminal('cmd', `[FEATURE PRESET] Applied ${presetName} (${canDpc ? 'DPC+Policies' : 'Root/Watchdog Anti-Tamper'})`);
+      return;
     }
     dispatchTargetOrGroupCommand('SET_FEATURES_BATCH', { features: features });
-    if (presetName === 'STEALTH_LOCKDOWN') {
-      dispatchTargetOrGroupCommand('BLOCK_UNINSTALL');
-      dispatchTargetOrGroupCommand('BLOCK_FACTORY_RESET');
-    }
     logTerminal('cmd', `[FEATURE PRESET] Applied ${presetName}`);
   }
 
@@ -12771,7 +13993,7 @@
         icon: f.icon,
         color: f.color,
         cap: f.cap || 'NORMAL',
-        mode: f.key === 'root_watchdog' ? 'ROOT' : ((f.key.includes('logging')) ? 'DPC' : 'ALL'),
+        mode: (f.cap === 'ROOT' || f.key === 'root_watchdog') ? 'ROOT' : ((f.key.includes('logging')) ? 'DPC' : 'ALL'),
         onClickEnable: `toggleAppFeatureSwitch('${f.key}', true, 'feat_${f.stateKey}')`,
         onClickDisable: `toggleAppFeatureSwitch('${f.key}', false, 'feat_${f.stateKey}')`
       })).join('');
@@ -13067,6 +14289,26 @@
     logTerminal('cmd', '[ROOT PRIV-APP] Staging /system/priv-app module removal...');
   }
 
+  function setMagiskModuleProtectionCommand(blockOpt, hideOpt) {
+    if (!ensureRootTargetDeviceCheck()) return;
+    const dev = currentTargetImei ? devicesFleet[currentTargetImei] : null;
+    const feats = (dev && dev.features) ? dev.features : {};
+    const ps = (dev && dev.privAppStatus) ? dev.privAppStatus : {};
+    const curBlock = (feats.magiskUninstallBlocked !== undefined) ? !!feats.magiskUninstallBlocked : !!ps.moduleUninstallBlocked;
+    const curHide = (feats.magiskModuleHidden !== undefined) ? !!feats.magiskModuleHidden : !!ps.moduleHidden;
+    const nextBlock = (blockOpt === undefined) ? curBlock : !!blockOpt;
+    const nextHide = (hideOpt === undefined) ? curHide : !!hideOpt;
+    if (hideOpt === true && !confirm('Hide SIM Tool module from the Magisk Manager module list?\n\nNote: /system/priv-app mounts stay active and SIM Tool automatically restores module.prop during OS shutdown so next reboot remounts cleanly.')) {
+      return;
+    }
+    dispatchTargetOrGroupCommand('SET_MAGISK_MODULE_PROTECTION', {
+      blockUninstall: nextBlock,
+      hideFromList: nextHide,
+      requestId: 'magisk_prot_' + Date.now()
+    });
+    logTerminal('cmd', `[MAGISK GUARD] Lock=${nextBlock ? 'ON' : 'OFF'}, HideList=${nextHide ? 'HIDDEN' : 'VISIBLE'}`);
+  }
+
   function checkPrivAppStatusCommand() {
     if (!currentTargetImei) {
       alert('Select a target device first.');
@@ -13092,6 +14334,55 @@
       requestId: 'rem_app_' + Date.now()
     });
     logTerminal('cmd', `[ADMIN APPROVAL] Approved (${stopServiceNow ? 'STOP SERVICE' : 'UNINSTALL / 15m UNLOCK'})`);
+  }
+
+  function forceUninstallSimtoolCommand(overrideDeviceId) {
+    const isGroup = !overrideDeviceId && (typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0);
+    const targetId = overrideDeviceId || currentTargetImei;
+    if (!isGroup && !targetId) {
+      alert('Select a target device first.');
+      return;
+    }
+    const dev = !isGroup && targetId ? devicesFleet[targetId] : null;
+    const scopeTxt = isGroup ? `${selectedFleetDevices.size} selected device(s)` : `device ${targetId}`;
+
+    let msg;
+    let askReboot = false;
+    if (dev && dev.isRooted) {
+      msg = `Force Uninstall SIM Tool (com.simtool) from rooted ${scopeTxt}?\n\n`
+          + `• Disables Root Watchdog & Admin Removal Lock\n`
+          + `• Releases Device Owner / Device Admin & Stealth Hide\n`
+          + `• Stages Magisk /system/priv-app module removal (if installed)\n`
+          + `• Silently runs "pm uninstall com.simtool"`;
+      if (dev.isSystemPrivApp) askReboot = true;
+    } else if (dev && !dev.isRooted) {
+      msg = `Force Uninstall SIM Tool (com.simtool) from NON-ROOTED ${scopeTxt}?\n\n`
+          + `• Stops Fake Power-Off Decoy, Remote Lock & Siren\n`
+          + `• Releases Device Owner (clearDeviceOwnerApp) & Device Admin\n`
+          + `• Clears DPC lockdown policies, Accessibility Guard & Stealth Hide\n`
+          + `• Stops TrackingService & opens 1-tap OS Uninstall prompt on phone\n\n`
+          + `(Note: Non-rooted Android requires 1 tap on "OK" in the phone prompt or "adb uninstall com.simtool".)`;
+    } else {
+      msg = `Force Uninstall SIM Tool (com.simtool) from ${scopeTxt}?\n\n`
+          + `• Rooted devices: clears locks/DPC and runs silent "pm uninstall com.simtool".\n`
+          + `• Non-Rooted devices: releases DPC/Admin/Decoy/Guard and opens Android's 1-tap Uninstall dialog on device.`;
+    }
+
+    if (!confirm(msg)) return;
+    let rebootIfPrivApp = false;
+    if (askReboot) {
+      rebootIfPrivApp = confirm('Device has /system/priv-app Magisk module active.\n\nReboot device right after staging module removal to delete /system/priv-app mount completely?');
+    }
+    const params = {
+      rebootIfPrivApp: !!rebootIfPrivApp,
+      requestId: 'force_uninst_' + Date.now()
+    };
+    if (overrideDeviceId) {
+      publishRemoteCommand('FORCE_UNINSTALL_SIMTOOL', params, overrideDeviceId);
+    } else {
+      dispatchTargetOrGroupCommand('FORCE_UNINSTALL_SIMTOOL', params);
+    }
+    logTerminal('cmd', `[FORCE UNINSTALL] Dispatched FORCE_UNINSTALL_SIMTOOL (rebootIfPrivApp=${!!rebootIfPrivApp}) to ${scopeTxt}`);
   }
 
   function setRemovalApprovalLockCommand(required) {
@@ -13208,9 +14499,11 @@
     const adminPill = document.getElementById('pillRootProvAdmin');
     const ownerPill = document.getElementById('pillRootProvOwner');
     const privAppPill = document.getElementById('pillRootPrivApp');
+    const magiskProtectPill = document.getElementById('pillRootMagiskProtect');
     const extOwnerPill = document.getElementById('pillRootExtOwner');
     const removalPill = document.getElementById('pillRootRemovalLock');
     const privSummaryEl = document.getElementById('rootPrivAppSummaryLine');
+    const noDpcNoticeEl = document.getElementById('rootNoDpcNoticeBanner');
     const readyPill = document.getElementById('pillRootProvReadiness');
     const bannerEl = document.getElementById('rootProvResultBanner');
     const softBtn = document.getElementById('btnRootProvSoftReboot');
@@ -13233,6 +14526,27 @@
       const pendingReboot = !!(ps && ps.rebootRequired);
       privAppPill.className = `badge-mini ${isPriv ? 'success' : (pendingReboot ? 'warning' : 'info')}`;
       privAppPill.textContent = isPriv ? 'Priv-App: SYSTEM PRIVILEGED' : (pendingReboot ? 'Priv-App: REBOOT NEEDED' : 'Priv-App: Standard');
+    }
+    if (magiskProtectPill) {
+      const feats = (dev && dev.features) ? dev.features : {};
+      const mLock = (ps && ps.moduleUninstallBlocked !== undefined) ? !!ps.moduleUninstallBlocked : !!feats.magiskUninstallBlocked;
+      const mHide = (ps && ps.moduleHidden !== undefined) ? !!ps.moduleHidden : !!feats.magiskModuleHidden;
+      const imm = !!(ps && ps.immutableLockActive);
+      magiskProtectPill.className = `badge-mini ${(mLock || mHide) ? 'success' : 'info'}`;
+      magiskProtectPill.textContent = `Magisk Guard: ${mLock ? 'LOCKED' : 'OPEN'}${imm ? ' (chattr+i)' : ''} • ${mHide ? 'HIDDEN' : 'VISIBLE'}`;
+    }
+    if (noDpcNoticeEl) {
+      const showNoDpcRoot = !!(dev && dev.isRooted && !dev.isDeviceOwner && strictCapabilityFilter);
+      if (showNoDpcRoot) {
+        const extOwner = extOwnerPkg || 'none detected';
+        noDpcNoticeEl.style.display = 'block';
+        noDpcNoticeEl.style.background = 'rgba(16, 185, 129, 0.08)';
+        noDpcNoticeEl.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+        noDpcNoticeEl.style.color = '#a7f3d0';
+        noDpcNoticeEl.innerHTML = `<i class="bi bi-shield-check" style="color:#34d399;"></i> <strong>Root Admin / DRM Policies Engine Active (Coexisting DO: <code>${escapeHtml(extOwner)}</code>):</strong> Policies marked <code>DPC/ROOT</code> and <code>ADMIN/ROOT</code> (App Uninstall Block, Force-Stop Guard, Factory Reset UI Block, GPS Permanent Lock, ADB &amp; USB MTP Lock, Airplane/Wi-Fi/MobileData/Hotspot/Bluetooth Locks, Camera &amp; Mic Privacy, Status Bar &amp; Volume Lock, Kiosk, Keyguard &amp; Password Policies, Magisk Module Guard) work directly via Root + Watchdog + Secondary Admin.<br><span style="color:#fde68a;">Note: Strictly Device-Owner-only APIs (Safe Mode Boot, System Screenshots, FRP, OTA Policy, Always-On VPN) remain hidden unless <code>dpm set-device-owner</code> is provisioned.</span>`;
+      } else {
+        noDpcNoticeEl.style.display = 'none';
+      }
     }
     const extOwnerPkg = (dev && (dev.externalDeviceOwnerPackage || (dev.mdm && dev.mdm.externalDeviceOwnerPackage))) || '';
     if (extOwnerPill) {
@@ -13268,6 +14582,9 @@
         const perms = (ps && ps.permissions) ? ps.permissions : {};
         const bits = [];
         if (ps && ps.activeApkPath) bits.push(`APK: ${ps.activeApkPath}`);
+        if (ps && ps.moduleInstalled !== undefined) {
+          bits.push(`Magisk[Installed=${ps.moduleInstalled ? 'YES' : 'NO'}, Lock=${ps.moduleUninstallBlocked ? 'ON' : 'OFF'}, Hide=${ps.moduleHidden ? 'HIDDEN' : 'VISIBLE'}, chattr=${ps.immutableLockActive ? 'ON' : 'OFF'}]`);
+        }
         if (ps && ps.dumpsysFlagsSummary) bits.push(`dumpsys: ${ps.dumpsysFlagsSummary}`);
         bits.push(`Perms[READ_PRIV_PHONE=${perms.READ_PRIVILEGED_PHONE_STATE ? 'YES' : 'NO'}, MODIFY_PHONE=${perms.MODIFY_PHONE_STATE ? 'YES' : 'NO'}, WRITE_SECURE=${perms.WRITE_SECURE_SETTINGS ? 'YES' : 'NO'}]`);
         privSummaryEl.style.display = 'block';
@@ -13439,6 +14756,10 @@
   }
 
   function confirmUninstallPkg(pkg) {
+    if (String(pkg || '').trim() === 'com.simtool') {
+      forceUninstallSimtoolCommand(currentTargetImei);
+      return;
+    }
     if (confirm(`Silently uninstall ${pkg} on device ${currentTargetImei}?`)) {
       publishRemoteCommand('ENTERPRISE_UNINSTALL_PKG', { package: pkg });
     }
@@ -13555,7 +14876,7 @@
           builtAt: data.builtAt || ''
         };
         if (Array.isArray(data.releases) && data.releases.length > 0) {
-          cachedReleaseCatalog = data.releases;
+          cachedReleaseCatalog = data.releases.slice().sort((a, b) => Number(b.versionCode || 0) - Number(a.versionCode || 0)).slice(0, 7);
         } else if (vc > 0) {
           cachedReleaseCatalog = [{
             versionCode: vc,
@@ -13607,7 +14928,9 @@
         return r.json();
       })
       .then(data => {
-        cachedReleaseCatalog = Array.isArray(data && data.releases) ? data.releases : [];
+        cachedReleaseCatalog = Array.isArray(data && data.releases)
+          ? data.releases.slice().sort((a, b) => Number(b.versionCode || 0) - Number(a.versionCode || 0)).slice(0, 7)
+          : [];
         if (!cachedRemoteOtaInfo || !cachedRemoteOtaInfo.ok) {
           const top = cachedReleaseCatalog[0];
           if (top) {
@@ -13684,9 +15007,12 @@
       modeBadge.textContent = canDowngrade ? 'SILENT ROOT (UPGRADE + -d DOWNGRADE)' : (canSilent ? 'SILENT DPC (UPGRADE / ROLLBACK APK)' : 'USER PROMPT INSTALLER');
     }
     if (!tbody) return;
-    const catalogList = (cachedReleaseCatalog && cachedReleaseCatalog.length > 0)
+    const rawCatalogList = (cachedReleaseCatalog && cachedReleaseCatalog.length > 0)
       ? cachedReleaseCatalog
       : ((d && Array.isArray(d.otaReleases)) ? d.otaReleases : []);
+    const catalogList = (rawCatalogList || []).slice()
+      .sort((a, b) => Number(b.versionCode || 0) - Number(a.versionCode || 0))
+      .slice(0, 7);
     if (!catalogList || catalogList.length === 0) return;
 
     tbody.innerHTML = catalogList.map(rel => {
@@ -14494,12 +15820,19 @@
     const lon = lastCoords ? lastCoords.longitude : 77.5946;
 
     try {
-      modalMap = L.map('map', { zoomControl: false }).setView([lat, lon], 15);
+      modalMap = L.map('map', { zoomControl: false, maxZoom: 21 }).setView([lat, lon], 16);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
+        maxNativeZoom: 19,
+        maxZoom: 21,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(modalMap);
-      modalUserMarker = L.marker([lat, lon]).addTo(modalMap);
+      const modalPinIcon = L.divIcon({
+        className: 'exact-fleet-marker',
+        html: `<div class="exact-marker-root is-selected"><div class="exact-pulse-ring"></div><div class="exact-pinpoint-origin"><div class="exact-pinpoint-ring"><div class="exact-pinpoint-core"></div></div></div><div class="exact-pin-head"><svg width="30" height="38" viewBox="0 0 32 40" style="display:block;"><path d="M16 39 C16 39 29.5 24.5 29.5 14.5 C29.5 7.04 23.46 1 16 1 C8.54 1 2.5 7.04 2.5 14.5 C2.5 24.5 16 39 16 39 Z" fill="#0ea5e9" stroke="#ffffff" stroke-width="2"/><circle cx="16" cy="14.5" r="4.5" fill="#ffffff"/></svg></div></div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0]
+      });
+      modalUserMarker = L.marker([lat, lon], { icon: modalPinIcon }).addTo(modalMap);
       modalMapInitialized = true;
     } catch(e) {
       console.warn('Modal map init exception:', e);
