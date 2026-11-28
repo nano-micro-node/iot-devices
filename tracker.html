@@ -3872,6 +3872,26 @@
         </div>
       </div>
 
+      <!-- Emergency Decoy / Lost Mode Rescue Banner (Always visible across all modes including Non-Root Power Saving) -->
+      <div id="decoyActiveAlertBanner" style="display:none; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; background:rgba(239,68,68,0.14); border:1px solid rgba(248,113,113,0.45); border-radius:10px; padding:8px 12px; margin-bottom:10px;">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.76rem; color:#fecaca;">
+          <i class="bi bi-moon-stars-fill" style="color:#f87171;"></i>
+          <strong id="decoyAlertBannerTitle">Fake Power-Off Decoy Active</strong>
+          <span id="decoyAlertBannerMeta" style="color:#fda4af; font-size:0.7rem;">Device screen is blacked out while GPS &amp; MQTT remain online.</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="btn-ctrl btn-secondary compact" onclick="stopFakePowerOffCommand(false)">
+            <i class="bi bi-sun-fill"></i> Stop Decoy
+          </button>
+          <button type="button" class="btn-ctrl btn-danger compact" onclick="stopFakePowerOffCommand(true)">
+            <i class="bi bi-shield-slash-fill"></i> Stop Decoy &amp; Disable Guard
+          </button>
+          <button type="button" class="btn-ctrl btn-outline compact" id="btnBannerClearLostMode" style="display:none;" onclick="toggleLostModeCommand(false)">
+            <i class="bi bi-check-circle"></i> Clear Lost Mode
+          </button>
+        </div>
+      </div>
+
     <!-- ============================================================
          VIEW 1: ALL DEVICE CONTROL PANEL (Full Remote MQTT Fleet Control)
          ============================================================ -->
@@ -4260,7 +4280,7 @@
               </div>
               <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:8px; margin-bottom:8px;">
                 <div class="control-row" style="margin:0;">
-                  <select id="selPowerOffGuardMode" class="form-control compact">
+                  <select id="selPowerOffGuardMode" class="form-control compact" onchange="markPowerSafetyUiDirty()">
                     <option value="BLOCK_LOCKED">Block Power Menu (When Locked)</option>
                     <option value="FAKE_POWER_OFF">Fake Power-Off Decoy (Keep GPS Live)</option>
                     <option value="PIN_GATE">Require PIN to Power Off</option>
@@ -4268,19 +4288,20 @@
                   </select>
                 </div>
                 <div class="control-row" style="margin:0;">
-                  <input type="password" id="inpPowerOffPin" class="form-control compact" placeholder="Optional Power-Off PIN">
+                  <input type="password" id="inpPowerOffPin" class="form-control compact" placeholder="Optional Power-Off PIN" oninput="markPowerSafetyUiDirty()">
                 </div>
               </div>
               <div style="display:flex; flex-wrap:wrap; gap:10px; font-size:0.7rem; color:#cbd5e1; margin-bottom:8px;">
-                <label><input type="checkbox" id="chkPowerGuardAlways"> Always Guard (Even When Unlocked)</label>
-                <label><input type="checkbox" id="chkPowerBlockQsOnLock"> Hide Quick Settings on Lock Screen (DPC/A11y)</label>
-                <label><input type="checkbox" id="chkPowerSirenAttempt"> Sound Siren on Switch-Off Attempt</label>
+                <label><input type="checkbox" id="chkPowerGuardAlways" onchange="markPowerSafetyUiDirty()"> Always Guard (Even When Unlocked)</label>
+                <label><input type="checkbox" id="chkPowerBlockQsOnLock" onchange="markPowerSafetyUiDirty()"> Hide Quick Settings on Lock Screen (DPC/A11y)</label>
+                <label><input type="checkbox" id="chkPowerSirenAttempt" onchange="markPowerSafetyUiDirty()"> Sound Siren on Switch-Off Attempt</label>
               </div>
               <div style="display:flex; flex-wrap:wrap; gap:6px;">
                 <button type="button" class="btn-ctrl btn-primary compact" onclick="applyPowerOffGuardCommand(true)"><i class="bi bi-shield-lock-fill"></i> Apply Power-Off Guard</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="applyPowerOffGuardCommand(false)"><i class="bi bi-shield-slash"></i> Disable Guard</button>
                 <button type="button" class="btn-ctrl btn-warning compact" onclick="startFakePowerOffCommand()"><i class="bi bi-moon-stars-fill"></i> Fake Power-Off</button>
-                <button type="button" class="btn-ctrl btn-secondary compact" onclick="stopFakePowerOffCommand()"><i class="bi bi-sun-fill"></i> Stop Decoy</button>
+                <button type="button" class="btn-ctrl btn-secondary compact" onclick="stopFakePowerOffCommand(false)"><i class="bi bi-sun-fill"></i> Stop Decoy</button>
+                <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="stopFakePowerOffCommand(true)"><i class="bi bi-shield-x"></i> Stop Decoy + Disable Guard</button>
                 <button type="button" class="btn-ctrl btn-danger compact" onclick="toggleLostModeCommand(true)"><i class="bi bi-exclamation-octagon-fill"></i> Engage Lost Mode</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="toggleLostModeCommand(false)"><i class="bi bi-check-circle"></i> Clear Lost Mode</button>
                 <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="enableAccessibilityGuardRootCommand()"><i class="bi bi-terminal-fill"></i> Auto-Enable Guard (Root)</button>
@@ -5081,6 +5102,27 @@
                 <button type="button" class="btn-ctrl btn-secondary compact" onclick="dispatchCentralCommand('REBOOT', {}, true)"><i class="bi bi-arrow-clockwise"></i> DPC Reboot</button>
                 <button type="button" class="btn-ctrl btn-danger compact" data-cap="DPC" onclick="confirmReleaseDeviceOwner()"><i class="bi bi-box-arrow-right"></i> Release DPC</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="switchRailPage('features')"><i class="bi bi-sliders"></i> App Settings</button>
+              </div>
+            </div>
+
+            <!-- Tile 5: Power-Off Safety & Decoy Recovery (Accessible on Non-Rooted & Rooted Devices in all modes) -->
+            <div class="control-card" style="padding:12px; margin:0; background:#070d14; border-color:rgba(248,113,113,0.35);">
+              <div class="card-header-line">
+                <div class="card-title" style="font-size:0.84rem;"><i class="bi bi-power" style="color:#f87171;"></i> Power-Off Safety &amp; Decoy Recovery</div>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px;">
+                <span class="bin-status-pill unk" id="act_st_fakePowerOffActive">DECOY: OFF</span>
+                <span class="bin-status-pill unk" id="act_st_powerGuardActive">GUARD: OFF</span>
+                <span class="bin-status-pill unk" id="act_st_lostModeActive">LOST: OFF</span>
+                <span class="bin-status-pill unk" id="act_st_a11yGuardActive">A11Y: --</span>
+              </div>
+              <p class="card-desc" style="margin-bottom:8px;">Start or clear Fake Power-Off decoy mode, disable Power-Off Guard loops, or clear Lost Mode on both <b>Non-Rooted</b> and <b>Rooted</b> devices.</p>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                <button type="button" class="btn-ctrl btn-warning compact" onclick="startFakePowerOffCommand()"><i class="bi bi-moon-stars-fill"></i> Fake Power-Off</button>
+                <button type="button" class="btn-ctrl btn-secondary compact" onclick="stopFakePowerOffCommand(false)"><i class="bi bi-sun-fill"></i> Stop Decoy</button>
+                <button type="button" class="btn-ctrl btn-danger compact" onclick="stopFakePowerOffCommand(true)" style="grid-column:span 2;"><i class="bi bi-shield-slash-fill"></i> Stop Decoy &amp; Disable Power Guard</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="applyPowerOffGuardCommand(false)"><i class="bi bi-shield-slash"></i> Disable Guard</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="toggleLostModeCommand(false)"><i class="bi bi-check-circle"></i> Clear Lost Mode</button>
               </div>
             </div>
           </div>
@@ -5929,8 +5971,24 @@
                 <div class="info-value" id="rightOnReqMem" style="font-size:0.7rem;">--</div>
               </div>
               <div class="info-tile" style="padding:6px 8px; grid-column:span 2;">
-                <div class="info-label" style="font-size:0.6rem;">Root Provider / SELinux / Wi-Fi IP</div>
-                <div class="info-value" id="rightOnReqRoot" style="font-size:0.7rem;">--</div>
+                <div class="info-label" style="font-size:0.6rem;">IMEI (1 &amp; 2)</div>
+                <div class="info-value" id="rightOnReqImei" style="font-size:0.68rem; word-break:break-all;">--</div>
+              </div>
+              <div class="info-tile" style="padding:6px 8px;">
+                <div class="info-label" style="font-size:0.6rem;">SIM Number (1 &amp; 2)</div>
+                <div class="info-value" id="rightOnReqSimNum" style="font-size:0.68rem; word-break:break-word;">--</div>
+              </div>
+              <div class="info-tile" style="padding:6px 8px;">
+                <div class="info-label" style="font-size:0.6rem;">IMSI (1 &amp; 2)</div>
+                <div class="info-value" id="rightOnReqImsi" style="font-size:0.68rem; word-break:break-all;">--</div>
+              </div>
+              <div class="info-tile" style="padding:6px 8px; grid-column:span 2;">
+                <div class="info-label" style="font-size:0.6rem;">IP / MAC</div>
+                <div class="info-value" id="rightOnReqNet" style="font-size:0.68rem; word-break:break-word;">--</div>
+              </div>
+              <div class="info-tile" style="padding:6px 8px; grid-column:span 2;">
+                <div class="info-label" style="font-size:0.6rem;">ADB / OEM Unlock / Root / SELinux</div>
+                <div class="info-value" id="rightOnReqRoot" style="font-size:0.68rem; word-break:break-word;">--</div>
               </div>
             </div>
 
@@ -6637,8 +6695,8 @@
           <pre style="background:#111b21; padding:8px; border-radius:6px; color:#34d399; font-size:0.65rem; overflow-x:auto; margin-bottom:6px;">
 {
   "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.simtool/.CompanyDeviceAdminReceiver",
-  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "http://172.18.161.174:8080/simtool.apk",
-  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "WBD2oMB6p3bTPSUMGIqLB3AWo-RZPcH_8KRDvXiSXhQ",
+  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "http://172.18.173.107:8080/simtool.apk",
+  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "MA4pON1f84q0KH0HZJUqZFBKBmK4w0u2I-RnDtRwPFc",
   "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
   "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
     "mqtt_host": "mqtt.teleson.in",
@@ -6650,13 +6708,13 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.0.3)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.0.7)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.0.3.apk" target="_blank" download="simtool_5.0.3.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-download"></i> Download simtool_5.0.3.apk (v5.0.3 Release)
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.0.7.apk" target="_blank" download="simtool_5.0.7.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_5.0.7.apk (v5.0.7 Release)
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
@@ -6667,8 +6725,8 @@
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.json" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(148,163,184,0.14); border:1px solid rgba(148,163,184,0.35); color: #e2e8f0; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-archive"></i> simtool.json
             </a>
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_magisk_privapp_5.0.3.zip" target="_blank" download="simtool_magisk_privapp_5.0.3.zip" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.16); border:1px solid rgba(168,85,247,0.45); color: #d8b4fe; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-file-earmark-zip"></i> simtool_magisk_privapp_5.0.3.zip
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_magisk_privapp_5.0.7.zip" target="_blank" download="simtool_magisk_privapp_5.0.7.zip" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.16); border:1px solid rgba(168,85,247,0.45); color: #d8b4fe; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-file-earmark-zip"></i> simtool_magisk_privapp_5.0.7.zip
             </a>
           </div>
         </div>
@@ -8229,16 +8287,32 @@
     const snap = reqCh.snapshot || {};
     const devInfo = snap.deviceInfo || (d && d.diagnostics && d.diagnostics.deviceInfo) || {};
     const hw = snap.hardware || (d && d.hardware) || {};
-    setTxt('rightOnReqModel', devInfo.model ? `${devInfo.manufacturer || ''} ${devInfo.model} (OS ${devInfo.osVersion || '--'})`.trim() : '--');
-    setTxt('rightOnReqMem', hw.ramTotalMb ? `RAM ${hw.ramAvailMb}/${hw.ramTotalMb}MB • Disk ${hw.storageFreeMb || '--'}MB` : '--');
-    const rootProv = (hw.rootEnv && hw.rootEnv.rootProvider) ? `${hw.rootEnv.rootProvider} (${hw.rootEnv.seLinuxMode || '--'})` : (d && d.isRooted ? 'Rooted' : 'Non-Root');
-    setTxt('rightOnReqRoot', `${rootProv} • ${hw.wifiIp || hw.wifiSsid || 'No Wi-Fi IP'}`);
+    const osBadgeTxt = devInfo.androidVersion ? `Android ${devInfo.androidVersion}` : (devInfo.osVersion ? `OS ${devInfo.osVersion}` : '--');
+    const modelTxt = devInfo.deviceModel || (devInfo.model ? `${devInfo.manufacturer || ''} ${devInfo.model}`.trim() : '');
+    setTxt('rightOnReqModel', modelTxt ? `${modelTxt} (${osBadgeTxt})` : '--');
+    setTxt('rightOnReqMem', hw.ramTotalMb
+      ? `RAM ${hw.ramAvailMb}/${hw.ramTotalMb}MB • Disk ${hw.storageFreeMb || '--'}MB`
+      : (devInfo.ramSummary ? `${devInfo.ramSummary} • ${devInfo.storageSummary || '--'}` : '--'));
+    const idBlocked = devInfo.imeiImsiAllowed === false;
+    const fmtDual = (disp, v1, v2) => disp || [v1 ? `1: ${v1}` : '', v2 ? `2: ${v2}` : ''].filter(Boolean).join(' • ') || '--';
+    const imeiTxt = idBlocked ? (devInfo.imeiDisplay || 'Not Allowed (Basic User — Requires Root or Admin DPC)') : fmtDual(devInfo.imeiDisplay, devInfo.imei1, devInfo.imei2);
+    const imsiTxt = idBlocked ? (devInfo.imsiDisplay || 'Not Allowed (Basic User — Requires Root or Admin DPC)') : fmtDual(devInfo.imsiDisplay, devInfo.imsi1, devInfo.imsi2);
+    setTxt('rightOnReqImei', imeiTxt);
+    const rImeiEl = document.getElementById('rightOnReqImei');
+    if (rImeiEl) rImeiEl.style.color = idBlocked ? '#f87171' : '#f8fafc';
+    setTxt('rightOnReqSimNum', fmtDual(devInfo.simNumberDisplay, devInfo.sim1Number, devInfo.sim2Number));
+    setTxt('rightOnReqImsi', imsiTxt);
+    const rImsiEl = document.getElementById('rightOnReqImsi');
+    if (rImsiEl) rImsiEl.style.color = idBlocked ? '#f87171' : '#f8fafc';
+    setTxt('rightOnReqNet', `IP: ${devInfo.ipAddress || hw.wifiIp || '--'} • MAC: ${devInfo.macAddress || '--'}`);
+    const rootProv = (hw.rootEnv && hw.rootEnv.rootProvider) ? `${hw.rootEnv.rootProvider} (${hw.rootEnv.seLinuxMode || devInfo.selinux || '--'})` : (d && d.isRooted ? `Rooted (${devInfo.selinux || '--'})` : `Non-Root (${devInfo.selinux || '--'})`);
+    setTxt('rightOnReqRoot', `ADB: ${devInfo.adbStatus || '--'} • OEM: ${devInfo.oemUnlockStatus || '--'} • ${rootProv}`);
 
     const rawPre = document.getElementById('rightOnReqRawJson');
     if (rawPre) {
       rawPre.textContent = reqCh.lastRespondedAt
         ? JSON.stringify(snap, null, 2)
-        : (d ? JSON.stringify({ imei: d.imei, battery: d.battery, mdm: d.mdm, features: d.features, hardware: d.hardware }, null, 2) : 'No snapshot received yet.');
+        : (d ? JSON.stringify({ imei: d.imei, battery: d.battery, deviceInfo: devInfo, mdm: d.mdm, features: d.features, hardware: d.hardware }, null, 2) : 'No snapshot received yet.');
     }
 
     // MDM Badges
@@ -10352,6 +10426,36 @@
       if (data.message) dev.telecom.lockProfile.lastResult = data.message;
       if (activeRailPage === 'telecom' && typeof renderTelecomControlPage === 'function') {
         renderTelecomControlPage();
+      }
+    } else if ((action === 'START_FAKE_POWER_OFF' || action === 'STOP_FAKE_POWER_OFF' || action === 'SET_POWER_OFF_GUARD' || action === 'SET_LOST_MODE' || action === 'ENABLE_ACCESSIBILITY_GUARD_ROOT') && isSuccess) {
+      if (!dev.powerOffSafety || typeof dev.powerOffSafety !== 'object') dev.powerOffSafety = {};
+      if (!dev.features || typeof dev.features !== 'object') dev.features = {};
+      if (action === 'START_FAKE_POWER_OFF') {
+        dev.powerOffSafety.fakePowerOffActive = true;
+        dev.features.fakePowerOffActive = true;
+      } else if (action === 'STOP_FAKE_POWER_OFF') {
+        dev.powerOffSafety.fakePowerOffActive = (data.fakePowerOffActive !== undefined) ? !!data.fakePowerOffActive : false;
+        dev.features.fakePowerOffActive = dev.powerOffSafety.fakePowerOffActive;
+      }
+      const safetyFields = [
+        'shutdownAlertEnabled', 'powerMenuGuardEnabled', 'powerOffGuardMode',
+        'powerOffGuardAlways', 'blockStatusBarOnLock', 'sirenOnPowerOffAttempt',
+        'lostModeActive', 'fakePowerOffActive', 'accessibilityGuardActive',
+        'powerGuardBlockedCount', 'powerOffAuthorizedNow'
+      ];
+      safetyFields.forEach(k => {
+        if (data[k] !== undefined) {
+          dev.powerOffSafety[k] = data[k];
+          dev.features[k] = data[k];
+        }
+      });
+      if (action === 'SET_LOST_MODE' && !data.lostModeActive && !data.fakePowerOffActive) {
+        dev.isLockScreenMessageActive = false;
+        dev.remoteLockMode = false;
+        dev.lockScreenMessage = '';
+      }
+      if (action === 'SET_POWER_OFF_GUARD' || action === 'SET_LOST_MODE' || action === 'STOP_FAKE_POWER_OFF') {
+        powerSafetyUiDirty = false;
       }
     }
   }
@@ -13682,7 +13786,15 @@
     publishRemoteCommand('SET_KIOSK_MODE', { enabled: enable, packages: pkgs, featuresMask: mask, title: title });
   }
 
+  let powerSafetyUiDirty = false;
+  let lastSyncedPowerSafetyImei = '';
+
+  function markPowerSafetyUiDirty() {
+    powerSafetyUiDirty = true;
+  }
+
   function applyPowerOffGuardCommand(enable) {
+    powerSafetyUiDirty = false;
     const modeEl = document.getElementById('selPowerOffGuardMode');
     const pinEl = document.getElementById('inpPowerOffPin');
     const alwaysEl = document.getElementById('chkPowerGuardAlways');
@@ -13707,11 +13819,14 @@
     dispatchTargetOrGroupCommand('START_FAKE_POWER_OFF', { skipAnimation: false });
   }
 
-  function stopFakePowerOffCommand() {
-    dispatchTargetOrGroupCommand('STOP_FAKE_POWER_OFF', {});
+  function stopFakePowerOffCommand(disableGuard = false) {
+    powerSafetyUiDirty = false;
+    const payload = disableGuard ? { disableGuard: true, clearLostMode: true } : {};
+    dispatchTargetOrGroupCommand('STOP_FAKE_POWER_OFF', payload);
   }
 
   function toggleLostModeCommand(enable) {
+    powerSafetyUiDirty = false;
     const pinEl = document.getElementById('inpPowerOffPin');
     const modeEl = document.getElementById('selPowerOffGuardMode');
     const fakeOff = !!(modeEl && modeEl.value === 'FAKE_POWER_OFF');
@@ -14156,7 +14271,7 @@
       kioskPill.textContent = mdm.kioskActive ? 'ACTIVE' : 'INACTIVE';
     }
 
-    // Sync Power-Off & Switch-Off Safety pills & inputs
+    // Sync Power-Off & Switch-Off Safety pills, rescue banner & inputs
     const pos = (data && data.powerOffSafety) ? data.powerOffSafety : (dev.powerOffSafety || {});
     const pGuardOn = !!(pos.powerMenuGuardEnabled !== undefined ? pos.powerMenuGuardEnabled : feats.powerMenuGuardEnabled);
     const pA11yOn = !!(pos.accessibilityGuardActive !== undefined ? pos.accessibilityGuardActive : feats.accessibilityGuardActive);
@@ -14165,39 +14280,67 @@
     const pMode = pos.powerOffGuardMode || feats.powerOffGuardMode || 'BLOCK_LOCKED';
     const pBlocked = pos.powerGuardBlockedCount || 0;
 
-    const pGuardPill = document.getElementById('st_powerGuardActive');
-    if (pGuardPill) {
-      pGuardPill.className = `bin-status-pill ${pGuardOn ? 'on' : 'off'}`;
-      pGuardPill.textContent = pGuardOn ? `GUARD: ${pMode}` : 'GUARD: OFF';
-    }
-    const pA11yPill = document.getElementById('st_a11yGuardActive');
-    if (pA11yPill) {
-      pA11yPill.className = `bin-status-pill ${pA11yOn ? 'on' : 'off'}`;
-      pA11yPill.textContent = pA11yOn ? 'A11Y: ACTIVE' : 'A11Y: OFF';
-    }
-    const pFakePill = document.getElementById('st_fakePowerOffActive');
-    if (pFakePill) {
-      pFakePill.className = `bin-status-pill ${pFakeOn ? 'on' : 'off'}`;
-      pFakePill.textContent = pFakeOn ? 'DECOY: ACTIVE' : 'DECOY: OFF';
-    }
-    const pLostPill = document.getElementById('st_lostModeActive');
-    if (pLostPill) {
-      pLostPill.className = `bin-status-pill ${pLostOn ? 'on' : 'off'}`;
-      pLostPill.textContent = pLostOn ? 'LOST: ACTIVE' : 'LOST: OFF';
-    }
+    [
+      ['st_powerGuardActive', 'act_st_powerGuardActive', pGuardOn, pGuardOn ? `GUARD: ${pMode}` : 'GUARD: OFF'],
+      ['st_a11yGuardActive', 'act_st_a11yGuardActive', pA11yOn, pA11yOn ? 'A11Y: ACTIVE' : 'A11Y: OFF'],
+      ['st_fakePowerOffActive', 'act_st_fakePowerOffActive', pFakeOn, pFakeOn ? 'DECOY: ACTIVE' : 'DECOY: OFF'],
+      ['st_lostModeActive', 'act_st_lostModeActive', pLostOn, pLostOn ? 'LOST: ACTIVE' : 'LOST: OFF']
+    ].forEach(([idA, idB, activeFlag, labelText]) => {
+      [idA, idB].forEach(pid => {
+        const el = document.getElementById(pid);
+        if (el) {
+          el.className = `bin-status-pill ${activeFlag ? 'on' : 'off'}`;
+          el.textContent = labelText;
+        }
+      });
+    });
+
     const pBlockedPill = document.getElementById('st_powerGuardBlockedCount');
     if (pBlockedPill) {
       pBlockedPill.className = `bin-status-pill ${pBlocked > 0 ? 'on' : 'unk'}`;
       pBlockedPill.textContent = `BLOCKED: ${pBlocked}`;
     }
-    const selGuardEl = document.getElementById('selPowerOffGuardMode');
-    if (selGuardEl && pMode) selGuardEl.value = pMode;
-    const chkAlwaysEl = document.getElementById('chkPowerGuardAlways');
-    if (chkAlwaysEl && pos.powerOffGuardAlways !== undefined) chkAlwaysEl.checked = !!pos.powerOffGuardAlways;
-    const chkBlockQsEl = document.getElementById('chkPowerBlockQsOnLock');
-    if (chkBlockQsEl && pos.blockStatusBarOnLock !== undefined) chkBlockQsEl.checked = !!pos.blockStatusBarOnLock;
-    const chkSirenEl = document.getElementById('chkPowerSirenAttempt');
-    if (chkSirenEl && pos.sirenOnPowerOffAttempt !== undefined) chkSirenEl.checked = !!pos.sirenOnPowerOffAttempt;
+
+    const decoyBanner = document.getElementById('decoyActiveAlertBanner');
+    if (decoyBanner) {
+      const showRescue = pFakeOn || pLostOn;
+      decoyBanner.style.display = showRescue ? 'flex' : 'none';
+      if (showRescue) {
+        const bTitle = document.getElementById('decoyAlertBannerTitle');
+        const bMeta = document.getElementById('decoyAlertBannerMeta');
+        const bLost = document.getElementById('btnBannerClearLostMode');
+        if (bTitle) {
+          bTitle.textContent = pFakeOn && pLostOn
+            ? 'Lost Mode + Fake Power-Off Decoy Active'
+            : (pFakeOn ? 'Fake Power-Off Decoy Active' : 'Lost Mode Active');
+        }
+        if (bMeta) {
+          bMeta.textContent = `Mode: ${pMode} · Accessibility Guard: ${pA11yOn ? 'ON' : 'OFF'} · Device stays reachable over MQTT.`;
+        }
+        if (bLost) {
+          bLost.style.display = pLostOn ? '' : 'none';
+        }
+      }
+    }
+
+    const devIdForSync = dev.imei || currentTargetImei || '';
+    const trigU = (data && data.trigger) ? String(data.trigger).toUpperCase() : '';
+    const forceSafetySync = (lastSyncedPowerSafetyImei !== devIdForSync)
+      || trigU === 'POWER_OFF_GUARD_CHANGE'
+      || trigU === 'LOST_MODE_CHANGE'
+      || trigU === 'FAKE_POWER_OFF_STOP';
+    if (forceSafetySync || !powerSafetyUiDirty) {
+      lastSyncedPowerSafetyImei = devIdForSync;
+      if (forceSafetySync) powerSafetyUiDirty = false;
+      const selGuardEl = document.getElementById('selPowerOffGuardMode');
+      if (selGuardEl && pMode && document.activeElement !== selGuardEl) selGuardEl.value = pMode;
+      const chkAlwaysEl = document.getElementById('chkPowerGuardAlways');
+      if (chkAlwaysEl && pos.powerOffGuardAlways !== undefined && document.activeElement !== chkAlwaysEl) chkAlwaysEl.checked = !!pos.powerOffGuardAlways;
+      const chkBlockQsEl = document.getElementById('chkPowerBlockQsOnLock');
+      if (chkBlockQsEl && pos.blockStatusBarOnLock !== undefined && document.activeElement !== chkBlockQsEl) chkBlockQsEl.checked = !!pos.blockStatusBarOnLock;
+      const chkSirenEl = document.getElementById('chkPowerSirenAttempt');
+      if (chkSirenEl && pos.sirenOnPowerOffAttempt !== undefined && document.activeElement !== chkSirenEl) chkSirenEl.checked = !!pos.sirenOnPowerOffAttempt;
+    }
 
     const secPill = document.getElementById('st_deviceSecureBadge');
     if (secPill && mdm.isDeviceSecure !== undefined) {
@@ -14743,14 +14886,24 @@
       }
     }
 
+    const devInfo = (d && d.diagnostics && d.diagnostics.deviceInfo) ? d.diagnostics.deviceInfo : ((d && d.onRequestChannel && d.onRequestChannel.snapshot && d.onRequestChannel.snapshot.deviceInfo) || {});
+    const hw = (d && d.hardware) ? d.hardware : {};
+    const idBlocked = devInfo.imeiImsiAllowed === false;
+    const accessPolicyTxt = devInfo.imeiImsiAccessPolicy || (d ? ((d.isRooted || d.isDeviceOwner || d.isSystemPrivApp) ? 'ALLOWED (Root / Admin DPC)' : 'Requires Root or Admin DPC') : '--');
+
     const idEl = document.getElementById('infoCardIdentity');
     if (idEl) {
       const scr = !d ? '--' : (d.isScreenOn === false ? 'Screen OFF' : (d.isScreenOn === true ? (d.isDeviceLocked ? 'Screen ON (Locked)' : 'Screen ON (Unlocked)') : '--'));
+      const scrWithLock = devInfo.screenLock ? `${scr} • Lock: ${devInfo.screenLock}` : scr;
       idEl.innerHTML = d ? [
-        renderInfoRow('Device ID', d.deviceId || d.imei),
+        renderInfoRow('Device ID', devInfo.deviceId || d.deviceId || d.imei),
+        renderInfoRow('IMEI / IMSI Policy', accessPolicyTxt),
+        renderInfoRow('IMEI 1 (SIM 1)', idBlocked ? 'Not Allowed (Basic User)' : (devInfo.imei1 || devInfo.imeiDisplay || '--')),
+        renderInfoRow('IMEI 2 (SIM 2)', idBlocked ? 'Not Allowed (Basic User)' : (devInfo.imei2 || '--')),
+        renderInfoRow('Android ID', devInfo.androidId || '--'),
         renderInfoRow('Friendly Name', tag || '(none)'),
-        renderInfoRow('Battery', (d.battery || '--') + (d.isCharging ? ' (Charging)' : '')),
-        renderInfoRow('Screen / Lock', scr),
+        renderInfoRow('Battery', (d.battery || (devInfo.batteryLevel !== undefined ? devInfo.batteryLevel + '%' : '--')) + (d.isCharging ? ' (Charging)' : '')),
+        renderInfoRow('Screen / Lock', scrWithLock),
         renderInfoRow('Last Activity Event', d.lastActivityEvent || '--'),
         renderInfoRow('Foreground App', d.foregroundApp || '--'),
         renderInfoRow('Last Package Event', d.lastPackageEvent || '--'),
@@ -14760,17 +14913,25 @@
 
     const hwEl = document.getElementById('infoCardHardware');
     if (hwEl) {
-      const devInfo = (d && d.diagnostics && d.diagnostics.deviceInfo) ? d.diagnostics.deviceInfo : ((d && d.onRequestChannel && d.onRequestChannel.snapshot && d.onRequestChannel.snapshot.deviceInfo) || {});
-      const hw = (d && d.hardware) ? d.hardware : {};
-      const rootProv = hw.rootEnv ? `${hw.rootEnv.rootProvider || 'su'} (${hw.rootEnv.seLinuxMode || '--'})` : (d && d.isRooted ? 'Rooted' : 'Non-Root');
+      const rootProv = hw.rootEnv ? `${hw.rootEnv.rootProvider || 'su'} (${hw.rootEnv.seLinuxMode || devInfo.selinux || '--'})` : (d && d.isRooted ? `Rooted (${devInfo.selinux || '--'})` : `Non-Root (${devInfo.selinux || '--'})`);
+      const privDisp = devInfo.privilegeBadge ? `${rootProv} • ${devInfo.privilegeBadge}` : rootProv;
+      const dispCpu = [devInfo.screenResolution, devInfo.cpuAbi ? `${devInfo.cpuAbi} (${devInfo.cpuCores || '--'}c)` : ''].filter(Boolean).join(' • ');
       hwEl.innerHTML = d ? [
-        renderInfoRow('Manufacturer / Model', `${devInfo.manufacturer || devInfo.brand || '--'} ${devInfo.model || ''}`.trim()),
+        renderInfoRow('Manufacturer / Model', devInfo.deviceModel || `${devInfo.manufacturer || devInfo.brand || '--'} ${devInfo.model || ''}`.trim()),
         renderInfoRow('Device Codename', devInfo.device || '--'),
-        renderInfoRow('Android OS / SDK', devInfo.osVersion ? `Android ${devInfo.osVersion} (SDK ${devInfo.sdkInt || '--'})` : '--'),
-        renderInfoRow('RAM (Avail / Total)', hw.ramTotalMb ? `${hw.ramAvailMb} / ${hw.ramTotalMb} MB` : '--'),
-        renderInfoRow('Storage Free', hw.storageFreeMb ? `${hw.storageFreeMb} MB` : '--'),
-        renderInfoRow('Root / SELinux', rootProv),
-        renderInfoRow('Wi-Fi SSID / IP', hw.wifiSsid || hw.wifiIp ? `${hw.wifiSsid || '--'} (${hw.wifiIp || '--'})` : '--')
+        renderInfoRow('Android OS / SDK', devInfo.androidVersion ? `Android ${devInfo.androidVersion}` : (devInfo.osVersion ? `Android ${devInfo.osVersion} (SDK ${devInfo.sdkInt || '--'})` : '--')),
+        renderInfoRow('Security Patch', devInfo.securityPatch || '--'),
+        renderInfoRow('ADB Status', devInfo.adbStatus || '--'),
+        renderInfoRow('OEM Unlock Status', devInfo.oemUnlockStatus || '--'),
+        renderInfoRow('Bootloader', devInfo.bootloaderDetail || '--'),
+        renderInfoRow('Baseband / Modem', devInfo.baseband || '--'),
+        renderInfoRow('Kernel', devInfo.kernel || '--'),
+        renderInfoRow('Build Display', devInfo.buildDisplay || '--'),
+        renderInfoRow('Display / CPU', dispCpu || '--'),
+        renderInfoRow('RAM (Avail / Total)', hw.ramTotalMb ? `${hw.ramAvailMb} / ${hw.ramTotalMb} MB` : (devInfo.ramSummary || '--')),
+        renderInfoRow('Storage', hw.storageFreeMb ? `${hw.storageFreeMb} MB free` : (devInfo.storageSummary || '--')),
+        renderInfoRow('Privilege / SELinux', privDisp),
+        renderInfoRow('Uptime', devInfo.uptime || '--')
       ].join('') : '<div style="color:#94a3b8;">--</div>';
     }
 
@@ -14780,11 +14941,22 @@
       const tc = (d && d.telecom) ? d.telecom : null;
       const lp = (tc && tc.lockProfile) ? tc.lockProfile : null;
       const lockInfo = lp ? (lp.hasActiveLock ? `${lp.ratMode}${lp.lockedBands ? ' • ' + lp.lockedBands : ''}${lp.lockedPci ? ' • PCI ' + lp.lockedPci : ''}` : 'AUTO (Unlocked)') : '--';
+      const macDisp = devInfo.macAddress ? (devInfo.btMac ? `${devInfo.macAddress} • BT: ${devInfo.btMac}` : devInfo.macAddress) : '--';
+      const wifiTrans = [devInfo.wifiSsid || hw.wifiSsid, devInfo.networkTransport].filter(Boolean).join(' • ');
       netEl.innerHTML = d ? [
-        renderInfoRow('Carrier', d.carrier || '--'),
+        renderInfoRow('Carrier (Active / SIM 1)', devInfo.sim1Carrier || d.carrier || '--'),
+        renderInfoRow('SIM 1 Number', devInfo.sim1Number || '--'),
+        renderInfoRow('SIM 1 IMSI', idBlocked ? 'Not Allowed (Basic User)' : (devInfo.imsi1 || '--')),
+        renderInfoRow('SIM 1 ICCID', devInfo.iccid1 || d.iccid || '--'),
+        renderInfoRow('SIM 2 Carrier', devInfo.sim2Carrier || '--'),
+        renderInfoRow('SIM 2 Number', devInfo.sim2Number || '--'),
+        renderInfoRow('SIM 2 IMSI', idBlocked ? 'Not Allowed (Basic User)' : (devInfo.imsi2 || '--')),
+        renderInfoRow('SIM 2 ICCID', devInfo.iccid2 || '--'),
+        renderInfoRow('IP Address', devInfo.ipAddress || hw.wifiIp || '--'),
+        renderInfoRow('MAC / BT Address', macDisp),
+        renderInfoRow('Wi-Fi SSID / Transport', wifiTrans || '--'),
         renderInfoRow('SIM State', d.simState || '--'),
         renderInfoRow('SIM Operator', d.simOperator || '--'),
-        renderInfoRow('ICCID', d.iccid || '--'),
         renderInfoRow('Network State', d.networkState || d.networkType || '--'),
         renderInfoRow('Telecom RF Mode', tc ? `${tc.activeMode || '--'} (${tc.primaryDbm || '--'})` : '--'),
         renderInfoRow('Area Codes (TAC / LAC)', tc ? `TAC: ${tc.activeTac || (tc.lte4g && tc.lte4g.tac) || (tc.nr5g && tc.nr5g.tac) || '--'} • LAC: ${tc.activeLac || '--'}` : '--'),
