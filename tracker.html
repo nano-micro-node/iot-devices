@@ -4135,6 +4135,8 @@
                 <div style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
                   <span class="badge-mini warning" id="pillRootProvAdmin">Admin: --</span>
                   <span class="badge-mini warning" id="pillRootProvOwner">Device Owner: --</span>
+                  <span class="badge-mini info" id="pillRootPrivApp">Priv-App: --</span>
+                  <span class="badge-mini warning" id="pillRootExtOwner" style="display:none;">Coexisting DO: --</span>
                   <span class="badge-mini info" id="pillRootProvReadiness">Accounts: Not Loaded</span>
                 </div>
               </div>
@@ -4142,6 +4144,9 @@
               <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="activateDeviceAdminViaRootCommand()"><i class="bi bi-shield-check"></i> Activate Admin (Root)</button>
                 <button type="button" class="btn-ctrl btn-primary compact" onclick="activateDeviceOwnerViaRootCommand()"><i class="bi bi-shield-plus"></i> Set Device Owner (Root)</button>
+                <button type="button" class="btn-ctrl btn-success compact" onclick="elevatePrivAppViaRootCommand()"><i class="bi bi-layers-fill"></i> Elevate Priv-App (Root)</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="checkPrivAppStatusCommand()"><i class="bi bi-patch-check"></i> Verify Priv-App Flags</button>
+                <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="removePrivAppViaRootCommand()"><i class="bi bi-x-circle"></i> Remove Priv-App</button>
                 <button type="button" class="btn-ctrl btn-secondary compact" onclick="fetchDeviceAccountsCommand()"><i class="bi bi-person-lines-fill"></i> Load Accounts</button>
                 <button type="button" class="btn-ctrl btn-warning compact" onclick="removeFilteredAccountsCommand('GOOGLE')"><i class="bi bi-google"></i> Remove Google Accounts</button>
                 <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="removeFilteredAccountsCommand('ALL')"><i class="bi bi-person-x-fill"></i> Remove All Accounts</button>
@@ -4149,6 +4154,7 @@
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="switchRailPage('terminal')"><i class="bi bi-terminal"></i> Root Terminal</button>
               </div>
 
+              <div id="rootPrivAppSummaryLine" style="display:none; font-size:0.66rem; padding:6px 8px; border-radius:6px; margin-bottom:8px; background:#0b131d; border:1px solid rgba(168,85,247,0.32); color:#cbd5e1; font-family:monospace; word-break:break-word;"></div>
               <div id="rootProvResultBanner" style="display:none; font-size:0.7rem; padding:7px 9px; border-radius:7px; margin-bottom:8px; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.3); color:#e2e8f0; white-space:pre-wrap; word-break:break-word;"></div>
 
               <div class="mdm-table-scroll" style="max-height:170px; margin-bottom:6px;">
@@ -5055,6 +5061,8 @@
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
                 <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="activateDeviceAdminViaRootCommand()"><i class="bi bi-shield-check"></i> Activate Admin (Root)</button>
                 <button type="button" class="btn-ctrl btn-primary compact" data-cap="ROOT" onclick="activateDeviceOwnerViaRootCommand()"><i class="bi bi-shield-plus"></i> Set Device Owner (Root)</button>
+                <button type="button" class="btn-ctrl btn-success compact" data-cap="ROOT" onclick="elevatePrivAppViaRootCommand()"><i class="bi bi-layers-fill"></i> Elevate Priv-App</button>
+                <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="checkPrivAppStatusCommand()"><i class="bi bi-patch-check"></i> Verify Priv-App</button>
                 <button type="button" class="btn-ctrl btn-warning compact" data-cap="ROOT" onclick="removeFilteredAccountsCommand('GOOGLE')"><i class="bi bi-google"></i> Remove Google Accts</button>
                 <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="openRootAccountsManager()"><i class="bi bi-person-lines-fill"></i> Manage Accounts</button>
                 <button type="button" class="btn-ctrl btn-success compact" data-cap="DPC" onclick="dispatchCentralCommand('APPLY_POLICIES', {}, true)"><i class="bi bi-shield-lock"></i> Enforce DPC</button>
@@ -6573,6 +6581,12 @@
             <button type="button" class="btn-action" style="background:rgba(52,211,153,0.15); border-color:#34d399; color:#34d399;" onclick="activateDeviceAdminViaRootCommand()">
               <i class="bi bi-shield-check"></i> Activate Device Admin (Root)
             </button>
+            <button type="button" class="btn-action" style="background:rgba(168,85,247,0.18); border-color:#a855f7; color:#d8b4fe; font-weight:700;" onclick="elevatePrivAppViaRootCommand()">
+              <i class="bi bi-layers-fill"></i> Elevate Priv-App (Keep Existing DO)
+            </button>
+            <button type="button" class="btn-action" style="background:rgba(56,189,248,0.12); border-color:#38bdf8; color:#38bdf8;" onclick="checkPrivAppStatusCommand()">
+              <i class="bi bi-patch-check"></i> Verify Priv-App Flags
+            </button>
             <button type="button" class="btn-action" style="background:rgba(245,158,11,0.15); border-color:#f59e0b; color:#fbbf24;" onclick="closeGpsSettings(); openRootAccountsManager();">
               <i class="bi bi-person-lines-fill"></i> Manage / Remove Google Accounts
             </button>
@@ -6613,8 +6627,8 @@
           <pre style="background:#111b21; padding:8px; border-radius:6px; color:#34d399; font-size:0.65rem; overflow-x:auto; margin-bottom:6px;">
 {
   "android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.simtool/.CompanyDeviceAdminReceiver",
-  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "http://172.18.164.204:8080/simtool.apk",
-  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "aUpPc9h9UUDcHDrLa93ipb03GiSpTb8qdLnG2H3hRJk",
+  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "http://172.18.161.174:8080/simtool.apk",
+  "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_CHECKSUM": "WBD2oMB6p3bTPSUMGIqLB3AWo-RZPcH_8KRDvXiSXhQ",
   "android.app.extra.PROVISIONING_LEAVE_ALL_SYSTEM_APPS_ENABLED": true,
   "android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE": {
     "mqtt_host": "mqtt.teleson.in",
@@ -6626,13 +6640,13 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.0.0)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.0.2)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.0.0.apk" target="_blank" download="simtool_5.0.0.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-download"></i> Download simtool_5.0.0.apk (v5.0.0 Release)
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.0.2.apk" target="_blank" download="simtool_5.0.2.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_5.0.2.apk (v5.0.2 Release)
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
@@ -8117,9 +8131,9 @@
         modeBadge.className = 'badge-mini info';
         modeBadge.textContent = '--';
       } else {
-        const opMode = d.operationMode || (d.isDeviceOwner && d.isRooted ? 'ROOT_HYBRID' : (d.isDeviceOwner ? 'NON_ROOT_DPC' : (d.isRooted ? 'ROOT_ONLY' : 'ADMIN')));
-        modeBadge.className = `badge-mini ${opMode === 'ROOT_HYBRID' ? 'purple' : (opMode === 'NON_ROOT_DPC' ? 'success' : (opMode === 'ROOT_ONLY' ? 'warning' : 'info'))}`;
-        modeBadge.textContent = opMode === 'ROOT_HYBRID' ? 'HYBRID' : (opMode === 'NON_ROOT_DPC' ? 'DPC' : (opMode === 'ROOT_ONLY' ? 'ROOT' : 'ADMIN'));
+        const opMode = d.operationMode || (d.isDeviceOwner && d.isRooted ? 'ROOT_HYBRID' : (d.isDeviceOwner ? 'NON_ROOT_DPC' : (d.isRooted && d.isSystemPrivApp ? 'ROOT_PRIV_APP' : (d.isRooted ? 'ROOT_ONLY' : (d.isSystemPrivApp ? 'PRIV_APP' : 'ADMIN')))));
+        modeBadge.className = `badge-mini ${(opMode === 'ROOT_HYBRID' || opMode === 'ROOT_PRIV_APP') ? 'purple' : (opMode === 'NON_ROOT_DPC' ? 'success' : (opMode === 'ROOT_ONLY' ? 'warning' : 'info'))}`;
+        modeBadge.textContent = opMode === 'ROOT_HYBRID' ? 'HYBRID' : (opMode === 'ROOT_PRIV_APP' ? 'PRIV-APP' : (opMode === 'PRIV_APP' ? 'PRIV' : (opMode === 'NON_ROOT_DPC' ? 'DPC' : (opMode === 'ROOT_ONLY' ? 'ROOT' : 'ADMIN'))));
       }
     }
 
@@ -8414,16 +8428,20 @@
         : (appMode === 'ROOT_FULL'
           ? '<span class="badge-mini purple" style="font-size:0.55rem;">&#9889; FULL MODE</span>'
           : '<span class="badge-mini success" style="font-size:0.55rem;">&#128737; COMMON</span>');
-      const opMode = d.operationMode || (d.isDeviceOwner && d.isRooted ? 'ROOT_HYBRID' : (d.isDeviceOwner ? 'NON_ROOT_DPC' : (d.isRooted ? 'ROOT_ONLY' : (d.isDeviceAdmin ? 'STANDARD_ADMIN' : 'NORMAL'))));
+      const opMode = d.operationMode || (d.isDeviceOwner && d.isRooted ? 'ROOT_HYBRID' : (d.isDeviceOwner ? 'NON_ROOT_DPC' : (d.isRooted && d.isSystemPrivApp ? 'ROOT_PRIV_APP' : (d.isRooted ? 'ROOT_ONLY' : (d.isSystemPrivApp ? 'PRIV_APP' : (d.isDeviceAdmin ? 'STANDARD_ADMIN' : 'NORMAL'))))));
       const modeBadge = appModePill + ' ' + (opMode === 'ROOT_HYBRID'
         ? '<span class="badge-mini purple" style="font-size:0.56rem;">DPC</span>'
-        : (opMode === 'NON_ROOT_DPC'
-          ? '<span class="badge-mini info" style="font-size:0.56rem;">DPC</span>'
-          : (opMode === 'ROOT_ONLY'
-            ? '<span class="badge-mini warning" style="font-size:0.56rem;">ROOT</span>'
-            : ((opMode === 'DEVICE_ADMIN' || opMode === 'STANDARD_ADMIN' || d.isDeviceAdmin)
-              ? '<span class="badge-mini info" style="font-size:0.56rem;">ADMIN</span>'
-              : '<span class="badge-mini info" style="font-size:0.56rem; opacity:0.8;">NORMAL</span>'))));
+        : (opMode === 'ROOT_PRIV_APP'
+          ? '<span class="badge-mini purple" style="font-size:0.56rem;">PRIV</span>'
+          : (opMode === 'PRIV_APP'
+            ? '<span class="badge-mini info" style="font-size:0.56rem;">PRIV</span>'
+            : (opMode === 'NON_ROOT_DPC'
+              ? '<span class="badge-mini info" style="font-size:0.56rem;">DPC</span>'
+              : (opMode === 'ROOT_ONLY'
+                ? '<span class="badge-mini warning" style="font-size:0.56rem;">ROOT</span>'
+                : ((opMode === 'DEVICE_ADMIN' || opMode === 'STANDARD_ADMIN' || d.isDeviceAdmin)
+                  ? '<span class="badge-mini info" style="font-size:0.56rem;">ADMIN</span>'
+                  : '<span class="badge-mini info" style="font-size:0.56rem; opacity:0.8;">NORMAL</span>'))))));
 
       const intervalSec = (d.intervalSeconds !== undefined) ? d.intervalSeconds : 60;
       const streamBadge = intervalSec === 0
@@ -8630,12 +8648,13 @@
     }
 
     // Mode 2: COMMON (Basic + Admin / DRM DPC Controls & Features)
-    const rightsTxt = isDpc ? 'DPC / DRM Active' : (isAdmin ? 'Device Admin Active' : 'Basic App');
+    const isPrivApp = !!(dev && (dev.isSystemPrivApp || (dev.privAppStatus && (dev.privAppStatus.isSystemPrivApp || dev.privAppStatus.dumpsysPrivilegedFlag))));
+    const rightsTxt = isDpc ? 'DPC / DRM Active' : (isPrivApp ? (isAdmin ? 'Priv-App + Admin' : 'System Priv-App') : (isAdmin ? 'Device Admin Active' : 'Basic App'));
     return {
-      tier: isDpc ? 'DPC' : (isAdmin ? 'ADMIN' : 'NORMAL'),
+      tier: isDpc ? 'DPC' : (isPrivApp ? 'PRIV_APP' : (isAdmin ? 'ADMIN' : 'NORMAL')),
       appMode: 'COMMON',
-      isRoot: isRoot, isDpc: isDpc, isAdmin: isAdmin, canWriteSettings: canWriteSettings, sdkInt: sdkInt,
-      badgeClass: isDpc ? 'success' : 'info',
+      isRoot: isRoot, isDpc: isDpc, isAdmin: isAdmin, isPrivApp: isPrivApp, canWriteSettings: canWriteSettings || isPrivApp, sdkInt: sdkInt,
+      badgeClass: (isDpc || isPrivApp) ? 'success' : 'info',
       badgeText: `MODE 2: COMMON (${rightsTxt})`,
       summary: `Common Mode active (${rightsTxt}): showing Basic monitoring, Calls/SMS & Admin/DRM controls; Root-only tools hidden.`
     };
@@ -9687,10 +9706,18 @@
     if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
     if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
     if (data.isRooted !== undefined) dev.isRooted = !!data.isRooted;
+    if (data.isSystemApp !== undefined) dev.isSystemApp = !!data.isSystemApp;
+    if (data.isSystemPrivApp !== undefined) dev.isSystemPrivApp = !!data.isSystemPrivApp;
+    if (data.externalDeviceOwnerPackage !== undefined) dev.externalDeviceOwnerPackage = data.externalDeviceOwnerPackage;
+    if (data.privAppStatus) dev.privAppStatus = Object.assign({}, dev.privAppStatus || {}, data.privAppStatus);
     if (data.appMode) dev.appMode = data.appMode;
     else if (data.features && data.features.appMode) dev.appMode = data.features.appMode;
     if (data.operationMode) dev.operationMode = data.operationMode;
-    if (data.mdm) dev.mdm = Object.assign({}, dev.mdm || {}, data.mdm);
+    if (data.mdm) {
+      dev.mdm = Object.assign({}, dev.mdm || {}, data.mdm);
+      if (data.mdm.isSystemPrivApp !== undefined) dev.isSystemPrivApp = !!data.mdm.isSystemPrivApp;
+      if (data.mdm.externalDeviceOwnerPackage !== undefined) dev.externalDeviceOwnerPackage = data.mdm.externalDeviceOwnerPackage;
+    }
     if (data.features) dev.features = Object.assign({}, dev.features || {}, data.features);
     if (data.powerOffSafety) dev.powerOffSafety = Object.assign({}, dev.powerOffSafety || {}, data.powerOffSafety);
     if (data.offlineQueueSize !== undefined) dev.offlineQueueSize = Number(data.offlineQueueSize);
@@ -9840,7 +9867,7 @@
   }
 
   function handleStatusMessage(imei, data) {
-    if (data.isDeviceOwner !== undefined || data.uninstallBlocked !== undefined || data.isDeviceAdmin !== undefined || data.isRooted !== undefined || data.operationMode !== undefined || data.appMode !== undefined) {
+    if (data.isDeviceOwner !== undefined || data.uninstallBlocked !== undefined || data.isDeviceAdmin !== undefined || data.isRooted !== undefined || data.isSystemPrivApp !== undefined || data.operationMode !== undefined || data.appMode !== undefined) {
       handleConfigMessage(imei, data);
       if (data.status === undefined && data.online === undefined) {
         return;
@@ -10011,10 +10038,21 @@
       if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
       else if (isSuccess) dev.isDeviceAdmin = true;
       if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
+      if (data.isSystemPrivApp !== undefined) dev.isSystemPrivApp = !!data.isSystemPrivApp;
+      if (data.externalDeviceOwnerPackage !== undefined) dev.externalDeviceOwnerPackage = data.externalDeviceOwnerPackage;
       if (data.operationMode) dev.operationMode = data.operationMode;
       if (!dev.mdm) dev.mdm = {};
       dev.mdm.isDeviceAdmin = !!dev.isDeviceAdmin;
       if (dev.isDeviceOwner !== undefined) dev.mdm.isDeviceOwner = !!dev.isDeviceOwner;
+    } else if (action === 'ELEVATE_PRIV_APP_ROOT' || action === 'ELEVATE_SYSTEM_PRIV_APP' || action === 'INSTALL_PRIV_APP_MODULE'
+        || action === 'REMOVE_PRIV_APP_ROOT' || action === 'REMOVE_SYSTEM_PRIV_APP' || action === 'UNINSTALL_PRIV_APP_MODULE'
+        || action === 'GET_PRIV_APP_STATUS' || action === 'CHECK_PRIV_APP_STATUS' || action === 'VERIFY_PRIV_APP') {
+      if (data.privAppStatus) dev.privAppStatus = Object.assign({}, dev.privAppStatus || {}, data.privAppStatus);
+      if (data.isSystemPrivApp !== undefined) dev.isSystemPrivApp = !!data.isSystemPrivApp;
+      if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
+      if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
+      if (data.externalDeviceOwnerPackage !== undefined) dev.externalDeviceOwnerPackage = data.externalDeviceOwnerPackage;
+      if (data.operationMode) dev.operationMode = data.operationMode;
     } else if (action === 'ROOT_EXEC') {
       if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
       if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
@@ -10360,6 +10398,22 @@
           stderr: [data.stderr, data.hint].filter(Boolean).join('\n')
         });
       }
+    } else if (action === 'ELEVATE_PRIV_APP_ROOT' || action === 'ELEVATE_SYSTEM_PRIV_APP' || action === 'INSTALL_PRIV_APP_MODULE'
+        || action === 'REMOVE_PRIV_APP_ROOT' || action === 'REMOVE_SYSTEM_PRIV_APP' || action === 'UNINSTALL_PRIV_APP_MODULE'
+        || action === 'GET_PRIV_APP_STATUS' || action === 'CHECK_PRIV_APP_STATUS' || action === 'VERIFY_PRIV_APP') {
+      const ps = data.privAppStatus || {};
+      const lines = [];
+      if (data.message) lines.push((isSuccess ? '✓ ' : '✕ ') + data.message);
+      if (ps.dumpsysFlagsSummary) lines.push('dumpsys: ' + ps.dumpsysFlagsSummary);
+      if (ps.activeApkPath) lines.push('APK: ' + ps.activeApkPath);
+      if (data.externalDeviceOwnerPackage) lines.push('Coexisting Device Owner preserved: ' + data.externalDeviceOwnerPackage);
+      rootProvBannerState[imei] = {
+        ok: isSuccess && !data.rebootRequired,
+        warn: !!data.rebootRequired,
+        text: lines.join('\n') || msg || status,
+        rebootRequired: !!data.rebootRequired
+      };
+      if (imei === currentTargetImei) renderRootProvisioningCard();
     } else if (action === 'GET_DEVICE_ACCOUNTS' || action === 'REMOVE_DEVICE_ACCOUNT' || action === 'REMOVE_GOOGLE_ACCOUNTS' || action === 'REMOVE_ALL_ACCOUNTS' || action === 'REMOVE_DEVICE_ACCOUNTS' || action === 'REMOVE_DEVICE_USER') {
       if (Array.isArray(data.accounts) || Array.isArray(data.users)) {
         cachedDeviceAccounts[imei] = {
@@ -12837,6 +12891,35 @@
     logTerminal('cmd', '[ROOT DPM] Executing dpm set-device-owner com.simtool/.CompanyDeviceAdminReceiver');
   }
 
+  function elevatePrivAppViaRootCommand() {
+    if (!ensureRootTargetDeviceCheck()) return;
+    const isGroup = (typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0);
+    const scopeTxt = isGroup ? `${selectedFleetDevices.size} selected device(s)` : `device ${currentTargetImei}`;
+    if (!confirm(`Elevate com.simtool to /system/priv-app via Magisk/KernelSU module on ${scopeTxt}?\n\n• Preserves existing Device Owner (e.g. com.temslicence)\n• Grants privileged telephony/SIM/settings permissions\n• Device reboot required afterward`)) {
+      return;
+    }
+    dispatchTargetOrGroupCommand('ELEVATE_PRIV_APP_ROOT', { requestId: 'priv_elev_' + Date.now() });
+    logTerminal('cmd', '[ROOT PRIV-APP] Installing Magisk systemless /system/priv-app module...');
+  }
+
+  function removePrivAppViaRootCommand() {
+    if (!ensureRootTargetDeviceCheck()) return;
+    if (!confirm('Remove /data/adb/modules/simtool_privapp (or legacy /system/priv-app files)? Requires device reboot.')) {
+      return;
+    }
+    dispatchTargetOrGroupCommand('REMOVE_PRIV_APP_ROOT', { requestId: 'priv_rm_' + Date.now() });
+    logTerminal('cmd', '[ROOT PRIV-APP] Staging /system/priv-app module removal...');
+  }
+
+  function checkPrivAppStatusCommand() {
+    if (!currentTargetImei) {
+      alert('Select a target device first.');
+      return;
+    }
+    publishRemoteCommand('GET_PRIV_APP_STATUS', { requestId: 'priv_st_' + Date.now() });
+    logTerminal('cmd', '[ROOT PRIV-APP] Querying dumpsys package com.simtool & priv-app permissions...');
+  }
+
   function fetchDeviceAccountsCommand() {
     if (!currentTargetImei) {
       alert('Select a target rooted device first.');
@@ -12938,6 +13021,9 @@
     const dev = currentTargetImei ? devicesFleet[currentTargetImei] : null;
     const adminPill = document.getElementById('pillRootProvAdmin');
     const ownerPill = document.getElementById('pillRootProvOwner');
+    const privAppPill = document.getElementById('pillRootPrivApp');
+    const extOwnerPill = document.getElementById('pillRootExtOwner');
+    const privSummaryEl = document.getElementById('rootPrivAppSummaryLine');
     const readyPill = document.getElementById('pillRootProvReadiness');
     const bannerEl = document.getElementById('rootProvResultBanner');
     const softBtn = document.getElementById('btnRootProvSoftReboot');
@@ -12953,6 +13039,36 @@
       const isOwn = !!(dev && dev.isDeviceOwner);
       ownerPill.className = `badge-mini ${isOwn ? 'success' : 'warning'}`;
       ownerPill.textContent = isOwn ? 'Device Owner: ACTIVE' : 'Device Owner: PENDING';
+    }
+    const ps = (dev && dev.privAppStatus) ? dev.privAppStatus : null;
+    if (privAppPill) {
+      const isPriv = !!(dev && (dev.isSystemPrivApp || (ps && (ps.isSystemPrivApp || ps.dumpsysPrivilegedFlag))));
+      const pendingReboot = !!(ps && ps.rebootRequired);
+      privAppPill.className = `badge-mini ${isPriv ? 'success' : (pendingReboot ? 'warning' : 'info')}`;
+      privAppPill.textContent = isPriv ? 'Priv-App: SYSTEM PRIVILEGED' : (pendingReboot ? 'Priv-App: REBOOT NEEDED' : 'Priv-App: Standard');
+    }
+    const extOwnerPkg = (dev && (dev.externalDeviceOwnerPackage || (dev.mdm && dev.mdm.externalDeviceOwnerPackage))) || '';
+    if (extOwnerPill) {
+      if (extOwnerPkg) {
+        extOwnerPill.style.display = 'inline-flex';
+        extOwnerPill.className = 'badge-mini warning';
+        extOwnerPill.textContent = `Coexisting DO: ${extOwnerPkg}`;
+      } else {
+        extOwnerPill.style.display = 'none';
+      }
+    }
+    if (privSummaryEl) {
+      if (ps || (dev && dev.isSystemPrivApp !== undefined)) {
+        const perms = (ps && ps.permissions) ? ps.permissions : {};
+        const bits = [];
+        if (ps && ps.activeApkPath) bits.push(`APK: ${ps.activeApkPath}`);
+        if (ps && ps.dumpsysFlagsSummary) bits.push(`dumpsys: ${ps.dumpsysFlagsSummary}`);
+        bits.push(`Perms[READ_PRIV_PHONE=${perms.READ_PRIVILEGED_PHONE_STATE ? 'YES' : 'NO'}, MODIFY_PHONE=${perms.MODIFY_PHONE_STATE ? 'YES' : 'NO'}, WRITE_SECURE=${perms.WRITE_SECURE_SETTINGS ? 'YES' : 'NO'}]`);
+        privSummaryEl.style.display = 'block';
+        privSummaryEl.textContent = bits.join(' | ');
+      } else {
+        privSummaryEl.style.display = 'none';
+      }
     }
 
     const inv = currentTargetImei ? cachedDeviceAccounts[currentTargetImei] : null;
@@ -13852,13 +13968,19 @@
     const sdkTag = document.getElementById('badgeMdmSdkTag');
     const guardBanner = document.getElementById('rootModeGuardBanner');
 
-    const opMode = dev.operationMode || (dev.isDeviceOwner && dev.isRooted ? 'ROOT_HYBRID' : (dev.isDeviceOwner ? 'NON_ROOT_DPC' : (dev.isRooted ? 'ROOT_ONLY' : 'STANDARD_ADMIN')));
+    const opMode = dev.operationMode || (dev.isDeviceOwner && dev.isRooted ? 'ROOT_HYBRID' : (dev.isDeviceOwner ? 'NON_ROOT_DPC' : (dev.isRooted && dev.isSystemPrivApp ? 'ROOT_PRIV_APP' : (dev.isRooted ? 'ROOT_ONLY' : (dev.isSystemPrivApp ? 'PRIV_APP' : 'STANDARD_ADMIN')))));
     const isRoot = !!dev.isRooted;
 
     if (modeEl) {
       if (opMode === 'ROOT_HYBRID') {
         modeEl.textContent = '⚡ ROOT + DEVICE OWNER HYBRID';
         modeEl.className = 'badge-mini purple';
+      } else if (opMode === 'ROOT_PRIV_APP') {
+        modeEl.textContent = '⚡ ROOT + SYSTEM PRIV-APP (COEXISTING DO)';
+        modeEl.className = 'badge-mini purple';
+      } else if (opMode === 'PRIV_APP') {
+        modeEl.textContent = '🛡️ SYSTEM PRIV-APP';
+        modeEl.className = 'badge-mini info';
       } else if (opMode === 'NON_ROOT_DPC') {
         modeEl.textContent = '🛡️ NON-ROOTED DPC';
         modeEl.className = 'badge-mini success';
