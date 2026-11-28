@@ -961,81 +961,91 @@
 
     /* Toast */
     #saveToast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #38bdf8;
-      color: #090d16;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 0.8rem;
+      position: fixed !important;
+      top: 10px !important;
+      right: 10px !important;
+      left: auto !important;
+      bottom: auto !important;
+      transform: none !important;
+      background: #0f172a;
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      padding: 4px 10px;
+      border-radius: 7px;
+      font-size: 0.68rem;
       font-weight: 700;
-      z-index: 3000;
+      z-index: 9650;
       display: none;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
     }
 
-    /* Universal Command Action Result Toasts (Success / Error + Reason) */
+    /* Small & Simple Top-Right Action Status Toast */
     #actionResultToastContainer {
-      position: fixed;
-      top: 58px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: min(440px, calc(100vw - 24px));
+      position: fixed !important;
+      top: 10px !important;
+      right: 10px !important;
+      left: auto !important;
+      bottom: auto !important;
+      transform: none !important;
+      width: auto !important;
+      max-width: min(245px, calc(100vw - 20px)) !important;
       z-index: 9600;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      align-items: flex-end;
+      gap: 4px;
       pointer-events: none;
     }
     .action-result-toast {
       pointer-events: auto;
-      background: rgba(9, 15, 25, 0.97);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      border-left: 4px solid #38bdf8;
-      border-radius: 10px;
-      padding: 9px 12px;
+      width: fit-content;
+      max-width: 100%;
+      background: rgba(11, 17, 29, 0.94);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-left: 3px solid #38bdf8;
+      border-radius: 7px;
+      padding: 5px 8px;
       color: #f8fafc;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(8px);
-      font-size: 0.75rem;
-      line-height: 1.38;
-      animation: actionToastIn 0.18s ease-out;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      font-size: 0.67rem;
+      line-height: 1.25;
+      animation: actionToastIn 0.14s ease-out;
     }
     .action-result-toast.toast-success {
-      border-color: rgba(34, 197, 94, 0.48);
+      border-color: rgba(34, 197, 94, 0.35);
       border-left-color: #22c55e;
     }
     .action-result-toast.toast-warning {
-      border-color: rgba(245, 158, 11, 0.48);
+      border-color: rgba(245, 158, 11, 0.35);
       border-left-color: #f59e0b;
     }
     .action-result-toast.toast-error {
-      border-color: rgba(239, 68, 68, 0.52);
+      border-color: rgba(239, 68, 68, 0.42);
       border-left-color: #ef4444;
     }
     .action-result-toast-hdr {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 3px;
-      font-weight: 800;
-    }
-    .action-result-toast-meta {
+      gap: 6px;
+      font-weight: 700;
       font-size: 0.67rem;
-      color: #94a3b8;
-      margin-bottom: 3px;
+      white-space: nowrap;
     }
     .action-result-toast-body {
-      color: #e2e8f0;
-      font-size: 0.72rem;
+      color: #cbd5e1;
+      font-size: 0.63rem;
+      line-height: 1.25;
+      margin-top: 2px;
       word-break: break-word;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     @keyframes actionToastIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateX(8px); }
+      to { opacity: 1; transform: translateX(0); }
     }
 
     /* Top-Right Live Call & Message Toast Stack (Admin Activated Only) */
@@ -3866,11 +3876,20 @@
         padding: 11px;
       }
       #saveToast {
-        bottom: calc(66px + env(safe-area-inset-bottom, 0px));
-        font-size: 0.74rem;
-        padding: 7px 14px;
-        max-width: calc(100vw - 24px);
-        text-align: center;
+        top: 8px !important;
+        right: 8px !important;
+        left: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        font-size: 0.66rem;
+        padding: 4px 9px;
+      }
+      #actionResultToastContainer {
+        top: 8px !important;
+        right: 8px !important;
+        left: auto !important;
+        transform: none !important;
+        max-width: min(225px, calc(100vw - 16px)) !important;
       }
     }
 
@@ -3933,9 +3952,9 @@
 <body>
 
   <!-- Toast -->
-  <div id="saveToast"><i class="bi bi-check-circle-fill"></i> Settings Saved</div>
+  <div id="saveToast" style="position:fixed; top:10px; right:10px; left:auto; bottom:auto; transform:none;"><i class="bi bi-check-circle-fill"></i> Settings Saved</div>
   <div id="liveCommsToastContainer" aria-live="polite"></div>
-  <div id="actionResultToastContainer" aria-live="assertive"></div>
+  <div id="actionResultToastContainer" aria-live="assertive" style="position:fixed; top:10px; right:10px; left:auto; bottom:auto; transform:none; width:auto; max-width:min(245px, calc(100vw - 20px)); display:flex; flex-direction:column; align-items:flex-end; gap:4px; pointer-events:none; z-index:9600;"></div>
 
   <!-- Top App Header -->
   <header>
@@ -4780,13 +4799,47 @@
               </table>
             </div>
 
+            <div class="mdm-sub-heading" style="margin-top:10px;"><i class="bi bi-eye-slash-fill"></i> Hidden Apps Vault, Access Password &amp; OEM Control (All Devices)</div>
+            <div style="background:#070d14; border:1px solid rgba(56,189,248,0.24); border-radius:9px; padding:10px; margin-bottom:10px;" id="hiddenAppsVaultCard">
+              <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:8px;">
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px;">
+                  <span class="badge-mini warning" id="badgeHideAppsCount">Hidden: 0 Apps</span>
+                  <span class="badge-mini info" id="badgeHideAppsMethod">Method: --</span>
+                  <span class="badge-mini danger" id="badgeHideAppsLockMode">Lock: ADMIN ONLY</span>
+                  <span class="badge-mini purple" id="badgeHideAppsPwdState">Password: Not Set</span>
+                  <span class="badge-mini info" id="badgeHideAppsOem">OEM: Detecting...</span>
+                </div>
+                <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                  <button type="button" class="btn-ctrl btn-outline compact" onclick="fetchHiddenAppsStatusCommand()"><i class="bi bi-arrow-repeat"></i> Sync Vault</button>
+                  <button type="button" class="btn-ctrl btn-outline compact" onclick="openOemHideAppsCommand()"><i class="bi bi-gear-fill"></i> Open OEM Hide Apps</button>
+                </div>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px;">
+                <input type="password" id="inpHideAppsPassword" class="form-control compact" style="flex:1; min-width:160px;" placeholder="Set Hide Apps Access Password...">
+                <input type="text" id="inpHideAppsDialCode" class="form-control compact" style="width:125px;" value="4433" placeholder="Dial Code (4433)">
+                <label style="font-size:0.69rem; color:#cbd5e1; display:flex; align-items:center; gap:4px;" title="When ON, local users cannot open or remove hidden apps even with password; only Admin Dashboard can manage them.">
+                  <input type="checkbox" id="chkHideAppsAdminOnlyLock" checked> Admin Dashboard Only Lock
+                </label>
+                <button type="button" class="btn-ctrl btn-primary compact" onclick="saveHiddenAppsPasswordCommand()"><i class="bi bi-key-fill"></i> Save Access Password</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="toggleHiddenAppsAdminLockCommand()"><i class="bi bi-lock-fill"></i> Apply Lock Mode</button>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px;">
+                <input type="text" id="inpHideAppAddPkg" class="form-control compact" style="flex:1; min-width:180px;" placeholder="Add app package to hide (e.g. com.whatsapp, com.instagram.android)">
+                <button type="button" class="btn-ctrl btn-danger compact" onclick="addHiddenAppCommand()"><i class="bi bi-plus-circle-fill"></i> Add &amp; Hide App</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="unhideAllHiddenAppsCommand()"><i class="bi bi-eye-fill"></i> Remove / Unhide All</button>
+              </div>
+              <div id="hiddenAppsVaultList" style="display:flex; flex-wrap:wrap; gap:6px; font-size:0.69rem; color:#94a3b8;">
+                No hidden apps configured yet.
+              </div>
+            </div>
+
             <div class="mdm-sub-heading" data-cap="DPC_OR_ROOT"><i class="bi bi-box-arrow-in-down"></i> Manual Package Actions &amp; Silent APK Installer (DPC / Root)</div>
-            <div class="control-row" style="margin-bottom:6px;" data-cap="DPC_OR_ROOT">
+            <div class="control-row" style="margin-bottom:6px;">
               <input type="text" id="inpMdmPackage" class="form-control compact" placeholder="Target package (e.g. com.android.chrome)">
               <button class="btn-ctrl btn-outline compact" data-cap="DPC" onclick="suspendAppCommand(true)">Suspend</button>
               <button class="btn-ctrl btn-outline compact" data-cap="DPC" onclick="suspendAppCommand(false)">Resume</button>
-              <button class="btn-ctrl btn-outline compact" data-cap="DPC" onclick="hideAppCommand(true)">Hide</button>
-              <button class="btn-ctrl btn-outline compact" data-cap="DPC" onclick="hideAppCommand(false)">Show</button>
+              <button class="btn-ctrl btn-outline compact" onclick="hideAppCommand(true)">Hide</button>
+              <button class="btn-ctrl btn-outline compact" onclick="hideAppCommand(false)">Show</button>
               <button class="btn-ctrl btn-outline compact" data-cap="DPC" onclick="toggleUserControlPackage(true)">Lock Stop</button>
               <button class="btn-ctrl btn-danger-outline compact" data-cap="ROOT" onclick="rootPackageActionCommand('FORCE_STOP')">Kill</button>
               <button class="btn-ctrl btn-danger-outline compact" data-cap="ROOT" onclick="rootPackageActionCommand('CLEAR_DATA')">Clear</button>
@@ -7225,13 +7278,13 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.2.0)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.3.1)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.2.0.apk" target="_blank" download="simtool_5.2.0.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-download"></i> Download simtool_5.2.0.apk (v5.2.0 Release)
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.3.1.apk" target="_blank" download="simtool_5.3.1.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_5.3.1.apk (v5.3.1 Release)
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
@@ -7242,8 +7295,8 @@
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.json" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(148,163,184,0.14); border:1px solid rgba(148,163,184,0.35); color: #e2e8f0; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-archive"></i> simtool.json
             </a>
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_magisk_privapp_5.2.0.zip" target="_blank" download="simtool_magisk_privapp_5.2.0.zip" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.16); border:1px solid rgba(168,85,247,0.45); color: #d8b4fe; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-file-earmark-zip"></i> simtool_magisk_privapp_5.2.0.zip
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_magisk_privapp_5.3.1.zip" target="_blank" download="simtool_magisk_privapp_5.3.1.zip" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.16); border:1px solid rgba(168,85,247,0.45); color: #d8b4fe; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-file-earmark-zip"></i> simtool_magisk_privapp_5.3.1.zip
             </a>
           </div>
         </div>
@@ -11546,6 +11599,7 @@
     if (data.offlineQueueSize !== undefined) dev.offlineQueueSize = Number(data.offlineQueueSize);
     if (data.taskEngine && typeof data.taskEngine === 'object') dev.taskEngine = Object.assign({}, data.taskEngine);
     if (data.mqttEngine && typeof data.mqttEngine === 'object') dev.mqttEngine = Object.assign({}, data.mqttEngine);
+    if (data.hiddenAppsVault && typeof data.hiddenAppsVault === 'object') dev.hiddenAppsVault = Object.assign({}, data.hiddenAppsVault);
     if (data.hardware) dev.hardware = Object.assign({}, dev.hardware, data.hardware);
     if (data.telecom) dev.telecom = data.telecom;
     if (Array.isArray(data.blockedFirewallUids)) dev.blockedFirewallUids = data.blockedFirewallUids;
@@ -11576,6 +11630,7 @@
     if (data.buildNumber !== undefined) dev.buildNumber = Number(data.buildNumber);
     if (data.canSilentUpdate !== undefined) dev.canSilentUpdate = !!data.canSilentUpdate;
     if (data.canDowngradeNative !== undefined) dev.canDowngradeNative = !!data.canDowngradeNative;
+    if (data.otaUpdateMethod) dev.otaUpdateMethod = data.otaUpdateMethod;
     if (data.otaManifestUrl) dev.otaManifestUrl = data.otaManifestUrl;
     if (data.otaAvailableVersionCode !== undefined) dev.otaAvailableVersionCode = Number(data.otaAvailableVersionCode);
     if (data.otaAvailableVersionName !== undefined) dev.otaAvailableVersionName = data.otaAvailableVersionName;
@@ -11854,6 +11909,8 @@
       if (data.currentVersionCode !== undefined) dev.buildNumber = Number(data.currentVersionCode);
       if (data.canSilentUpdate !== undefined) dev.canSilentUpdate = !!data.canSilentUpdate;
       if (data.canDowngradeNative !== undefined) dev.canDowngradeNative = !!data.canDowngradeNative;
+      if (data.otaUpdateMethod) dev.otaUpdateMethod = data.otaUpdateMethod;
+      if (data.lastRootOtaLog !== undefined) dev.lastRootOtaLog = data.lastRootOtaLog;
       if (data.availableVersionCode !== undefined) dev.otaAvailableVersionCode = Number(data.availableVersionCode);
       if (data.availableVersionName !== undefined) dev.otaAvailableVersionName = data.availableVersionName;
       if (data.apkUrl) dev.otaAvailableApkUrl = data.apkUrl;
@@ -11866,6 +11923,11 @@
     } else if (action === 'OTA_UPDATE_NOW' || action === 'SELF_UPDATE' || action === 'UPGRADE_APP' || action === 'DOWNGRADE_APP' || action === 'ROLLBACK_APP') {
       if (data.appVersion) dev.appVersion = data.appVersion;
       if (data.buildNumber !== undefined) dev.buildNumber = Number(data.buildNumber);
+      if (isSuccess) {
+        dev.otaLastError = '';
+      } else if (data.error || data.message) {
+        dev.otaLastError = String(data.error || data.message);
+      }
       if (typeof renderVersionControlPanel === 'function') renderVersionControlPanel();
     } else if ((action === 'CLEAR_DEVICE_OWNER' || action === 'RELEASE_DEVICE_OWNER' || action === 'UNPROVISION_DPC') && isSuccess) {
       dev.isDeviceOwner = false;
@@ -12150,10 +12212,25 @@
     } else if (action === 'HIDE_PACKAGE' && isSuccess) {
       const hPkg = data.package || '';
       const hVal = data.hidden !== undefined ? !!data.hidden : String(msg).includes('_HIDDEN');
+      if (Array.isArray(data.hiddenApps) || data.hiddenCount !== undefined) {
+        dev.hiddenAppsVault = Object.assign({}, dev.hiddenAppsVault || {}, data);
+      }
       if (hPkg && Array.isArray(cachedInstalledApps)) {
         const hit = cachedInstalledApps.find(a => a.packageName === hPkg);
         if (hit) { hit.hidden = hVal; if (dev.imei === currentTargetImei && typeof renderInstalledAppsTable === 'function') renderInstalledAppsTable(); }
       }
+      if (dev.imei === currentTargetImei && typeof renderHiddenAppsVaultCard === 'function') renderHiddenAppsVaultCard();
+    } else if (action === 'GET_HIDDEN_APPS_STATUS' || action === 'HIDE_APPS_ADD' || action === 'HIDE_APPS_REMOVE'
+        || action === 'SET_HIDE_APPS_PASSWORD' || action === 'SET_HIDE_APPS_LOCK_MODE' || action === 'OPEN_OEM_HIDE_APPS') {
+      if (Array.isArray(data.hiddenApps) || data.hiddenCount !== undefined || data.oemHideApps) {
+        dev.hiddenAppsVault = Object.assign({}, dev.hiddenAppsVault || {}, data);
+      }
+      if (Array.isArray(cachedInstalledApps) && Array.isArray(data.hiddenApps)) {
+        const hSet = new Set(data.hiddenApps);
+        cachedInstalledApps.forEach(a => { a.hidden = hSet.has(a.packageName); });
+        if (dev.imei === currentTargetImei && typeof renderInstalledAppsTable === 'function') renderInstalledAppsTable();
+      }
+      if (dev.imei === currentTargetImei && typeof renderHiddenAppsVaultCard === 'function') renderHiddenAppsVaultCard();
     } else if (action === 'ROOT_DISPLAY_AUDIO' && isSuccess) {
       const sub = String(data.subAction || msg || '').toUpperCase();
       if (sub === 'BRIGHTNESS') {
@@ -12989,6 +13066,13 @@
       GET_TASK_QUEUE_STATUS: 'Inspect Task Queue & MQTT Engine',
       GET_MQTT_ENGINE_STATUS: 'Inspect MQTT Async Engine',
       RECONNECT_MQTT: 'Reconnect MQTT Client',
+      GET_HIDDEN_APPS_STATUS: 'Sync Hidden Apps Vault',
+      HIDE_APPS_ADD: 'Add & Hide App(s)',
+      HIDE_APPS_REMOVE: 'Remove / Unhide App(s)',
+      SET_HIDE_APPS_PASSWORD: 'Set Hide Apps Access Password',
+      SET_HIDE_APPS_LOCK_MODE: 'Update Hidden Apps Lock Mode',
+      OPEN_OEM_HIDE_APPS: 'Open OEM Hide Apps Settings',
+      HIDE_PACKAGE: 'Hide / Show Application',
       LOCK: 'Lock Device Screen',
       WIPE: 'Emergency Remote Wipe',
       TRIGGER_ALARM: 'Trigger Anti-Theft Siren',
@@ -13045,7 +13129,7 @@
   function showActionResultToast(opts) {
     const container = document.getElementById('actionResultToastContainer');
     if (!container) return;
-    while (container.children.length >= 3) {
+    while (container.children.length >= 2) {
       container.removeChild(container.lastChild);
     }
     actionToastSeq++;
@@ -13054,29 +13138,31 @@
     const cls = level === 'success' ? 'toast-success' : (level === 'warning' ? 'toast-warning' : 'toast-error');
     const icon = level === 'success' ? 'bi-check-circle-fill' : (level === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-x-octagon-fill');
     const color = level === 'success' ? '#34d399' : (level === 'warning' ? '#fbbf24' : '#f87171');
-    const badgeTxt = opts.category || (level === 'success' ? 'SUCCESS' : (level === 'warning' ? 'WARNING' : 'FAILED'));
+    const statusWord = level === 'success' ? 'OK' : (opts.category || 'FAILED');
 
     const el = document.createElement('div');
     el.id = tid;
     el.className = `action-result-toast ${cls}`;
+    const rawMsg = String(opts.message || '').replace(/^Response:\s*/i, '').trim();
+    const shortMsg = rawMsg.length > 72 ? (rawMsg.slice(0, 69) + '...') : rawMsg;
+    const titleTxt = String(opts.taskName || 'Task').replace(/^(Policy|Feature):\s*/i, '');
     el.innerHTML = `
       <div class="action-result-toast-hdr">
-        <span style="color:${color}; display:flex; align-items:center; gap:6px;">
-          <i class="bi ${icon}"></i>
-          <span>${escapeHtml(badgeTxt)}</span>
-          <span style="color:#f8fafc; font-weight:700;">— ${escapeHtml(opts.taskName || 'Command')}</span>
+        <span style="color:${color}; display:inline-flex; align-items:center; gap:4px; min-width:0; overflow:hidden; text-overflow:ellipsis;">
+          <i class="bi ${icon}" style="flex-shrink:0;"></i>
+          <span style="color:#f8fafc; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(titleTxt)}</span>
+          <span style="font-size:0.61rem; opacity:0.9;">(${escapeHtml(statusWord)})</span>
         </span>
-        <button type="button" onclick="dismissActionResultToast('${tid}')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:0.95rem; line-height:1; padding:0 2px;">&times;</button>
+        <button type="button" onclick="dismissActionResultToast('${tid}')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:0.8rem; line-height:1; padding:0; flex-shrink:0;">&times;</button>
       </div>
-      ${opts.deviceLabel ? `<div class="action-result-toast-meta">Target: ${escapeHtml(opts.deviceLabel)}</div>` : ''}
-      <div class="action-result-toast-body">${escapeHtml(opts.message || '')}</div>
+      ${shortMsg ? `<div class="action-result-toast-body">${escapeHtml(shortMsg)}</div>` : ''}
     `;
     container.insertBefore(el, container.firstChild);
 
-    const ttlMs = level === 'success' ? 4500 : 7500;
+    const ttlMs = level === 'success' ? 2500 : 4500;
     let hideTimer = setTimeout(() => dismissActionResultToast(tid), ttlMs);
     el.addEventListener('mouseenter', () => { if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } });
-    el.addEventListener('mouseleave', () => { hideTimer = setTimeout(() => dismissActionResultToast(tid), 3000); });
+    el.addEventListener('mouseleave', () => { hideTimer = setTimeout(() => dismissActionResultToast(tid), 2200); });
   }
 
   function showActionResultToastForAck(imei, action, status, msg, data, isSuccess) {
@@ -16095,7 +16181,7 @@
           <td style="text-align:right; white-space:nowrap;">
             <button class="btn-ctrl compact btn-outline" onclick="jumpToPackagePerms('${pkg}')" title="Manage Permissions">Perms</button>
             <button class="btn-ctrl compact btn-outline" data-cap="DPC" onclick="publishRemoteCommand('SUSPEND_PACKAGE',{package:'${pkg}',suspended:${!a.suspended}})">${a.suspended ? 'Resume' : 'Suspend'}</button>
-            <button class="btn-ctrl compact btn-outline" data-cap="DPC" onclick="publishRemoteCommand('HIDE_PACKAGE',{package:'${pkg}',hidden:${!a.hidden}})">${a.hidden ? 'Show' : 'Hide'}</button>
+            <button class="btn-ctrl compact ${a.hidden ? 'btn-success' : 'btn-outline'}" onclick="publishRemoteCommand('${a.hidden ? 'HIDE_APPS_REMOVE' : 'HIDE_APPS_ADD'}',{package:'${pkg}'})">${a.hidden ? 'Show / Remove' : 'Hide App'}</button>
             <button class="btn-ctrl compact btn-outline" data-cap="DPC" onclick="publishRemoteCommand('${a.uninstallBlocked ? 'UNBLOCK_UNINSTALL' : 'BLOCK_UNINSTALL'}',{package:'${pkg}'})">${a.uninstallBlocked ? 'AllowUninst' : 'LockUninst'}</button>
             <button class="btn-ctrl compact btn-danger" data-cap="ROOT" onclick="publishRemoteCommand('ROOT_FIREWALL',{package:'${pkg}',uid:${a.uid},blocked:${!fwBlocked}})">${fwBlocked ? 'AllowNet' : 'BlockNet'}</button>
             <button class="btn-ctrl compact btn-danger" data-cap="ROOT" onclick="publishRemoteCommand('ROOT_PACKAGE_ACTION',{type:'FORCE_STOP',package:'${pkg}'})">Kill</button>
@@ -16134,7 +16220,116 @@
   function hideAppCommand(hide) {
     const pkg = document.getElementById('inpMdmPackage').value.trim();
     if (!pkg) return alert('Please enter a target package name.');
-    publishRemoteCommand('HIDE_PACKAGE', { package: pkg, hidden: hide });
+    publishRemoteCommand(hide ? 'HIDE_APPS_ADD' : 'HIDE_APPS_REMOVE', { package: pkg });
+  }
+
+  function renderHiddenAppsVaultCard() {
+    const dev = devicesFleet[currentTargetImei] || {};
+    const v = dev.hiddenAppsVault || {};
+    const listEl = document.getElementById('hiddenAppsVaultList');
+    const bCount = document.getElementById('badgeHideAppsCount');
+    const bMethod = document.getElementById('badgeHideAppsMethod');
+    const bLock = document.getElementById('badgeHideAppsLockMode');
+    const bPwd = document.getElementById('badgeHideAppsPwdState');
+    const bOem = document.getElementById('badgeHideAppsOem');
+    const chkAdminOnly = document.getElementById('chkHideAppsAdminOnlyLock');
+    const inpDial = document.getElementById('inpHideAppsDialCode');
+
+    const details = Array.isArray(v.hiddenAppDetails) ? v.hiddenAppDetails
+      : (Array.isArray(v.hiddenApps) ? v.hiddenApps.map(p => ({ packageName: p, label: p })) : []);
+    if (bCount) bCount.textContent = `Hidden: ${details.length} App${details.length === 1 ? '' : 's'}`;
+    if (bMethod) bMethod.textContent = `Method: ${v.hideMethod || (dev.isDeviceOwner ? 'DPC_OS_HIDE' : (dev.isRooted ? 'ROOT_PM_HIDE' : 'A11Y_VAULT_LOCK'))}`;
+    const adminLock = v.adminOnlyLock !== false;
+    if (bLock) {
+      bLock.className = `badge-mini ${adminLock ? 'danger' : 'warning'}`;
+      bLock.textContent = adminLock ? 'Lock: ADMIN ONLY' : 'Lock: VAULT PIN UNLOCKABLE';
+    }
+    if (bPwd) {
+      bPwd.className = `badge-mini ${v.passwordSet ? 'success' : 'warning'}`;
+      bPwd.textContent = v.passwordSet
+        ? `Password Set (*#*#${v.dialCode || '4433'}#*#*)`
+        : 'Password: Not Set';
+    }
+    if (bOem) {
+      const oem = v.oemHideApps || {};
+      bOem.textContent = oem.label ? `OEM: ${oem.label}` : 'OEM: Standard Android';
+    }
+    if (chkAdminOnly && v.adminOnlyLock !== undefined && document.activeElement !== chkAdminOnly) {
+      chkAdminOnly.checked = !!v.adminOnlyLock;
+    }
+    if (inpDial && v.dialCode && document.activeElement !== inpDial) {
+      inpDial.value = v.dialCode;
+    }
+    if (!listEl) return;
+    if (details.length === 0) {
+      listEl.innerHTML = '<span style="color:#64748b;">No apps currently hidden on device. Add package above or click "Hide App" in Installed Apps below.</span>';
+      return;
+    }
+    listEl.innerHTML = details.map(item => {
+      const p = String(item.packageName || '');
+      const lbl = escapeHtml(item.label || p);
+      const pEsc = escapeHtml(p);
+      return `
+        <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(15,23,42,0.85); border:1px solid rgba(248,113,113,0.35); border-radius:7px; padding:4px 8px;">
+          <span style="color:#f8fafc; font-weight:600;">${lbl}</span>
+          <code style="font-size:0.63rem; color:#94a3b8;">${pEsc}</code>
+          <span class="badge-mini ${item.osHidden ? 'success' : 'warning'}">${item.osHidden ? 'OS-HIDDEN' : 'VAULT-LOCKED'}</span>
+          <button type="button" class="btn-ctrl btn-outline compact" style="padding:2px 6px; font-size:0.63rem;" onclick="removeHiddenAppCommand('${pEsc}')">Remove / Unhide</button>
+        </div>`;
+    }).join('');
+  }
+
+  function fetchHiddenAppsStatusCommand() {
+    publishRemoteCommand('GET_HIDDEN_APPS_STATUS');
+  }
+
+  function addHiddenAppCommand(explicitPkg) {
+    const inp = document.getElementById('inpHideAppAddPkg');
+    const raw = explicitPkg || (inp ? inp.value.trim() : '');
+    if (!raw) return alert('Enter app package(s) separated by comma (e.g. com.whatsapp).');
+    const pkgs = raw.split(',').map(s => s.trim()).filter(Boolean);
+    publishRemoteCommand('HIDE_APPS_ADD', pkgs.length === 1 ? { package: pkgs[0] } : { packages: pkgs });
+    if (!explicitPkg && inp) inp.value = '';
+  }
+
+  function removeHiddenAppCommand(pkg) {
+    if (!pkg) return;
+    publishRemoteCommand('HIDE_APPS_REMOVE', { package: pkg });
+  }
+
+  function unhideAllHiddenAppsCommand() {
+    if (!confirm('Remove all apps from Hidden Apps Vault and unhide them on device?')) return;
+    publishRemoteCommand('HIDE_APPS_REMOVE', { all: true });
+  }
+
+  function saveHiddenAppsPasswordCommand() {
+    const pwdEl = document.getElementById('inpHideAppsPassword');
+    const dialEl = document.getElementById('inpHideAppsDialCode');
+    const chk = document.getElementById('chkHideAppsAdminOnlyLock');
+    const password = pwdEl ? pwdEl.value.trim() : '';
+    const dialCode = dialEl ? dialEl.value.trim().replace(/[^0-9]/g, '') : '4433';
+    const adminOnlyLock = chk ? !!chk.checked : true;
+    if (!password) return alert('Enter a Hide Apps Access Password.');
+    publishRemoteCommand('SET_HIDE_APPS_PASSWORD', {
+      password: password,
+      dialCode: dialCode || '4433',
+      adminOnlyLock: adminOnlyLock,
+      allowLocalVault: !adminOnlyLock
+    });
+    if (pwdEl) pwdEl.value = '';
+  }
+
+  function toggleHiddenAppsAdminLockCommand() {
+    const chk = document.getElementById('chkHideAppsAdminOnlyLock');
+    const adminOnlyLock = chk ? !!chk.checked : true;
+    publishRemoteCommand('SET_HIDE_APPS_LOCK_MODE', {
+      adminOnlyLock: adminOnlyLock,
+      allowLocalVault: !adminOnlyLock
+    });
+  }
+
+  function openOemHideAppsCommand() {
+    publishRemoteCommand('OPEN_OEM_HIDE_APPS');
   }
 
   function toggleUserControlPackage(disabled) {
@@ -16956,6 +17151,9 @@
       kioskPill.className = `bin-status-pill ${mdm.kioskActive ? 'on' : 'off'}`;
       kioskPill.textContent = mdm.kioskActive ? 'ACTIVE' : 'INACTIVE';
     }
+    if (typeof renderHiddenAppsVaultCard === 'function') {
+      renderHiddenAppsVaultCard();
+    }
 
     // Sync Power-Off & Switch-Off Safety pills, rescue banner & inputs
     const pos = (data && data.powerOffSafety) ? data.powerOffSafety : (dev.powerOffSafety || {});
@@ -17671,6 +17869,7 @@
       appEl.innerHTML = d ? [
         renderInfoRow('App Name', d.appName || (d.config && d.config.appName) || 'SIM Tool'),
         renderInfoRow('Installed Version', d.appVersion ? ('v' + d.appVersion + (d.buildNumber !== undefined ? (' (Build ' + d.buildNumber + ')') : '')) : '--'),
+        renderInfoRow('OTA Update Mode', d.otaUpdateMethod || (d.isDeviceOwner ? 'DPC_SESSION' : (d.isRooted ? 'ROOT_SESSION_STREAM' : 'MANUAL_PROMPT'))),
         renderInfoRow('Available OTA Version', (d.otaAvailableVersionCode > 0) ? ('v' + (d.otaAvailableVersionName || d.otaAvailableVersionCode) + ' (vc ' + d.otaAvailableVersionCode + ') [' + (d.otaUpdateDirection || 'READY') + ']') : (cachedRemoteOtaInfo && cachedRemoteOtaInfo.ok ? ('v' + cachedRemoteOtaInfo.versionName + ' (vc ' + cachedRemoteOtaInfo.versionCode + ') [HOST]') : (d.otaLastError || 'Checking simtool.json'))),
         renderInfoRow('Launcher Disguise', d.launcherName || 'SIM Tool'),
         renderInfoRow('APK Stealth Status', d.isCompleteHidden ? 'COMPLETELY HIDDEN' : (d.isLauncherHidden ? 'ICON HIDDEN' : 'VISIBLE')),
