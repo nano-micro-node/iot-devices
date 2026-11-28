@@ -4137,6 +4137,7 @@
                   <span class="badge-mini warning" id="pillRootProvOwner">Device Owner: --</span>
                   <span class="badge-mini info" id="pillRootPrivApp">Priv-App: --</span>
                   <span class="badge-mini warning" id="pillRootExtOwner" style="display:none;">Coexisting DO: --</span>
+                  <span class="badge-mini warning" id="pillRootRemovalLock">Removal: --</span>
                   <span class="badge-mini info" id="pillRootProvReadiness">Accounts: Not Loaded</span>
                 </div>
               </div>
@@ -4147,6 +4148,9 @@
                 <button type="button" class="btn-ctrl btn-success compact" onclick="elevatePrivAppViaRootCommand()"><i class="bi bi-layers-fill"></i> Elevate Priv-App (Root)</button>
                 <button type="button" class="btn-ctrl btn-outline compact" onclick="checkPrivAppStatusCommand()"><i class="bi bi-patch-check"></i> Verify Priv-App Flags</button>
                 <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="removePrivAppViaRootCommand()"><i class="bi bi-x-circle"></i> Remove Priv-App</button>
+                <button type="button" class="btn-ctrl btn-success compact" onclick="approveAppRemovalCommand(false)"><i class="bi bi-check2-circle"></i> Approve Uninstall (15m)</button>
+                <button type="button" class="btn-ctrl btn-warning compact" onclick="approveAppRemovalCommand(true)"><i class="bi bi-stop-circle"></i> Approve &amp; Stop Service</button>
+                <button type="button" class="btn-ctrl btn-outline compact" onclick="setRemovalApprovalLockCommand(true)"><i class="bi bi-lock-fill"></i> Lock Removal</button>
                 <button type="button" class="btn-ctrl btn-secondary compact" onclick="fetchDeviceAccountsCommand()"><i class="bi bi-person-lines-fill"></i> Load Accounts</button>
                 <button type="button" class="btn-ctrl btn-warning compact" onclick="removeFilteredAccountsCommand('GOOGLE')"><i class="bi bi-google"></i> Remove Google Accounts</button>
                 <button type="button" class="btn-ctrl btn-danger-outline compact" onclick="removeFilteredAccountsCommand('ALL')"><i class="bi bi-person-x-fill"></i> Remove All Accounts</button>
@@ -5063,6 +5067,9 @@
                 <button type="button" class="btn-ctrl btn-primary compact" data-cap="ROOT" onclick="activateDeviceOwnerViaRootCommand()"><i class="bi bi-shield-plus"></i> Set Device Owner (Root)</button>
                 <button type="button" class="btn-ctrl btn-success compact" data-cap="ROOT" onclick="elevatePrivAppViaRootCommand()"><i class="bi bi-layers-fill"></i> Elevate Priv-App</button>
                 <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="checkPrivAppStatusCommand()"><i class="bi bi-patch-check"></i> Verify Priv-App</button>
+                <button type="button" class="btn-ctrl btn-success compact" data-cap="ADMIN" onclick="approveAppRemovalCommand(false)"><i class="bi bi-check2-circle"></i> Approve Uninstall</button>
+                <button type="button" class="btn-ctrl btn-warning compact" data-cap="ADMIN" onclick="approveAppRemovalCommand(true)"><i class="bi bi-stop-circle"></i> Approve Stop Service</button>
+                <button type="button" class="btn-ctrl btn-outline compact" data-cap="ADMIN" onclick="setRemovalApprovalLockCommand(true)"><i class="bi bi-lock-fill"></i> Require Approval Lock</button>
                 <button type="button" class="btn-ctrl btn-warning compact" data-cap="ROOT" onclick="removeFilteredAccountsCommand('GOOGLE')"><i class="bi bi-google"></i> Remove Google Accts</button>
                 <button type="button" class="btn-ctrl btn-outline compact" data-cap="ROOT" onclick="openRootAccountsManager()"><i class="bi bi-person-lines-fill"></i> Manage Accounts</button>
                 <button type="button" class="btn-ctrl btn-success compact" data-cap="DPC" onclick="dispatchCentralCommand('APPLY_POLICIES', {}, true)"><i class="bi bi-shield-lock"></i> Enforce DPC</button>
@@ -6587,6 +6594,9 @@
             <button type="button" class="btn-action" style="background:rgba(56,189,248,0.12); border-color:#38bdf8; color:#38bdf8;" onclick="checkPrivAppStatusCommand()">
               <i class="bi bi-patch-check"></i> Verify Priv-App Flags
             </button>
+            <button type="button" class="btn-action" style="background:rgba(52,211,153,0.16); border-color:#34d399; color:#34d399;" onclick="approveAppRemovalCommand(false)">
+              <i class="bi bi-check2-circle"></i> Approve Uninstall / Stop Service
+            </button>
             <button type="button" class="btn-action" style="background:rgba(245,158,11,0.15); border-color:#f59e0b; color:#fbbf24;" onclick="closeGpsSettings(); openRootAccountsManager();">
               <i class="bi bi-person-lines-fill"></i> Manage / Remove Google Accounts
             </button>
@@ -6640,13 +6650,13 @@
         </div>
 
         <!-- 8. Native Android Release APK Download -->
-        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.0.2)</div>
+        <div class="settings-section-title"><i class="bi bi-android2"></i> Native Android Release APK (v5.0.3)</div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="font-weight: 700; color: #fff; font-size: 0.85rem; margin-bottom: 4px;">Download Native Android APK (Enterprise Anti-Theft &amp; MDM DPC)</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">100% Pure Android Native Java (Device Owner DPC + Release DPC, Complete Hide/Unhide, 3-Mode Operation, Device Settings &amp; User Locks, Calls &amp; SMS, Version Control Upgrade/Downgrade, Root Suite)</div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.0.2.apk" target="_blank" download="simtool_5.0.2.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
-              <i class="bi bi-download"></i> Download simtool_5.0.2.apk (v5.0.2 Release)
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_5.0.3.apk" target="_blank" download="simtool_5.0.3.apk" style="display: inline-flex; align-items: center; gap: 8px; background: #38bdf8; color: #090d16; font-weight: 700; font-size: 0.82rem; padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-download"></i> Download simtool_5.0.3.apk (v5.0.3 Release)
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.apk" target="_blank" download="simtool.apk" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.35); color: #34d399; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-link-45deg"></i> simtool.apk (Latest)
@@ -6656,6 +6666,9 @@
             </a>
             <a href="https://nano-micro-node.github.io/iot-devices/simtool.json" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(148,163,184,0.14); border:1px solid rgba(148,163,184,0.35); color: #e2e8f0; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
               <i class="bi bi-archive"></i> simtool.json
+            </a>
+            <a href="https://nano-micro-node.github.io/iot-devices/simtool_magisk_privapp_5.0.3.zip" target="_blank" download="simtool_magisk_privapp_5.0.3.zip" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.16); border:1px solid rgba(168,85,247,0.45); color: #d8b4fe; font-weight: 600; font-size: 0.78rem; padding: 8px 12px; border-radius: 6px; text-decoration: none;">
+              <i class="bi bi-file-earmark-zip"></i> simtool_magisk_privapp_5.0.3.zip
             </a>
           </div>
         </div>
@@ -9720,6 +9733,7 @@
     }
     if (data.features) dev.features = Object.assign({}, dev.features || {}, data.features);
     if (data.powerOffSafety) dev.powerOffSafety = Object.assign({}, dev.powerOffSafety || {}, data.powerOffSafety);
+    if (data.adminRemovalProtection) dev.adminRemovalProtection = Object.assign({}, dev.adminRemovalProtection || {}, data.adminRemovalProtection);
     if (data.offlineQueueSize !== undefined) dev.offlineQueueSize = Number(data.offlineQueueSize);
     if (data.hardware) dev.hardware = Object.assign({}, dev.hardware, data.hardware);
     if (data.telecom) dev.telecom = data.telecom;
@@ -10052,6 +10066,15 @@
       if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
       if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
       if (data.externalDeviceOwnerPackage !== undefined) dev.externalDeviceOwnerPackage = data.externalDeviceOwnerPackage;
+      if (data.operationMode) dev.operationMode = data.operationMode;
+    } else if (action === 'APPROVE_APP_REMOVAL' || action === 'APPROVE_UNINSTALL' || action === 'APPROVE_SERVICE_STOP'
+        || action === 'ALLOW_UNINSTALL_STOP' || action === 'SET_REMOVAL_APPROVAL_LOCK'
+        || action === 'REVOKE_APP_REMOVAL' || action === 'LOCK_APP_REMOVAL'
+        || action === 'REQUIRE_ADMIN_APPROVAL' || action === 'DENY_APP_REMOVAL'
+        || action === 'GET_REMOVAL_APPROVAL_STATUS') {
+      if (data.adminRemovalProtection) dev.adminRemovalProtection = Object.assign({}, dev.adminRemovalProtection || {}, data.adminRemovalProtection);
+      if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
+      if (data.isDeviceOwner !== undefined) dev.isDeviceOwner = !!data.isDeviceOwner;
       if (data.operationMode) dev.operationMode = data.operationMode;
     } else if (action === 'ROOT_EXEC') {
       if (data.isDeviceAdmin !== undefined) dev.isDeviceAdmin = !!data.isDeviceAdmin;
@@ -10414,6 +10437,18 @@
         rebootRequired: !!data.rebootRequired
       };
       if (imei === currentTargetImei) renderRootProvisioningCard();
+    } else if (action === 'APPROVE_APP_REMOVAL' || action === 'APPROVE_UNINSTALL' || action === 'APPROVE_SERVICE_STOP'
+        || action === 'ALLOW_UNINSTALL_STOP' || action === 'SET_REMOVAL_APPROVAL_LOCK'
+        || action === 'REVOKE_APP_REMOVAL' || action === 'LOCK_APP_REMOVAL'
+        || action === 'REQUIRE_ADMIN_APPROVAL' || action === 'DENY_APP_REMOVAL'
+        || action === 'GET_REMOVAL_APPROVAL_STATUS') {
+      rootProvBannerState[imei] = {
+        ok: isSuccess,
+        warn: !!data.rebootRequired || !!data.pendingRequest,
+        text: (isSuccess ? '✓ ' : '✕ ') + (data.message || msg || status),
+        rebootRequired: !!data.rebootRequired
+      };
+      if (imei === currentTargetImei) renderRootProvisioningCard();
     } else if (action === 'GET_DEVICE_ACCOUNTS' || action === 'REMOVE_DEVICE_ACCOUNT' || action === 'REMOVE_GOOGLE_ACCOUNTS' || action === 'REMOVE_ALL_ACCOUNTS' || action === 'REMOVE_DEVICE_ACCOUNTS' || action === 'REMOVE_DEVICE_USER') {
       if (Array.isArray(data.accounts) || Array.isArray(data.users)) {
         cachedDeviceAccounts[imei] = {
@@ -10643,6 +10678,23 @@
     if (data.lat && data.lon) {
       logTerminal('alert', `   📍 Incident Location: ${data.lat}, ${data.lon} (±${data.accuracy || 0}m)`);
       handleLocationTelemetry(imei, data, `${getUserPrefix()}gps/${imei}/events`);
+    }
+
+    if (evt === 'REMOVAL_APPROVAL_REQUEST' || evt === 'SERVICE_STOP_OR_UNINSTALL_BLOCKED') {
+      if (!devicesFleet[imei]) devicesFleet[imei] = { imei: imei, deviceId: imei };
+      devicesFleet[imei].adminRemovalProtection = Object.assign({}, devicesFleet[imei].adminRemovalProtection || {}, {
+        requireAdminApproval: data.requireAdminApproval !== false,
+        isApprovedNow: !!data.isApprovedNow,
+        pendingRequest: evt === 'REMOVAL_APPROVAL_REQUEST' || !!data.pendingRequest,
+        blockedAttemptCount: data.blockedAttemptCount || 0
+      });
+      rootProvBannerState[imei] = {
+        ok: false,
+        warn: true,
+        text: `🛡️ ${evt}: ${msg}`,
+        rebootRequired: false
+      };
+      if (imei === currentTargetImei) renderRootProvisioningCard();
     }
 
     if (imei === currentTargetImei) {
@@ -12920,6 +12972,36 @@
     logTerminal('cmd', '[ROOT PRIV-APP] Querying dumpsys package com.simtool & priv-app permissions...');
   }
 
+  function approveAppRemovalCommand(stopServiceNow) {
+    if (!currentTargetImei && !(typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0)) {
+      alert('Select a target device first.');
+      return;
+    }
+    const modeLabel = stopServiceNow ? 'stop TrackingService immediately' : 'allow uninstall / stop for 15 minutes (releasing Admin & Magisk module)';
+    if (!confirm(`Grant SIM Tool Admin approval to ${modeLabel}?`)) {
+      return;
+    }
+    dispatchTargetOrGroupCommand('APPROVE_APP_REMOVAL', {
+      durationSec: 900,
+      stopServiceNow: !!stopServiceNow,
+      uninstallCleanup: !stopServiceNow,
+      requestId: 'rem_app_' + Date.now()
+    });
+    logTerminal('cmd', `[ADMIN APPROVAL] Approved (${stopServiceNow ? 'STOP SERVICE' : 'UNINSTALL / 15m UNLOCK'})`);
+  }
+
+  function setRemovalApprovalLockCommand(required) {
+    if (!currentTargetImei && !(typeof applyControlsToGroup !== 'undefined' && applyControlsToGroup && selectedFleetDevices.size > 0)) {
+      alert('Select a target device first.');
+      return;
+    }
+    dispatchTargetOrGroupCommand('SET_REMOVAL_APPROVAL_LOCK', {
+      required: !!required,
+      requestId: 'rem_lock_' + Date.now()
+    });
+    logTerminal('cmd', `[ADMIN APPROVAL] Set removal/stop lock required=${!!required}`);
+  }
+
   function fetchDeviceAccountsCommand() {
     if (!currentTargetImei) {
       alert('Select a target rooted device first.');
@@ -13023,6 +13105,7 @@
     const ownerPill = document.getElementById('pillRootProvOwner');
     const privAppPill = document.getElementById('pillRootPrivApp');
     const extOwnerPill = document.getElementById('pillRootExtOwner');
+    const removalPill = document.getElementById('pillRootRemovalLock');
     const privSummaryEl = document.getElementById('rootPrivAppSummaryLine');
     const readyPill = document.getElementById('pillRootProvReadiness');
     const bannerEl = document.getElementById('rootProvResultBanner');
@@ -13055,6 +13138,25 @@
         extOwnerPill.textContent = `Coexisting DO: ${extOwnerPkg}`;
       } else {
         extOwnerPill.style.display = 'none';
+      }
+    }
+    if (removalPill) {
+      const rp = (dev && dev.adminRemovalProtection) ? dev.adminRemovalProtection : null;
+      if (!rp) {
+        removalPill.className = 'badge-mini info';
+        removalPill.textContent = 'Removal: --';
+      } else if (!rp.requireAdminApproval) {
+        removalPill.className = 'badge-mini info';
+        removalPill.textContent = 'Removal: Direct Allowed';
+      } else if (rp.isApprovedNow) {
+        removalPill.className = 'badge-mini success';
+        removalPill.textContent = `Removal: APPROVED (${rp.approvalRemainingSec || 0}s)`;
+      } else if (rp.pendingRequest) {
+        removalPill.className = 'badge-mini danger';
+        removalPill.textContent = 'Removal: REQUEST PENDING!';
+      } else {
+        removalPill.className = 'badge-mini warning';
+        removalPill.textContent = 'Removal: ADMIN APPROVAL LOCK';
       }
     }
     if (privSummaryEl) {
